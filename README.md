@@ -1,1 +1,3 @@
-# slemire.github.io
+# snowscan.io / blog
+
+... coming soon
