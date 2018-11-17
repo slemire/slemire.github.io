@@ -1,0 +1,7 @@
+---
+layout: single
+title:  "Testing"
+date:   2018-11-17 00:00:00 -0500
+categories: test
+---
+This is just a test
