@@ -2,6 +2,7 @@
 layout: single
 title: Egghunter Linux Shellcode
 date: 2018-11-19
+classes: wide
 categories:
   - slae
   - infosec

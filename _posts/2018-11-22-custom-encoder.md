@@ -2,6 +2,7 @@
 layout: single
 title: Custom shellcode encoder
 date: 2018-11-22
+classes: wide
 categories:
   - slae
   - infosec
