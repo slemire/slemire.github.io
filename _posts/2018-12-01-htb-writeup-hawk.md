@@ -34,7 +34,7 @@ This blog post is a quick writeup of Hawk from Hack the Box.
 
 ### Tools/Blogs
 
-- https://mthbernardes.github.io/rce/2018/03/14/abusing-h2-database-alias.html
+- [https://mthbernardes.github.io/rce/2018/03/14/abusing-h2-database-alias.html](https://mthbernardes.github.io/rce/2018/03/14/abusing-h2-database-alias.html)
 
 ### Detailed steps
 ------------------
