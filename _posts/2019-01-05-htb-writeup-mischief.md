@@ -327,7 +327,7 @@ There's another root.txt, let's see...
 
 ```
 root@yolo:/mnt/root/root# cat /mnt/root/usr/lib/gcc/x86_64-linux-gnu/7/root.txt
-ae155fad479c56f912c65d7be4487807
+ae155f<redacted>
 ```
 
 Game over!
