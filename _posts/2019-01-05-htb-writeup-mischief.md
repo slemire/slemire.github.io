@@ -3,6 +3,8 @@ layout: single
 title: Mischief - Hack The Box
 date: 2019-01-05
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-mischief/mischief_logo.png
 categories:
   - hackthebox
   - infosec

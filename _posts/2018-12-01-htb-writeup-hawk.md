@@ -3,6 +3,8 @@ layout: single
 title: Hawk - Hack The Box
 date: 2018-12-01
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-hawk/hawk.png
 categories:
   - hackthebox
   - infosec

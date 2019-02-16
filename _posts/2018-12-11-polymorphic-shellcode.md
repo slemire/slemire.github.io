@@ -3,6 +3,8 @@ layout: single
 title: Polymorphic Linux Shellcode
 date: 2018-12-11
 classes: wide
+header:
+  teaser: /assets/images/slae32.png
 categories:
   - slae
   - infosec

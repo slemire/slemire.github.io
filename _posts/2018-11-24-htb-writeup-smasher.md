@@ -3,6 +3,8 @@ layout: single
 title: Smasher - Hack The Box
 date: 2018-11-24
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-smasher/smasher.png
 categories:
   - hackthebox
   - infosec

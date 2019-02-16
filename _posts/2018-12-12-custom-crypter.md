@@ -3,6 +3,8 @@ layout: single
 title: Creating a custom shellcode crypter
 date: 2018-12-12
 classes: wide
+header:
+  teaser: /assets/images/slae32.png
 categories:
   - slae
   - infosec

@@ -3,6 +3,8 @@ layout: single
 title: Secnotes - Hack The Box
 date: 2019-01-19
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-secnotes/secnotes_logo.png
 categories:
   - hackthebox
   - infosec

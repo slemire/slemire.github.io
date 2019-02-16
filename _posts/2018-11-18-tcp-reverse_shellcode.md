@@ -3,6 +3,8 @@ layout: single
 title: TCP reverse shellcode
 date: 2018-11-18 12:00:00
 classes: wide
+header:
+  teaser: /assets/images/slae32.png
 categories:
   - slae
   - infosec

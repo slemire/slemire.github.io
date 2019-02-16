@@ -3,6 +3,8 @@ layout: single
 title: Custom shellcode encoder
 date: 2018-11-22
 classes: wide
+header:
+  teaser: /assets/images/slae32.png
 categories:
   - slae
   - infosec

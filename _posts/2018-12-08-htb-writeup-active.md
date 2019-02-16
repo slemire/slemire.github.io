@@ -3,6 +3,8 @@ layout: single
 title: Active - Hack The Box
 date: 2018-12-08
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-active/active.png
 categories:
   - hackthebox
   - infosec

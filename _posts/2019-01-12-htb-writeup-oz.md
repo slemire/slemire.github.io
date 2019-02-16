@@ -3,6 +3,8 @@ layout: single
 title: Oz - Hack The Box
 date: 2019-01-12
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-oz/oz_logo.png
 categories:
   - hackthebox
   - infosec

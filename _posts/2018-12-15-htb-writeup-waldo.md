@@ -3,6 +3,8 @@ layout: single
 title: Waldo - Hack The Box
 date: 2018-12-15
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-waldo/waldo.png
 categories:
   - hackthebox
   - infosec

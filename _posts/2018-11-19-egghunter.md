@@ -3,6 +3,8 @@ layout: single
 title: Egghunter Linux Shellcode
 date: 2018-11-19
 classes: wide
+header:
+  teaser: /assets/images/slae32.png
 categories:
   - slae
   - infosec

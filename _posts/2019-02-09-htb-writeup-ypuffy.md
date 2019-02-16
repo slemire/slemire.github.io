@@ -4,6 +4,8 @@ title: Ypuffy - Hack The Box
 excerpt: This is the writeup for Ypuffy, an OpenBSD machine from Hack the Box involving a somewhat easy shell access followed by a privesc using CA signed SSH keys.
 date: 2019-02-09
 classes: wide
+header:
+  teaser: /assets/images/htb-writeup-ypuffy/ypuffy_logo.png
 categories:
   - hackthebox
   - infosec
