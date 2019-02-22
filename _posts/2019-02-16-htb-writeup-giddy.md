@@ -5,7 +5,7 @@ excerpt: This is the writeup for Giddy, a Windows machine with an interesting tw
 date: 2019-02-16
 classes: wide
 header:
-  teaser: /assets/images/htb-writeup-access/giddy.png
+  teaser: /assets/images/htb-writeup-giddy/giddy_logo.png
 categories:
   - hackthebox
   - infosec
