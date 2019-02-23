@@ -16,7 +16,7 @@ tags:
   - suid
 ---
 
-Zipper was a cool box that mixed some enumeration, API usage and a priv esc using a SUID binary. I had some problems at first getting into Zabbix when I found a possible username but didn't think of trying the same name as the password. The priv esc was pretty cool, I used ltrace to check which function are called by the binary and I was able to understand what to do next without having to reverse the binary with IDA or R2.
+Zipper was a cool box that mixed some enumeration, API usage and a priv esc using a SUID binary. I had some problems at first getting into Zabbix when I found a possible username but didn't think of trying the same name as the password. The priv esc was pretty cool, I used ltrace to check which functions are called by the binary and I was able to understand what to do next without having to reverse the binary with IDA or R2.
 
 ![](/assets/images/htb-writeup-zipper/zipper_logo.png)
 
@@ -186,7 +186,7 @@ Under the Zabbix host, we can see that there are two hosts and one is running th
 
 ![](/assets/images/htb-writeup-zipper/zabbix_hosts.png)
 
-We can modify our existing script to be ran on the Zabbix Agent instead of the server:
+The agent is running on the host OS while the Zabbix server is running in a container so what we want to do is modify our existing script so its runs on the Zabbix Agent (therefore on the Host OS) instead of the server.
 
 ![](/assets/images/htb-writeup-zipper/zabbix_script2.png)
 
