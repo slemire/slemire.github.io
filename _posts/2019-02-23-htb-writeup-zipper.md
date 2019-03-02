@@ -5,7 +5,7 @@ excerpt: This is the writeup for Zipper, a Linux box running the Zabbix network 
 date: 2019-02-23
 classes: wide
 header:
-  teaser: /assets/images/htb-writeup-zipper/zipper.png
+  teaser: /assets/images/htb-writeup-zipper/zipper_logo.png
 categories:
   - hackthebox
   - infosec
