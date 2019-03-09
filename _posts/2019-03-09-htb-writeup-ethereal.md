@@ -20,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-ethereal/ethereal_logo.png)
 
-Ethereal was a really difficult box from [MinatoTW](https://www.secjuice.com/author/minatotw/) that I solved using an unintended priv esc method with Rotten Potato. The box was patched soon after the release to block that priv esc route. The box had some trivial command injection in the Test Connection page but since pretty much everything was blocked outbound I had to use DNS exfiltration to get the output from my commands. Once I got SYSTEM access via Potato, I found `user.txt` and `root.txt` were encrypted and couldn't be read as `NT AUTHORITY\SYSTEM`. At that point, I've spent a lot of hours on this box and I just wanted to get the flags so I changed both users's password and RDP'ed in and was able to see the flags.
+Ethereal was a really difficult box from [MinatoTW](https://www.secjuice.com/author/minatotw/) and [egre55](https://www.hackthebox.eu/home/users/profile/1190) that I solved using an unintended priv esc method with Rotten Potato. The box was patched soon after the release to block that priv esc route. The box had some trivial command injection in the Test Connection page but since pretty much everything was blocked outbound I had to use DNS exfiltration to get the output from my commands. Once I got SYSTEM access via Potato, I found `user.txt` and `root.txt` were encrypted and couldn't be read as `NT AUTHORITY\SYSTEM`. At that point, I've spent a lot of hours on this box and I just wanted to get the flags so I changed both users's password and RDP'ed in and was able to see the flags.
 
 ## Quick summary
 
