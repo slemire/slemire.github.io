@@ -53,7 +53,7 @@ I think most people solved the box the easy way (nothing wrong with that) by cha
 - There's a hint on the ticket section of the webpage about an important server that we should get access to
 - The diagnostic section of the web page contains a command injection vulnerability that we can use to gain RCE
 - From the R1 router (container), we can perform a MITM attack by injecting a more specific route in the BGP table
-- We then intercept an FTP session and recover credentials for another container that contains the `root.txt` flag
+- We then intercept an FTP session and recover the credentials that let us log in as root and recover `root.txt`
 
 ## Detailed steps
 
