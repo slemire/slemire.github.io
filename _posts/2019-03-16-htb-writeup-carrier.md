@@ -334,7 +334,7 @@ tcpdump: listening on eth2, link-type EN10MB (Ethernet), capture size 262144 byt
 	PASS BGPtelc0rout1ng
 ```
 
-### Logging to the server with root system and getting the system flag
+### Logging to the server with root credentials and getting the system flag
 
 Note: We can log in directly from the HTB network to the box IP with the FTP credentials, but in this example we'll log in from `r1`. We have to first enable an interactive pty so we can SSH.
 
@@ -358,5 +358,3 @@ root@carrier:~# cat root.txt
 cat root.txt
 2832e...
 ```
-
-Note: You could also ssh directly to the box as root without hopping through the reverse shell
