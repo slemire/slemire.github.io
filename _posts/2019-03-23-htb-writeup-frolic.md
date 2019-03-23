@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Frolic - Hack The Box
-excerpt: This is the writeup for Frolic, a CTF-like machine with a binary exploit for priv esc that requires a simple ROP
+excerpt: This is the writeup for Frolic, a CTF-like machine with esoteric programming languages and a nice priv esc that requires binary exploitation.
 date: 2019-03-23
 classes: wide
 header:
@@ -14,6 +14,8 @@ tags:
   - esoteric language
   - ctf
   - rop
+  - buffer overflow
+  - binary exploitation
 ---
 
 ![](/assets/images/htb-writeup-frolic/frolic_logo.png)
@@ -94,7 +96,7 @@ There's a Node-RED server running on port 1880 but when we try to log in with th
 
 The default nginx page is shown.
 
-![](/../_site/assets/images/htb-writeup-frolic/nginx.png)
+![](/assets/images/htb-writeup-frolic/nginx.png)
 
 Next, we'll dirbust the site.
 
