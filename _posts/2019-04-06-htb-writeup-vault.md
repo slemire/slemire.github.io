@@ -318,7 +318,7 @@ cat /etc/hosts
 192.168.5.2     Vault
 ```
 
-So, we the nework topology looks like this:
+So, we the network topology looks like this:
 
 ![](/assets/images/htb-writeup-vault/network.png)
 
