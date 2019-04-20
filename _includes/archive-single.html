@@ -27,12 +27,19 @@
       {% if post.link %}
         <a href="{{ post.link }}">{{ title }}</a> <a href="{{ post.url | relative_url }}" rel="permalink"><i class="fas fa-link" aria-hidden="true" title="permalink"></i><span class="sr-only">Permalink</span></a>
       {% else %}
-        <a href="{{ post.url | relative_url }}" rel="permalink">{{ post.date | date: "%Y-%m-%d" }}  {{ title }}</a>
+        <a href="{{ post.url | relative_url }}" rel="permalink">{{ title }}</a>
       {% endif %}
     </h2>
-    {% if post.read_time %}
-      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> {% include read-time.html %}</p>
-    {% endif %}
+
+    <p class="page__meta">
+      {% if post.last_modified_at %}
+        <i class="fa fa-fw fa-calendar" aria-hidden="true"></i> <time datetime="{{ post.last_modified_at | date: "%Y-%m-%d" }}">{{ post.last_modified_at | date: "%B %d, %Y" }}</time>&emsp;
+      {% elsif post.date %}
+        <i class="fa fa-fw fa-calendar" aria-hidden="true"></i> <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y " }}</time>&emsp;
+      {% endif %}
+      {% if post.read_time %}<i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;{% include read-time.html %}{% endif %}
+    </p>
+ 
     {% if post.excerpt %}<p class="archive__item-excerpt" itemprop="description">{{ post.excerpt | markdownify | strip_html | truncate: 1024 }}</a></p>{% endif %}
   </article>
 </div>
