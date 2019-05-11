@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Lightweight - Hack The Box
-excerpt: "Lightweight was a fun that uses Linux capabilities set on tcpdump so we can capture packets on the loopback interface and find credentials in an LDAP session. We then find more credentials in the source code of the web application and finally priv esc to root by abusing a copy of the openssl program that all has Linux caps set on it."
+excerpt: "Lightweight was a fun box that uses Linux capabilities set on tcpdump so we can capture packets on the loopback interface and find credentials in an LDAP session. We then find more credentials in the source code of the web application and finally priv esc to root by abusing a copy of the openssl program that all has Linux caps set on it."
 date: 2019-05-11
 classes: wide
 header:
@@ -19,7 +19,7 @@ tags:
 
 ![](/assets/images/htb-writeup-lightweight/lightweight_logo.png)
 
-Lightweight was a fun that uses Linux capabilities set on tcpdump so we can capture packets on the loopback interface and find credentials in an LDAP session. We then find more credentials in the source code of the web application and finally priv esc to root by abusing a copy of the openssl program that all has Linux caps set on it.
+Lightweight was a fun box that uses Linux capabilities set on tcpdump so we can capture packets on the loopback interface and find credentials in an LDAP session. We then find more credentials in the source code of the web application and finally priv esc to root by abusing a copy of the openssl program that all has Linux caps set on it.
 
 ## Summary
 
@@ -186,7 +186,7 @@ After grabbing the .pcap file via scp, we can see the following LDAP query using
 
 ![](/assets/images/htb-writeup-lightweight/ldap1.png)
 
-And we've got the password is plaintext here:
+And we've got the password in plaintext here:
 
 ![](/assets/images/htb-writeup-lightweight/ldap2.png)
 
@@ -194,7 +194,7 @@ And we've got the password is plaintext here:
 
 ### Logging in as ldapuser2 and grabbing the user flag
 
-For some reason we can't SSH in as `ldapuser2` but we're able to `su` to `ldapuser2`.
+We can't SSH in as `ldapuser2` but we're able to `su` to `ldapuser2`.
 
 ```
 [10.10.14.23@lightweight ~]$ su -l ldapuser2
