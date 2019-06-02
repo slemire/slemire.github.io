@@ -451,7 +451,7 @@ sizzler
 The command completed with one or more errors.
 ```
 
-When we check the privileges Amanda has, we notice she can add workstations to the domain with `SeMachineAccountPrivilege`. We'll use this later when we get access to the 
+When we check the privileges Amanda has, we notice she can add workstations to the domain with `SeMachineAccountPrivilege`. 
 ```
 [10.10.10.103]: PS C:\Users\amanda\Documents> whoami /priv
 
