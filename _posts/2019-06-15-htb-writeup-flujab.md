@@ -5,7 +5,7 @@ excerpt: "Flujab was without a doubt one of the toughest HTB box. It's got a ton
 date: 2019-06-15
 classes: wide
 header:
-  teaser: /assets/images/htb-writeup-flujab/flujab.png
+  teaser: /assets/images/htb-writeup-flujab/flujab_logo.png
 categories:
   - hackthebox
   - infosec
