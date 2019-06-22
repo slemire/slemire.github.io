@@ -30,11 +30,6 @@ To solve Querier, we find an Excel spreadsheet that contains a VBA macro then us
 - Logging in as `mssql-svc` to MSSQL we can use `xp_cmdshell` to get RCE
 - Using PowerUp, we find the administrator password in a GPP xml file
 
-## Tools/Blogs used
-
-- [https://github.com/g0tmi1k/debian-ssh](https://github.com/g0tmi1k/debian-ssh)
-- [https://www.exploit-db.com/exploits/41154](https://www.exploit-db.com/exploits/41154)
-
 ## Detailed steps
 
 Port scan shows SMB is open, along with MSSQL and WinRM.
