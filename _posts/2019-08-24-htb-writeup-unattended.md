@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Unattended - Hack The Box
-excerpt: "Unattended was a pretty tough box with a second order SQL injection in the PHP app. By injecting PHP code into the web server access logs through the User-Agent header, I can get RCE by accessing by including the logs using the SQL injection. I didn't quite understand what the priv esc was about though. I found the initrd archive and stumbled upon the contents by doing a grep on the box author's name."
+excerpt: "Unattended was a pretty tough box with a second order SQL injection in the PHP app. By injecting PHP code into the web server access logs through the User-Agent header, I can get RCE by including the logs using the SQL injection. I didn't quite understand what the priv esc was about though. I found the initrd archive and stumbled upon the contents by doing a grep on the box author's name."
 date: 2019-08-24
 classes: wide
 header:
@@ -24,7 +24,7 @@ tags:
 
 ![](/assets/images/htb-writeup-unattended/unattended_logo.png)
 
-Unattended was a pretty tough box with a second order SQL injection in the PHP app. By injecting PHP code into the web server access logs through the User-Agent header, I can get RCE by accessing by including the logs using the SQL injection. I didn't quite understand what the priv esc was about though. I found the initrd archive and stumbled upon the contents by doing a grep on the box author's name.
+Unattended was a pretty tough box with a second order SQL injection in the PHP app. By injecting PHP code into the web server access logs through the User-Agent header, I can get RCE by including the logs using the SQL injection. I didn't quite understand what the priv esc was about though. I found the initrd archive and stumbled upon the contents by doing a grep on the box author's name.
 
 ## Summary
 
