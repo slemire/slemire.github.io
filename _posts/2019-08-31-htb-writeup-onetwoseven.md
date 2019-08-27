@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Onetwoseven - Hack The Box
-excerpt: "OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. Once I get access to the administration page after port-forwarding my way in, I find the credentials for the admin user in a vim swap file then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root."
+excerpt: "OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. After finding the credentials for the ots-admin user in a vim swap file, I get access to the administration page by SSH port-forwarding my way in and then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root."
 date: 2019-08-31
 classes: wide
 header:
@@ -26,7 +26,7 @@ tags:
 
 ![](/assets/images/htb-writeup-onetwoseven/onetwoseven_logo.png)
 
-OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. Once I get access to the administration page after port-forwarding my way in, I find the credentials for the admin user in a vim swap file then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root.
+OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. After finding the credentials for the ots-admin user in a vim swap file, I get access to the administration page by SSH port-forwarding my way in and then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root.
 
 ## Summary
 
@@ -384,14 +384,13 @@ deb http://packages.onetwoseven.htb/devuan ascii main
 
 It's pretty clear here that I need to do some kind of Man-In-The-Middle (MITM) attack on the apt upgrade process.
 
-I did some googling and found a nice blog explaining how to perform the MITM attack on apt-get: [https://versprite.com/blog/apt-mitm-package-injection/](https://versprite.com/blog/apt-mitm-package-injection/)
+I did some googling and found a nice blog explaining how to perform the MITM attack on apt-get: [https://versprite.com/blog/apt-mitm-package-injection/](https://versprite.com/blog/apt-mitm-package-injection/). I'm not gonna rehash the entire blog article here, but the main elements of my attack are shown below.
 
-I picked nano as my target for a malicious package: `nano_3.0.0_amd64.deb`
+I pick nano as my target for a malicious package: `nano_3.0.0_amd64.deb`
 
 The `postinst` adds a cronjob that executes `/bin/nano_backdoor` every 5 minutes:
 
 ```
-# cat postinst
 #!/bin/sh
 
 set -e
