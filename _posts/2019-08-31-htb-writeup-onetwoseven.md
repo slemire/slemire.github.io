@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Onetwoseven - Hack The Box
-excerpt: "OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. After finding the credentials for the ots-admin user in a vim swap file, I get access to the administration page by SSH port-forwarding my way in and then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root."
+excerpt: "OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. After finding the credentials for the ots-admin user in a vim swap file, I get access to the administration page by SSH port-forwarding my way in and then I have to use the addon manager to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root."
 date: 2019-08-31
 classes: wide
 header:
@@ -26,7 +26,7 @@ tags:
 
 ![](/assets/images/htb-writeup-onetwoseven/onetwoseven_logo.png)
 
-OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. After finding the credentials for the ots-admin user in a vim swap file, I get access to the administration page by SSH port-forwarding my way in and then I have to work around the webapp addon manager filtering policies to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root.
+OneTwoSeven starts with enumeration of various files on the system by creating symlinks from the SFTP server. After finding the credentials for the ots-admin user in a vim swap file, I get access to the administration page by SSH port-forwarding my way in and then I have to use the addon manager to upload a PHP file and get RCE. The priv esc was pretty fun and unique: I had to perform a MITM attack against apt-get and upload a malicious package that executes arbitrary code as root.
 
 ## Summary
 
