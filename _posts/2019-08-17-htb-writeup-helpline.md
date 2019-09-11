@@ -6,6 +6,8 @@ date: 2019-08-17
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-helpline/helpline_logo.png
+  teaser_home_page: true
+  icon: /assets/images/hackthebox.webp
 categories:
   - hackthebox
   - infosec

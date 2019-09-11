@@ -18,7 +18,7 @@ minimal_mistakes_skin    : "haxor" # "air", "aqua", "contrast", "dark", "dirt", 
 locale                   : "en-US"
 title                    : "snowscan.io"
 title_separator          : "-"
-name                     : "Simon Lemire"
+name                     : "Snowscan"
 description              : "Posts about security, CTFs and networking"
 url                      : "https://snowscan.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
@@ -101,7 +101,7 @@ analytics:
 
 # Site Author
 author:
-  name             : "Simon Lemire"
+  name             : "Snowscan"
   avatar           : "/assets/images/avatar.png"
   bio              : "Network | Infosec | CTF"
   location         : "Canada"
