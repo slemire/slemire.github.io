@@ -112,7 +112,7 @@ While running gobuster I find a couple of interesting directories:
 
 I tried a few sets of credentials and I wasn't able to log in. A quick run with SQLmap didn't reveal any easy SQL injection point either.
 
-The hint from the FTP file talked about source files so I did another gobuster pass using `.phps` as the extension since I knew the application was running on PHP based on the `login.php` file found. The `.phps` extension can be used to produce a color formatted output of the PHP source code without actually interpreting it. It's definitely not something you want to leave your production webservers especially if it contains credentials.
+The hint from the FTP file talked about source files so I did another gobuster pass using `.phps` as the extension since I knew the application was running on PHP based on the `login.php` file found. The `.phps` extension can be used to produce a color formatted output of the PHP source code without actually interpreting it. It's definitely not something you want to leave on your production webservers especially if it contains credentials.
 
 ```
 # gobuster -w /usr/share/seclists/Discovery/Web-Content/big.txt -s 200,204,301,302,307,401,403 -t 25 -x phps -u http://10.10.10.137
