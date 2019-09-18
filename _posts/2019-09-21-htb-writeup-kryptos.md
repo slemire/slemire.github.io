@@ -2,7 +2,7 @@
 layout: single
 title: kryptos - Hack The Box
 excerpt: "TBA"
-date: 2019-12-31
+date: 2019-09-21
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-kryptos/kryptos_logo.png
