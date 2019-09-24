@@ -6,6 +6,8 @@ date: 2019-09-28
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-swagshop/swagshop_logo.png
+  teaser_home_page: true
+  icon: /assets/images/hackthebox.webp
 categories:
   - hackthebox
   - infosec
