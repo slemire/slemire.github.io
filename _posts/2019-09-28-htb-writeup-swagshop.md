@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Swagshop - Hack The Box
-excerpt: "TBA"
-date: 2019-12-31
+excerpt: "SwagShop is one of those easy boxes where you can pop a shell just by using public exploits. It's running a vulnerable Magento CMS on which we can create an admin using an exploit then use another exploit to get RCE. To privesc I can run vi as root through sudo and I use a builtin functionality of vi that allows users to execute commands from vi so I can get root shell."
+date: 2019-09-28
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-swagshop/swagshop_logo.png
@@ -10,12 +10,15 @@ categories:
   - hackthebox
   - infosec
 tags:
-  -
+  - linux
+  - magento
+  - vi
+  - sudo
 ---
 
 ![](/assets/images/htb-writeup-swagshop/swagshop_logo.png)
 
-TBA
+SwagShop is one of those easy boxes where you can pop a shell just by using public exploits. It's running a vulnerable Magento CMS on which we can create an admin using an exploit then use another exploit to get RCE. To privesc I can run vi as root through sudo and I use a builtin functionality of vi that allows users to execute commands from vi so I can get root shell.
 
 ## Summary
 
@@ -82,11 +85,11 @@ Indexing is on for those directories:
 
 ![](/assets/images/htb-writeup-swagshop/indexing.png)
 
-We have access to `/app/etc/local.xml` which contains the encrypted database password and the encryption key.
+I have access to `/app/etc/local.xml` which contains the encrypted database password and the encryption key.
 
 ![](/assets/images/htb-writeup-swagshop/local.png)
 
-I could not find any public tool to decrypt the MySQL root password and because this is a 20 pts box it's probably some generic CVE exploit that we have to use.
+I could not find any public tool to decrypt the password and because this is a 20 pts box there's probably some generic CVE exploit online that I can use.
 
 ### Getting a shell
 
@@ -95,7 +98,7 @@ A quick look with `searchsploit magento` shows the two interesting exploits:
 - Magento CE < 1.9.0.1 - (Authenticated) Remote Code Execution
 - Magento eCommerce - Remote Code Execution
 
-The `Magento eCommerce - Remote Code Execution` exploit creates a new admin account with `forme/forme` as credentials. We just need to modify the target and the exploit and launch it to get an admin account:
+The `Magento eCommerce - Remote Code Execution` exploit creates a new admin account with `forme/forme` as credentials. I just need to modify the target and the exploit and launch it to get an admin account:
 
 ```
 # python 37997.py
@@ -141,7 +144,7 @@ a44887...
 
 ### Privesc
 
-Priv is obvious, I see that `www-data` can launch `vi` as root. I know I can spawn a shell from within `vi` and it'll run as root because of sudo.
+The privesc is obvious: The `www-data` user can execute `vi` as root. I know I can spawn a shell from within `vi` with `:!/bin/sh` and it'll run as root because of sudo.
 
 ```
 $ sudo -l
@@ -155,10 +158,8 @@ $ python3 -c 'import pty;pty.spawn("/bin/bash")'
 www-data@swagshop:/home$ sudo /usr/bin/vi /var/www/html/pwn -c ':!/bin/sh'
 
 # id
-id
 uid=0(root) gid=0(root) groups=0(root)
 # cat /root/root.txt
-cat /root/root.txt
 c2b087...
 
    ___ ___
