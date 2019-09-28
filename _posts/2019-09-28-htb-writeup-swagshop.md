@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Swagshop - Hack The Box
-excerpt: "SwagShop is one of those easy boxes where you can pop a shell just by using public exploits. It's running a vulnerable Magento CMS on which we can create an admin using an exploit then use another exploit to get RCE. To privesc I can run vi as root through sudo and I use a builtin functionality of vi that allows users to execute commands from vi so I can get root shell."
+excerpt: "SwagShop is one of those easy boxes where you can pop a shell just by using public exploits. It's running a vulnerable Magento CMS on which we can create an admin using an exploit then use another one to get RCE. To privesc I can run vi as root through sudo and I use a builtin functionality of vi that allows users to execute commands from vi so I can get root shell."
 date: 2019-09-28
 classes: wide
 header:
@@ -20,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-swagshop/swagshop_logo.png)
 
-SwagShop is one of those easy boxes where you can pop a shell just by using public exploits. It's running a vulnerable Magento CMS on which we can create an admin using an exploit then use another exploit to get RCE. To privesc I can run vi as root through sudo and I use a builtin functionality of vi that allows users to execute commands from vi so I can get root shell.
+SwagShop is one of those easy boxes where you can pop a shell just by using public exploits. It's running a vulnerable Magento CMS on which we can create an admin using an exploit then use another one to get RCE. To privesc I can run vi as root through sudo and I use a builtin functionality of vi that allows users to execute commands from vi so I can get root shell.
 
 ## Summary
 
