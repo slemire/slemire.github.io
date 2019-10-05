@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Ghoul - Hack The Box
-excerpt: "Ghoul was a tricky box from Minatow that required pivoting across 3 containers to find the bits and pieces needed to get root. To get a shell I used a Zip Slip vulnerability in the Java upload app to drop a PHP meterpreter payload on the webserver. After pivoting and scanning the other network segment I found a Gogs application server that is vulnerable and I was able to get a shell there. More credentials were hidden inside an archive file and I was able to use the root shell on one of the container then hijack the SSH agent socket from a connecting root user and hop onto the host OS."
+excerpt: "Ghoul was a tricky box from Minatow that required pivoting across 3 containers to find the bits and pieces needed to get root. To get a shell I used a Zip Slip vulnerability in the Java upload app to drop a PHP meterpreter payload on the webserver. After pivoting and scanning the other network segment I found a Gogs application server that is vulnerable and I was able to get a shell there. More credentials were hidden inside an archive file and I was able to use the root shell on one of the container to hijack the SSH agent socket from a connecting root user and hop onto the host OS."
 date: 2019-10-05
 classes: wide
 header:
@@ -23,11 +23,11 @@ tags:
 
 ![](/assets/images/htb-writeup-ghoul/ghoul_logo.png)
 
-Ghoul was a tricky box from Minatow that required pivoting across 3 containers to find the bits and pieces needed to get root. To get a shell I used a Zip Slip vulnerability in the Java upload app to drop a PHP meterpreter payload on the webserver. After pivoting and scanning the other network segment I found a Gogs application server that is vulnerable and I was able to get a shell there. More credentials were hidden inside an archive file and I was able to use the root shell on one of the container then hijack the SSH agent socket from a connecting root user and hop onto the host OS.
+Ghoul was a tricky box from Minatow that required pivoting across 3 containers to find the bits and pieces needed to get root. To get a shell I used a Zip Slip vulnerability in the Java upload app to drop a PHP meterpreter payload on the webserver. After pivoting and scanning the other network segment I found a Gogs application server that is vulnerable and I was able to get a shell there. More credentials were hidden inside an archive file and I was able to use the root shell on one of the container to hijack the SSH agent socket from a connecting root user and hop onto the host OS.
 
 ## Summary
 
-- Guess the simple http basic auth credentials for the tomcat web application running on port 8080
+- Guess the simple HTTP basic auth credentials for the tomcat web application running on port 8080
 - Exploit the Zip Slip vulnerability in the upload form to upload a meterpreter shell
 - Find SSH keys backups for 3 local users, one of them is encrypted but the password is found in the chat app screenshot
 - Find additional container hosts by uploading a statically compiled nmap binary
