@@ -1,10 +1,9 @@
 ---
 layout: single
 title: Safe - Hack The Box
-excerpt: TBA
-date: 2019-10-12
+excerpt: "Safe was a bit of a surprise because I didn't expect a 20 points box to start with a buffer overflow requiring ropchains. The exploit is pretty straightforward since I have the memory address of the system function and I can call it to execute a shell. The privesc was a breeze: there's a keepass file with a bunch of images in a directory. I simply loop through all the images until I find the right keyfile that I can use with John the Ripper to crack the password and recover the root password from the keepass file."
+date: 2019-10-26
 classes: wide
-published: false
 header:
   teaser: /assets/images/htb-writeup-safe/safe_logo.png
   teaser_home_page: true
@@ -21,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-safe/safe_logo.png)
 
-TBA
+Safe was a bit of a surprise because I didn't expect a 20 points box to start with a buffer overflow requiring ropchains. The exploit is pretty straightforward since I have the memory address of the system function and I can call it to execute a shell. The privesc was a breeze: there's a keepass file with a bunch of images in a directory. I simply loop through all the images until I find the right keyfile that I can use with John the Ripper to crack the password and recover the root password from the keepass file.
 
 ## Summary
 
@@ -226,6 +225,8 @@ RDI has a null-value so it doesn't point to a memory location I control and ther
 Next, I'm gonna use `ropper -f myapp` to look for gadgets I can use to control registers:
 
 ![](/assets/images/htb-writeup-safe/ropper.png)
+
+I'll use the gadget at `0x401206` to put the address of `system` into `r13`. I don't care about `r14` and `r15` so I can put any dummy values here. The trick to get the address of `/bin/sh` is in the `sym.test` function. The first instruction pushes `rbp` (which contains the address of `/bin/sh`) on the stack so it updates the `rsp` address. The `mov rdi, rsp` instruction in the fonction takes care of copying the address of `rsp` into `rdi`. At that point I'm all set and when the function jumps to `r13` it will execute `system` with `/bin/sh` as the parameter.
 
 The final exploit looks like this:
 
