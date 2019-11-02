@@ -171,7 +171,7 @@ Kibana is running version `Version: 6.4.2`:
 
 There's an LFI CVE in Kibana for that version which let us execute Javascript code.
 
-![https://github.com/mpgn/CVE-2018-17246](https://github.com/mpgn/CVE-2018-17246)
+[https://github.com/mpgn/CVE-2018-17246](https://github.com/mpgn/CVE-2018-17246)
 
 I created `/tmp/shell.js` with a standard reverse shell:
 
