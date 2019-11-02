@@ -1,10 +1,9 @@
 ---
 layout: single
 title: Haystack - Hack The Box
-excerpt: "Haystack is an easy ctf-like box where the initial credentials can be found hidden in an ElasticSearch database, hence the name of the machine. Knowing some ES API syntax it's very easy to retrieve the credentials then get an SSH shell. After exploiting CVE-2018-17246 in Kibana, I get another shell with user kibana who has read access on the configuration for logstash which is running as root. The logstash configuration will run as root any command placed in a specific logstash directory/file so once I figured that out it was easy to get a root shell."
+excerpt: "Haystack is an easy ctf-like box where the initial credentials can be found hidden in an ElasticSearch database. Knowing some ES API syntax it's very easy to retrieve the credentials then get an SSH shell. After exploiting CVE-2018-17246 in Kibana, I get another shell with user kibana who has read access on the configuration for logstash which is running as root. The logstash configuration will run as root any command placed in a specific logstash directory/file so once I figured that out it was easy to get a root shell."
 date: 2019-11-02
 classes: wide
-published: false
 header:
   teaser: /assets/images/htb-writeup-haystack/haystack_logo.png
   teaser_home_page: true
@@ -24,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-haystack/haystack_logo.png)
 
-Haystack is an easy ctf-like box where the initial credentials can be found hidden in an ElasticSearch database, hence the name of the machine. Knowing some ES API syntax it's very easy to retrieve the credentials then get an SSH shell. After exploiting CVE-2018-17246 in Kibana, I get another shell with user kibana who has read access on the configuration for logstash which is running as root. The logstash configuration will run as root any command placed in a specific logstash directory/file so once I figured that out it was easy to get a root shell.
+Haystack is an easy ctf-like box where the initial credentials can be found hidden in an ElasticSearch database. Knowing some ES API syntax it's very easy to retrieve the credentials then get an SSH shell. After exploiting CVE-2018-17246 in Kibana, I get another shell with user kibana who has read access on the configuration for logstash which is running as root. The logstash configuration will run as root any command placed in a specific logstash directory/file so once I figured that out it was easy to get a root shell.
 
 ## Summary
 
