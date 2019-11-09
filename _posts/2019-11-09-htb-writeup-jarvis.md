@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Jarvis - Hack The Box
-excerpt: "The entrypoint for Jarvis is an SQL injection vulnerability in the web application to book hotel rooms. There is a WAF but I was able to easily get around it by lowering the amount of requests per second in sqlmap and changing the user-agent header. After landing a shell, I exploit a simple command injectino to get access to another user then I use systemctl which has been set SUID root to create a new service and get root RCE."
+excerpt: "The entrypoint for Jarvis is an SQL injection vulnerability in the web application to book hotel rooms. There is a WAF but I was able to easily get around it by lowering the amount of requests per second in sqlmap and changing the user-agent header. After landing a shell, I exploit a simple command injection to get access to another user then I use systemctl which has been set SUID root to create a new service and get root RCE."
 date: 2019-11-09
 classes: wide
 header:
@@ -23,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-jarvis/jarvis_logo.png)
 
-The entrypoint for Jarvis is an SQL injection vulnerability in the web application to book hotel rooms. There is a WAF but I was able to easily get around it by lowering the amount of requests per second in sqlmap and changing the user-agent header. After landing a shell, I exploit a simple command injectino to get access to another user then I use systemctl which has been set SUID root to create a new service and get root RCE.
+The entrypoint for Jarvis is an SQL injection vulnerability in the web application to book hotel rooms. There is a WAF but I was able to easily get around it by lowering the amount of requests per second in sqlmap and changing the user-agent header. After landing a shell, I exploit a simple command injection to get access to another user then I use systemctl which has been set SUID root to create a new service and get root RCE.
 
 ## Summary
 
