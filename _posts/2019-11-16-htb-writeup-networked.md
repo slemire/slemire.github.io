@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Networked - Hack The Box
-excerpt: "Networked was an easy box that starts off with a classic insecure upload vulnerability in a image gallery web application. The Apache server is misconfigured and let me use a double extension to get remote code execution through my PHP script. To escalate to root, we have to use exploit a command injection vulnerability in the script that checks for web application attacks, then exploit another script running as root that changes the ifcfg file."
-date: 2019-11-13
+excerpt: "Networked was an easy box that starts off with a classic insecure upload vulnerability in an image gallery web application. The Apache server is misconfigured and let me use a double extension to get remote code execution through my PHP script. To escalate to root, we have to find a command injection vulnerability in the script that checks for web application attacks, then exploit another script running as root that changes the ifcfg file."
+date: 2019-11-16
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-networked/networked_logo.png
@@ -23,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-networked/networked_logo.png)
 
-Networked was an easy box that starts off with a classic insecure upload vulnerability in a image gallery web application. The Apache server is misconfigured and let me use a double extension to get remote code execution through my PHP script. To escalate to root, we have to use exploit a command injection vulnerability in the script that checks for web application attacks, then exploit another script running as root that changes the ifcfg file.
+Networked was an easy box that starts off with a classic insecure upload vulnerability in an image gallery web application. The Apache server is misconfigured and let me use a double extension to get remote code execution through my PHP script. To escalate to root, we have to find a command injection vulnerability in the script that checks for web application attacks, then exploit another script running as root that changes the ifcfg file.
 
 ## Summary
 
