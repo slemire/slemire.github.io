@@ -101,7 +101,7 @@ Looking at the `upload.php` file, I pick up a few checks that the code makes aga
 2. The extension of the uploaded file must be one of the following: `.jpg, .png, .gif, .jpeg`
 ![](/assets/images/htb-writeup-networked/code2.png)
 
-3. The MIME type of the uploaded file must start with `/image` (the code below in from `lib.php`)
+3. The MIME type of the uploaded file must start with `image/` (the code below in from `lib.php`)
 ![](/assets/images/htb-writeup-networked/code3.png)
 
 Note that the `file_mime_type` function uses `finfo_open` to return the MIME type so it'll look at the content of the file to determine it's MIME type. I can't just override the MIME type with `Content-Type: image/png` in Burp.
