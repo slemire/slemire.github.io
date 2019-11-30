@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Heist - Hack The Box
-excerpt: "Heist starts off with a support page on which I find a username and a Cisco IOS config file containing hashed & encrypted passwords. After cracking two passwords from the config file and getting access to RPC on the Windows machine, I find additional usernames by RID cycling and then password spray to find a user that has WinRM access. Once I have a shell, I discover a running Firefox process and after dumping the memory and doing some expert-level forensics (ie: running `strings`), I find the administrator password."
+excerpt: "Heist starts off with a support page with a username and a Cisco IOS config file containing hashed & encrypted passwords. After cracking two passwords from the config file and getting access to RPC on the Windows machine, I find additional usernames by RID cycling and then password spray to find a user that has WinRM access. Once I have a shell, I discover a running Firefox process and dump its memory to disk so I can do some expert-level forensics (ie: running `strings`) to find the administrator password."
 date: 2019-11-30
 classes: wide
 header:
@@ -24,7 +24,7 @@ tags:
 
 ![](/assets/images/htb-writeup-heist/heist_logo.png)
 
-Heist starts off with a support page on which I find a username and a Cisco IOS config file containing hashed & encrypted passwords. After cracking two passwords from the config file and getting access to RPC on the Windows machine, I find additional usernames by RID cycling and then password spray to find a user that has WinRM access. Once I have a shell, I discover a running Firefox process and after dumping the memory and doing some expert-level forensics (ie: running `strings`), I find the administrator password.
+Heist starts off with a support page with a username and a Cisco IOS config file containing hashed & encrypted passwords. After cracking two passwords from the config file and getting access to RPC on the Windows machine, I find additional usernames by RID cycling and then password spray to find a user that has WinRM access. Once I have a shell, I discover a running Firefox process and dump its memory to disk so I can do some expert-level forensics (ie: running `strings`) to find the administrator password.
 
 ## Summary
 
@@ -88,7 +88,7 @@ After logging in as guest, I find a Cisco configuration in the opened trouble ti
 
 ## Cracking some credentials
 
-The Cisco IOS configuration file here has two different types of password hashes. Cisco uses various hash algorithms across different products and software versions. The old password encryption type is called Type 7 encryption and is basically just Vigenere encryption. I still see this being used in production environments every week even though it doesn't provide any real security (it's akin to just base64 encoding your passwords in your configs, it's trivial to recover the plaintext).
+The Cisco IOS configuration file here has two different types of password hashes. Cisco uses various hash algorithms across different products and software versions. The old password encryption type is called Type 7 encryption and has been known to be extremely weak for about 20+ years now. I still see this being used in production environments every week even though it doesn't provide any real security (it's akin to just base64 encoding your passwords in your configs, it's trivial to recover the plaintext).
 
 For the two usernames, the Type 7 passwords can be reversed with any of the many Type 7 reversing tools available such as [https://packetlife.net/toolbox/type7/](https://packetlife.net/toolbox/type7/). 
  - rout3r / $uperP@ssword
