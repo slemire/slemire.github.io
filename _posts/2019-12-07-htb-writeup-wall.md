@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Wall - Hack The Box
-excerpt: "Wall is running a vulnerable version of the Centreon application that allows authenticated user to gain RCE. The tricky part of this box was finding the path to the application since it's not something that normally shows up in the wordlists I use with gobuster. The intended way was to bypass the HTTP basic auth by using a POST then the redirection contained a link to the centreon page but instead I did some recon on the box creator's website and saw that he had written an exploit for Centreon and guessed the path accordingly. The priv esc was the same used on Flujab: a vulnerability in screen that allows the attacker to write to any file on the system."
+excerpt: "Wall is running a vulnerable version of the Centreon application that allows authenticated users to gain RCE. The tricky part of this box was finding the path to the application since it's not something that normally shows up in the wordlists I use with gobuster. The intended way was to bypass the HTTP basic auth by using a POST then the redirection contained a link to the centreon page but instead I did some recon on the box creator's website and saw that he had written an exploit for Centreon and guessed the path accordingly. The priv esc was the same used on Flujab: a vulnerability in screen that allows the attacker to write to any file on the system."
 date: 2019-12-07
 classes: wide
 header:
@@ -22,7 +22,7 @@ tags:
 
 ![](/assets/images/htb-writeup-wall/wall_logo.png)
 
-Wall is running a vulnerable version of the Centreon application that allows authenticated user to gain RCE. The tricky part of this box was finding the path to the application since it's not something that normally shows up in the wordlists I use with gobuster. The intended way was to bypass the HTTP basic auth by using a POST then the redirection contained a link to the centreon page but instead I did some recon on the box creator's website and saw that he had written an exploit for Centreon and guessed the path accordingly. The priv esc was the same used on Flujab: a vulnerability in screen that allows the attacker to write to any file on the system.
+Wall is running a vulnerable version of the Centreon application that allows authenticated users to gain RCE. The tricky part of this box was finding the path to the application since it's not something that normally shows up in the wordlists I use with gobuster. The intended way was to bypass the HTTP basic auth by using a POST then the redirection contained a link to the centreon page but instead I did some recon on the box creator's website and saw that he had written an exploit for Centreon and guessed the path accordingly. The priv esc was the same used on Flujab: a vulnerability in screen that allows the attacker to write to any file on the system.
 
 ## Summary
 
