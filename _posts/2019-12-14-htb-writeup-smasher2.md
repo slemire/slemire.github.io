@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Smasher2 - Hack The Box
-excerpt: "TBA"
-date: 2019-11-16
+excerpt: "Just its predecessor, Smasher2 is a very difficult box with reverse engineering and binary exploitation. Unfortunately, the initial step required some insane brute-forcing which took part of the fun out of this one for me. I solved the authentication bypass part using an unintended method: The code compares the password against the username instead of the password in the configuration file so by guessing the username I also had the password and could log in. I had to do some WAF evasion to get my payload uploaded and land a shell. Then the final part of the box is exploiting a kernel driver mmap handler to change the credential structure in memory of my current user to get root access."
+date: 2019-12-14
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-smasher2/smasher2_logo.png
@@ -20,21 +20,21 @@ tags:
 
 ![](/assets/images/htb-writeup-smasher2/smasher2_logo.png)
 
-Just its predecessor, Smasher2 is a very difficult box with reverse engineering and binary exploitation. Unfortunately, the initial step required some insane brute-forcing which took the fun out of this one for me. I solved the authentication bypass part using an unintended method: The code compares the password against the username instead of the password in the configuration file so by guessing the username I also had the password and could log in. I had to do some WAF evasion to get my payload uploaded and land a shell. Then the final part of the box is exploiting a kernel driver mmap handler to change the credential structure in memory of my current user to get root access.
+Just its predecessor, Smasher2 is a very difficult box with reverse engineering and binary exploitation. Unfortunately, the initial step required some insane brute-forcing which took part of the fun out of this one for me. I solved the authentication bypass part using an unintended method: The code compares the password against the username instead of the password in the configuration file so by guessing the username I also had the password and could log in. I had to do some WAF evasion to get my payload uploaded and land a shell. Then the final part of the box is exploiting a kernel driver mmap handler to change the credential structure in memory of my current user to get root access.
 
 Overcast was the first one to find the intended way to solve the authentication bypass. He posted an excellent writeup about it here and I recommend you check it out: [https://www.justinoblak.com/2019/10/01/hack-the-box-smasher2.html](https://www.justinoblak.com/2019/10/01/hack-the-box-smasher2.html)
 
 ## Summary
 
-- We can do a zone transfer to find the `wonderfulsessionmanager.smasher2.htb` sub-domain
-- The domain has a simple generic website with a login form running on Python Flask
-- On the main website there's a `/backup` directory that is protected by HTTP basic authentication and contains the source code of the web application running
-- The unintended way is to review the source code, run the `auth.py` with the shared library locally and identify that the supplied password is being checked against the username (instead of the password). Then it's just a matter of bruteforcing usernames until we find that we can log in with `Administrator / Administrator` and get an API key
-- Once we have an API key, we have to defeat a WAF to gain RCE on the system
-- After getting a shell, we find a custom kernel module that is vulnerable to memory mapping issues
-- Using the discovered vulnerability, we can modify the credentials memory structure of our user and change it so we have root privileges
+- We can do a zone transfer to find the `wonderfulsessionmanager.smasher2.htb` sub-domain.
+- The domain has a simple generic website with a login form running on Python Flask.
+- On the main website there's a `/backup` directory that is protected by HTTP basic authentication and contains the source code of the web application running on the machine
+- The unintended way to bypass the authentication of the web app is to review the source code, run the `auth.py` with the shared library locally and identify that the supplied password is being checked against the username (instead of the password). Then it's just a matter of bruteforcing usernames until we find that we can log in with `Administrator / Administrator` and get an API key.
+- Once we have an API key, we have to defeat a WAF to gain RCE on the system.
+- After getting a shell, we find a custom kernel module that is vulnerable to memory mapping issues.
+- Using the discovered vulnerability, we can modify the credentials memory structure of our user and change it so we have root privileges.
 
-## Tools/Blogs used
+## Blogs used
 
 - [Kernel Driver mmap Handler Exploitation](https://labs.mwrinfosecurity.com/assets/BlogFiles/mwri-mmap-exploitation-whitepaper-2017-09-18.pdf)
 
@@ -70,7 +70,7 @@ The web server displays the default Ubuntu apache page:
 When running gobuster I found an interesting `/backup` directory but it's protected by HTTP basic authentication.
 
 ```
-# gobuster -w /usr/share/seclists/Discovery/Web-Content/raft-large-words-lowercase.txt -t 25 -u http://10.10.10.135 -s 00,204,301,302,307,401
+# gobuster -w raft-large-words-lowercase.txt -t 25 -u http://10.10.10.135 -s 200,204,301,302,307,401
 /backup (Status: 401)
 ```
 
@@ -164,7 +164,7 @@ robert.anderson
 ally.sanders
 ```
 
-Unfortunately not of them worked. By that time, a lot of people in the Mattermost HTB chat were stuck in the same place and the box creator dropped a hint that we had to use **the full rockyou.txt** wordlist and start at the letter c. He also mentionned that the username was `admin`. I don't know how this box got past the HTB testers since heavy bruteforcing is normally not allowed. To put this into perspective, even when knowing the username and the start letter, we're looking at potentially ~640k passwords:
+Unfortunately not of them worked. By that time, a lot of people in the Mattermost HTB chat were stuck in the same place and the box creator dropped a hint that we had to use **the full rockyou.txt** wordlist and start at the letter c. He also mentioned that the username was `admin`. I don't know how this part of the box got past the HTB testers since heavy bruteforcing is normally not allowed (I think the box later got patched and that basic auth part was removed). To put this into perspective, even when knowing the username and the start letter, we're looking at potentially ~640k passwords in rockyou.txt:
 
 ```
 # egrep "^c.*" /usr/share/wordlists/rockyou.txt > wordlist.txt
@@ -172,7 +172,7 @@ root@ragingunicorn:~/htb/smasher2# wc -l wordlist.txt
 639676 wordlist.txt
 ```
 
-In my opinion, this is way over the top since the full rockyou list has 14M+ entries and it's not possible to brute force an HTTP basic auth in a reasonable amount of time when we don't even know the username. Anyways, it still took me ~40 minutes to find the password when running 32 threads of hydra:
+In my opinion, this is way over the top since the full rockyou list has 14M+ entries and it's not possible to brute force an HTTP basic auth in a reasonable amount of time when we don't even know the username. Anyways, it still took me ~40 minutes to find the password when running 32 threads in hydra:
 
 ```
 # hydra -l admin -P wordlist.txt 10.10.10.135 -t 32 http-get /backup
@@ -193,13 +193,15 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2019-06-05 01:05:
 
 Password: `clarabibi`
 
-I checked if that password was present in any other wordlist from seclists, including the reduced rockyou list but I didn't find it there. It's only in the full rockyou list:
+I checked if that password was present in any other wordlist from SecLists, including the reduced rockyou list but I didn't find it there. It's only in the full rockyou list:
 
 ```
 # grep -ri clarabibi /usr/share/seclists/
 root@ragingunicorn:~# grep -ri clarabibi /usr/share/wordlists/rockyou.txt 
 clarabibi
 ```
+
+Ok, rant over.
 
 Once I had the password, I checked out the `/backup` and found the source code for the authentication page on `wonderfulsessionmanager.smasher2.htb`
 
@@ -233,7 +235,8 @@ The code also uses the custom `ses` module but it's implemented through the `ses
 
 ```
 # file ses.so
-ses.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, BuildID[sha1]=0c67d40b77854318b10417b4aedfee95a52f0550, not stripped
+ses.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked,
+BuildID[sha1]=0c67d40b77854318b10417b4aedfee95a52f0550, not stripped
 ```
 
 To load the `ses.so` file in my Python code, I used the following `ses.py` snippet of code I found online:
@@ -269,7 +272,8 @@ I experimented in the interactive interpreter a bit to list the different method
 ```
 >>> s = ses.SessionManager(login, craft_secure_token(":".join(login)))
 >>> dir(s)
-['__doc__', '__init__', '__module__', 'blocked', 'check_login', 'inc_login_count', 'last_login', 'login_count', 'rst_login_count', 'secret_key', 'time_module', 'user_login']
+['__doc__', '__init__', '__module__', 'blocked', 'check_login', 'inc_login_count', 'last_login',
+ 'login_count', 'rst_login_count', 'secret_key', 'time_module', 'user_login']
 ```
 
 The `secret_key` property is created by the `craft_secure_token` function and it contains the API key that needs to be applied to access the `/api` endpoint:
@@ -334,13 +338,17 @@ In `SessionManager_check_login`, I can see the code does two `strcmp` calls to c
 
 I put a breakpoint in GDB at the `SessionManager_check_login` function call and traced its execution.
 
-```
-Missing explanation, why can't I replicate it??
-```
+First, there's a `strcmp` for the username:
 
-Wow, that's a pretty bad bug, the code does a `strcmp` on the password against the username! So if I just brute force the usernames I should be able to log in since the password will be ignored.
+![](/assets/images/htb-writeup-smasher2/gdb.png)
 
-To brute force the username, I wrote the script below but had to factor in some error handling whenever I would get a 403 message for some usernames with invalid characters. Sometimes I would also get some false positive, plus the box also dies after ~300 login attemps so I had to reset quite a few times before I figured out the right wordlist.
+Then on the next `strcmp` for the password there's something really strange...
+
+![](/assets/images/htb-writeup-smasher2/gdb2.png)
+
+It's comparing the supplied password against the username. Wow, that's a pretty bad bug! So if I just brute force the usernames and I find a valid one I will be able to login by using it as the password.
+
+To brute force the username, I wrote the script below but had to factor in some error handling whenever I would get a 403 message for some usernames with invalid characters. Sometimes I would also get some false positive, plus the box also dies after ~300 login attempts so I had to reset quite a few times before I figured out the right wordlist.
 
 ```python
 #!/usr/bin/python
@@ -392,7 +400,7 @@ while True:
     time.sleep(0.05)
 ```
 
-Eventually, I found that the username `Administrator` is the right one:
+Eventually, I found that the username `Administrator` is the right one (case-sensitive):
 
 ```
 # python brute.py 
@@ -417,7 +425,7 @@ Testing username: Administrator
 Potential password! Administrator
 ```
 
-I can now log on an get an API key:
+I can now log in and get an API key:
 
 ![](/assets/images/htb-writeup-smasher2/apikey.png)
 
@@ -427,7 +435,7 @@ Using the `/api/<key>/job` API, I can execute some commands like `whoami`:
 
 ![](/assets/images/htb-writeup-smasher2/rce1.png)
 
-However there is a WAF configured because the following commands are blocked and return a 403 Forbidden:
+However there is a WAF configured because the following commands are blocked and the server returns a 403 Forbidden:
 
 - most UNIX commands (ls, cat, etc.)
 - multiple commands separated with a semi colon (ie. whoami;whoami)
