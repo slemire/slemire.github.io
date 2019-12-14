@@ -16,6 +16,8 @@ tags:
   - sqli
   - bruteforce
   - kernel module
+  - python
+  - re
 ---
 
 ![](/assets/images/htb-writeup-smasher2/smasher2_logo.png)
