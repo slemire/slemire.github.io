@@ -1,7 +1,7 @@
 ---
 layout: single
 title: RE - Hack The Box
-excerpt: "I had fun solving RE but I did it using an unintended path. After getting a shell with a macroed .ods file, I saw that the Winrar version had a CVE which allowed me to drop a webshell in the webserver path and get RCE as `iis apppool\re`. The user had access to modify the UsoSvc service running with SYSTEM privileges so it was trivial at that point to get a SYSTEM shell. Because the root flag was encrypted for user Coby, I used meterpreter to impersonate his token and read the file."
+excerpt: "I had fun solving RE but I did it using an unintended path. After getting a shell with a macroed .ods file, I saw that the Winrar version had a CVE which allowed me to drop a webshell in the webserver path and get RCE as `iis apppool\\re`. The user had access to modify the UsoSvc service running with SYSTEM privileges so it was trivial at that point to get a SYSTEM shell. Because the root flag was encrypted for user Coby, I used meterpreter to impersonate his token and read the file."
 date: 2020-02-01
 classes: wide
 header:
@@ -12,6 +12,7 @@ categories:
   - hackthebox
   - infosec
 tags:
+  - yara
   - usosvc
   - unintended
   - libreoffice
@@ -179,7 +180,7 @@ The `.ods` file extension is used by LibreOffice Calc and this seems to be a hin
 - Sub OnLoad
 - Sub Exploit
 
-Because I can bind assign any macro to the Open Document event, I can use `Run_at_open` (or any name for that matter) instead of `OnLoad` for the function name and it won't be caught by the YARA rule.
+Because I can assign any macro to the Open Document event, I can use `Run_at_open` (or any name for that matter) instead of `OnLoad` for the function name and it won't be caught by the YARA rule.
 
 I created a `sales.ods` file with the following macro using `certutil` to download netcat and execute it.
 

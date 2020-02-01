@@ -103,7 +103,7 @@ analytics:
 author:
   name             : "Snowscan"
   avatar           : "/assets/images/avatar.png"
-  bio              : "Pentester :: CTF player :: HackTheBox ATeam"
+  bio              : "Pentester, CTF player<br>HackTheBox ATeam"
   location         : "Canada"
   email            : "info@snowscan.io"
   uri              :
