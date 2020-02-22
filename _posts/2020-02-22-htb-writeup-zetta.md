@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Zetta - Hack The Box
-excerpt: "Zetta is another amazing box by [jkr](https://twitter.com/ateamjkr). The first part was kinda tricky because you had to pay attention to the details on the webpage and spot the references to IPv6 that lead you to the EPTR command to disclose the IPv6 address of the server. Then there's some light bruteforcing of rsync's credentials with a custom bruteforce for script and finally a really cool SQL injection in a syslog PostgreSQL module."
+excerpt: "Zetta is another amazing box by [jkr](https://twitter.com/ateamjkr). The first part was kinda tricky because you had to pay attention to the details on the webpage and spot the references to IPv6 that lead you to the EPTR command to disclose the IPv6 address of the server. Then there's some light bruteforcing of rsync's credentials with a custom bruteforce script and finally a really cool SQL injection in a syslog PostgreSQL module."
 date: 2020-02-22
 classes: wide
 header:
@@ -20,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-zetta/zetta_logo.png)
 
-Zetta is another amazing box by [jkr](https://twitter.com/ateamjkr). The first part was kinda tricky because you had to pay attention to the details on the webpage and spot the references to IPv6 that lead you to the EPTR command to disclose the IPv6 address of the server. Then there's some light bruteforcing of rsync's credentials with a custom bruteforce for script and finally a really cool SQL injection in a syslog PostgreSQL module.
+Zetta is another amazing box by [jkr](https://twitter.com/ateamjkr). The first part was kinda tricky because you had to pay attention to the details on the webpage and spot the references to IPv6 that lead you to the EPTR command to disclose the IPv6 address of the server. Then there's some light bruteforcing of rsync's credentials with a custom bruteforce script and finally a really cool SQL injection in a syslog PostgreSQL module.
 
 ## Summary
 
