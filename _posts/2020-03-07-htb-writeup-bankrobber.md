@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Bankrobber - Hack The Box
-excerpt: "TBA"
+excerpt: "Bankrobber is a web app box with a simple XSS and SQL injection that we have to exploit in order to get the source code of the application and discover a command injection vulnerability in the backdoor checker page that's only reachable from localhost. By using the XSS to make a local request to that page, we can get land a shell on the box. To get root, we exploit a buffer in an application to override the name of the binary launched by the program."
 date: 2020-03-07
 classes: wide
 header:
@@ -22,7 +22,7 @@ tags:
 
 ![](/assets/images/htb-writeup-bankrobber/bankrobber_logo.png)
 
-Bankrobber is a web app box with simple a XSS and SQL injection that you have to exploit in order to get the source code of the application and discover a command injection vulnerability in a the backdoor checker page that's only reachable locally. By using the XSS again to make a local request to that page, we can get land a shell on the box. The priv esc 
+Bankrobber is a web app box with a simple XSS and SQL injection that we have to exploit in order to get the source code of the application and discover a command injection vulnerability in the backdoor checker page that's only reachable from localhost. By using the XSS to make a local request to that page, we can get land a shell on the box. To get root, we exploit a buffer in an application to override the name of the binary launched by the program.
 
 ## Summary
 
@@ -339,11 +339,11 @@ Thankfully the PIN was a low number so I didn't have to search the entire PIN sp
 
 ![](/assets/images/htb-writeup-bankrobber/brute.png)
 
-When I log in with the PIN, I can transfer coins and I see that the `transfer.exe` commands is executed:
+When I log in with the PIN, I can transfer coins and I see that the `transfer.exe` command is executed:
 
 ![](/assets/images/htb-writeup-bankrobber/bof1.png)
 
-If I send a large string I can see there's a buffer overflow present in the program since I no longer see the `transfer.exe`
+If I send a large string I can see there's a buffer overflow present in the program since I no longer see the `transfer.exe` and it's replaced by some characters that submitted in the amount field.
 
 ![](/assets/images/htb-writeup-bankrobber/bof2.png)
 
@@ -355,7 +355,7 @@ Note that whatever is overflowing from the amount variable gets into the name of
 
 ![](/assets/images/htb-writeup-bankrobber/bof4.png)
 
-And my meterpreter gets executed and I get a shell as NT AUTHORITY\SYSTEM
+My meterpreter gets executed and I get a shell as NT AUTHORITY\SYSTEM
 
 ![](/assets/images/htb-writeup-bankrobber/bof5.png)
 
