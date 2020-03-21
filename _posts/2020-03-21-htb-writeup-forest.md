@@ -16,6 +16,7 @@ tags:
   - kerberos
   - bloodhound
   - dcsync
+  - aclpwn
 ---
 
 ![](/assets/images/htb-writeup-forest/forest_logo.png)
