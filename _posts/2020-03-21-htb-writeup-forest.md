@@ -20,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-forest/forest_logo.png)
 
-Forest is a nice easy box that go over two Active Directory misconfigurations / vulnerabilities: Kerberos Pre-Authentication (disabled) and ACLs misconfiguration. After I retrieve and cracked the hash for the service account I used aclpwn to automate the attack path and give myself DCsync rights to the domain.
+Forest is a nice easy box that go over two Active Directory misconfigurations / vulnerabilities: Kerberos Pre-Authentication (disabled) and ACLs misconfiguration. After I retrieved and cracked the hash for the service account I used aclpwn to automate the attack path and give myself DCsync rights to the domain.
 
 ## Summary
 
