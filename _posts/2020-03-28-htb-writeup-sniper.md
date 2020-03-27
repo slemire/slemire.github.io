@@ -230,7 +230,7 @@ To connect to WinRM I'll upload plink.exe and create a reverse tunnel for port 5
 
 ![](/assets/images/htb-writeup-sniper/plink.png)
 
-And just like that, by an educated guess I am able to log in as user Chris.
+After pivoting, I am able to log in as user Chris.
 
 ![](/assets/images/htb-writeup-sniper/chris.png)
 
