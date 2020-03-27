@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Sniper - Hack The Box
-excerpt: "Sniper is another box I got access to through an intended method. The PHP application wasn't supposed to be exploitable through Remote File Inclusion but because it runs on Windows, we can use UNC path to include a 'local' file from an SMB share. Once I had a shell, I pivoted using plink and logged in as user Chris with WinRM. The box author was nice enough to leave hints as to what kind of malicious payload was expected and I used Nishang to generate a CHM payload and get Administrator access."
+excerpt: "Sniper is another box I got access to through an unintended method. The PHP application wasn't supposed to be exploitable through Remote File Inclusion but because it runs on Windows, we can use UNC path to include a file from an SMB share. Once I had a shell, I pivoted using plink and logged in as user Chris with WinRM. The box author was nice enough to leave hints as to what kind of malicious payload was expected and I used Nishang to generate a CHM payload and get Administrator access."
 date: 2020-03-28
 classes: wide
 header:
@@ -22,7 +22,7 @@ tags:
 
 ![](/assets/images/htb-writeup-sniper/sniper_logo.png)
 
-Sniper is another box I got access to through an intended method. The PHP application wasn't supposed to be exploitable through Remote File Inclusion but because it runs on Windows, we can use UNC path to include a 'local' file from an SMB share. Once I had a shell, I pivoted using plink and logged in as user Chris with WinRM. The box author was nice enough to leave hints as to what kind of malicious payload was expected and I used Nishang to generate a CHM payload and get Administrator access.
+Sniper is another box I got access to through an unintended method. The PHP application wasn't supposed to be exploitable through Remote File Inclusion but because it runs on Windows, we can use UNC path to include a file from an SMB share. Once I had a shell, I pivoted using plink and logged in as user Chris with WinRM. The box author was nice enough to leave hints as to what kind of malicious payload was expected and I used Nishang to generate a CHM payload and get Administrator access.
 
 ## Summary
 
