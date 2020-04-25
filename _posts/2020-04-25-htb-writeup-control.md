@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Control - Hack The Box
-excerpt: "Control runs a vulnerable PHP web application that controls access to the admin page by checking the source IP address of the connection. By using the X-Forwarded-For HTTP header we can access the admin page and exploit an SQL injection to write a webshell and get RCE. After pivoting to another user with the credentials found in the MySQL database, we get SYSTEM access by modifying an existing service configuration from the registry."
+excerpt: "Control runs a vulnerable PHP web application that controls access to the admin page by checking the X-Forwarded-For HTTP header. By adding the X-Forwarded-For HTTP header with the right IP address we can access the admin page and exploit an SQL injection to write a webshell and get RCE. After pivoting to another user with the credentials found in the MySQL database, we get SYSTEM access by modifying an existing service configuration from the registry."
 date: 2020-04-25
 classes: wide
 header:
@@ -21,7 +21,7 @@ tags:
 
 ![](/assets/images/htb-writeup-control/control_logo.png)
 
-Control runs a vulnerable PHP web application that controls access to the admin page by checking the source IP address of the connection. By using the X-Forwarded-For HTTP header we can access the admin page and exploit an SQL injection to write a webshell and get RCE. After pivoting to another user with the credentials found in the MySQL database, we get SYSTEM access by modifying an existing service configuration from the registry.
+Control runs a vulnerable PHP web application that controls access to the admin page by checking the X-Forwarded-For HTTP header. By adding the X-Forwarded-For HTTP header with the right IP address we can access the admin page and exploit an SQL injection to write a webshell and get RCE. After pivoting to another user with the credentials found in the MySQL database, we get SYSTEM access by modifying an existing service configuration from the registry.
 
 ## Summary
 
