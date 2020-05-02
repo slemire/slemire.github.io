@@ -1,7 +1,7 @@
 ---
 layout: single
 title: OpenAdmin - Hack The Box
-excerpt: "OpenAdmin is a typical easy box that starts with using an exploit for the OpenNetAdmin software to get initial RCE. Then we got credentials re-use from the database config so we can connect by SSH. We then find another web application with an hardcoded SHA512 hash in the PHP code for the login page. After cracking we're able to log in and obtain an encrypted SSH key that we have to crack. After getting one more shell, we can run nano as root with sudo and spawn a shell as root."
+excerpt: "OpenAdmin is an easy box that starts with using an exploit for the OpenNetAdmin software to get initial RCE. Then we get credentials from the database config and can re-use them to connect by SSH. We then find another web application with an hardcoded SHA512 hash in the PHP code for the login page. After cracking it we're able to log in and obtain an encrypted SSH key that we have to crack. After getting one more shell, we can run nano as root with sudo and spawn a shell as root."
 date: 2020-05-02
 classes: wide
 header:
@@ -20,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-openadmin/openadmin_logo.png)
 
-OpenAdmin is a typical easy box that starts with using an exploit for the OpenNetAdmin software to get initial RCE. Then we got credentials re-use from the database config so we can connect by SSH. We then find another web application with an hardcoded SHA512 hash in the PHP code for the login page. After cracking we're able to log in and obtain an encrypted SSH key that we have to crack. After getting one more shell, we can run nano as root with sudo and spawn a shell as root.
+OpenAdmin is an easy box that starts with using an exploit for the OpenNetAdmin software to get initial RCE. Then we get credentials from the database config and can re-use them to connect by SSH. We then find another web application with an hardcoded SHA512 hash in the PHP code for the login page. After cracking it we're able to log in and obtain an encrypted SSH key that we have to crack. After getting one more shell, we can run nano as root with sudo and spawn a shell as root.
 
 ## Summary
 
