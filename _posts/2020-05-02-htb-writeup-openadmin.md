@@ -100,7 +100,7 @@ drwxr-x--- 7 www-data www-data 4096 Nov 21 18:23 ona
 -rw-r--r-- 1 root     root       33 Jan  2 20:54 priv.save
 -rw-r--r-- 1 root     root       33 Jan  2 21:12 priv.save.1
 $ cat /opt/priv.save
-2f907ed450b361b2c2bf4e8795d5b561
+2f907ed450b[...]
 ```
 
 ## Escalating to user jimmy
