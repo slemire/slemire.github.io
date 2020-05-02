@@ -224,7 +224,7 @@ root@kali:~/htb/openadmin# ssh -i id_rsa joanna@10.10.10.171
 Enter passphrase for key 'id_rsa': 
 [...]
 joanna@openadmin:~$ cat user.txt
-c9b2cf07d40807e62af62660f0c81b5f
+c9b2cf07d[...]
 ```
 
 ## Root priv esc
