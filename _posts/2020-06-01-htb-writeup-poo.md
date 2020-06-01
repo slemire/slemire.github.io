@@ -28,7 +28,7 @@ tags:
 
 ![](/assets/images/htb-writeup-poo/poo_logo.png)
 
-Professional Offensive Operations (P.O.O.) was the first endgame lab released by Hack The Box. It contained five different flags spread across two Windows machines. The initial part required some tricky recon with ds_store and IIS short names to find a MSSQL DB connection string. We then had to pivot by abusing the trust between MSSQL linked servers. The lab also had kerberoasting, password cracking, mimikatz and attack path enumeration with Bloodhound.
+Professional Offensive Operations (P.O.O.) was the first endgame lab released by Hack The Box. It contained five different flags spread across two Windows machines. The initial part required some tricky recon with ds_store and IIS short names to find a MSSQL DB connection string. We then had to pivot by abusing the trust between MSSQL linked servers. The lab also had kerberoasting, password cracking, mimikatz and attack path enumeration with Bloodhound. The writeup is a somewhat rough compilation of my notes when I initially did it so some stuff might have changed a little bit since it was first released.
 
 ## Portscan
 
