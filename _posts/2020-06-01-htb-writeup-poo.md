@@ -105,7 +105,7 @@ There's an `/admin` page... but I can't brute force it though...
 
 ## .DS_Store enumeration
 
-The `.ds_store` files left in the directories can help us determine the directory structure of the website such as finding a few hidden directories that we couldn't find with the gobuster wordlists.
+After trying a couple of wordlists I found a .ds_store file. The `.ds_store` files left in the directories can help us determine the directory structure of the website such as finding a few hidden directories that we couldn't find with the gobuster wordlists.
 
 Tool used: [https://github.com/lijiejie/ds_store_exp](https://github.com/lijiejie/ds_store_exp)
 
