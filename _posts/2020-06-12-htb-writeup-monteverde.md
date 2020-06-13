@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Monteverde - Hack The Box
-excerpt: "Monteverde was an Active Directory box on the easier side that requires enumerating user accounts then password spraying to get an initial shell. Then we find more credentials looking around the box and eventually find the MSOL account password which we use to get administrator access"
+excerpt: "Monteverde was an Active Directory box on the easier side that requires enumerating user accounts then password spraying to get an initial shell. Then we find more credentials looking around the box and eventually find the MSOL account password which we use to get administrator access."
 date: 2020-06-12
 classes: wide
 header:
@@ -22,7 +22,7 @@ tags:
 
 ![](/assets/images/htb-writeup-monteverde/monteverde_logo.png)
 
-Monteverde was an Active Directory box on the easier side that requires enumerating user accounts then password spraying to get an initial shell. Then we find more credentials looking around the box and eventually find the MSOL account password which we use to get administrator access
+Monteverde was an Active Directory box on the easier side that requires enumerating user accounts then password spraying to get an initial shell. Then we find more credentials looking around the box and eventually find the MSOL account password which we use to get administrator access.
 
 ## Summary
 
