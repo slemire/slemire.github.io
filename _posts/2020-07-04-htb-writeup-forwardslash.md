@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Forwardslash - Hack The Box
-excerpt: "Forwardslash starts off like most classic Hack The Box machines with some enumeration of vhosts, files and directories with gobuster then we use a Server-Side Request Forgery (SSRF) vulnerability to reach a protected dev directory only accessible from localhost. After finding credentials and getting a shell, we'll analyze and exploit a small backup program to read files as user pain and find more credentials. In the spirit of Team Unintended, instead of solving the crypto challenge to get root I used the sudo commands available to me so I upload and mount my own Luks container with a SUID bash binary I put in there."
+excerpt: "Forwardslash starts off like most classic Hack The Box machines with some enumeration of vhosts, files and directories with gobuster then we use a Server-Side Request Forgery (SSRF) vulnerability to reach a protected dev directory only accessible from localhost. After finding credentials and getting a shell, we'll analyze and exploit a small backup program to read files as user pain and find more credentials. In the spirit of Team Unintended, instead of solving the crypto challenge to get root I used the sudo commands available to me to upload and mount my own Luks container and execute a SUID bash binary."
 date: 2020-07-04
 classes: wide
 header:
@@ -23,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-forwardslash/forwardslash_logo.png)
 
-Forwardslash starts off like most classic Hack The Box machines with some enumeration of vhosts, files and directories with gobuster then we use a Server-Side Request Forgery (SSRF) vulnerability to reach a protected dev directory only accessible from localhost. After finding credentials and getting a shell, we'll analyze and exploit a small backup program to read files as user pain and find more credentials. In the spirit of Team Unintended, instead of solving the crypto challenge to get root I used the sudo commands available to me so I upload and mount my own Luks container with a SUID bash binary I put in there.
+Forwardslash starts off like most classic Hack The Box machines with some enumeration of vhosts, files and directories with gobuster then we use a Server-Side Request Forgery (SSRF) vulnerability to reach a protected dev directory only accessible from localhost. After finding credentials and getting a shell, we'll analyze and exploit a small backup program to read files as user pain and find more credentials. In the spirit of Team Unintended, instead of solving the crypto challenge to get root I used the sudo commands available to me to upload and mount my own Luks container and execute a SUID bash binary.
 
 ## Summary
 
@@ -65,11 +65,11 @@ Server: Apache/2.4.29 (Ubuntu)
 Location: http://forwardslash.htb
 ```
 
-Oh oh... The website has been defaced by the infamous **The Backslash Gang**. I don't see any links or any html comments that might indicate what to do next. I have no idea who that Sharon person referenced on the website is.
+Oh oh... The website has been defaced by the infamous **The Backslash Gang**. I don't see any links or any html comments that might indicate what to do next and I have no idea who that Sharon person referenced on the website is.
 
 ![](/assets/images/htb-writeup-forwardslash/web1.png)
 
-Since the website the hostname (not just the IP address), it's worth looking for additional vhosts. I'll use gobuster for this and discover that there is a vhost for `backup.forwardslash.htb`:
+Since the website is using the hostname (not just the IP address), it's worth looking for additional vhosts. I'll use gobuster for this and discover that there is a vhost for `backup.forwardslash.htb`:
 
 ```
 root@kali:~/htb/forwardslash# gobuster vhost -q -w ~/tools/SecLists/Discovery/DNS/subdomains-top1million-5000.txt -t 50 -u http://forwardslash.htb
@@ -251,7 +251,7 @@ The `encrypter.py` script is some crypto challenge that we have to solve to reco
 
 ![](/assets/images/htb-writeup-forwardslash/encrypter.png)
 
-I didn't feel like solving a crypto challenge that weekend so I chose the unintended route to solve this one. Since we can open and mount Luks containers there's nothing stopping us from mounting a volume with an arbitrary program placed into it. The attributes set on the program files will also be used by the operating system so if we make something SUID like `bash` for example, then we'll be able to escalate root privileges easily.
+I didn't feel like solving a crypto challenge that weekend so I chose an unintended route to solve this one. Since we can open and mount Luks containers there's nothing stopping us from mounting a volume with an arbitrary program placed into it. The attributes set on the program files will also be used by the operating system so if we make something SUID like `bash` for example, then we'll be able to escalate root privileges easily.
 
 Step 1. First, we'll create an empty virtual disk 
 ```
