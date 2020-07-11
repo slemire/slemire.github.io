@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Book - Hack The Box
-excerpt: "TBA"
+excerpt: "I initially thought for Book that the goal was to get the administrator's session cookie via an XSS but instead we have to create a duplicate admin account by using a long email address that gets truncated to the existing one. Once we have access to the admin page we then exploit an XSS vulnerability in the PDF generator to read SSH keys for the low priv user. We priv esc using a race condition vulnerability in logrotate so we can backdoor /etc/bash_completion.d."
 date: 2020-07-04
 classes: wide
 header:
@@ -16,16 +16,18 @@ tags:
   - pdf
   - ssh keys
   - logrotate
+  - cronjob
+  - bash_completion.d
 ---
 
 ![](/assets/images/htb-writeup-book/book_logo.png)
 
-TBA
+I initially thought for Book that the goal was to get the administrator's session cookie via an XSS but instead we have to create a duplicate admin account by using a long email address that gets truncated to the existing one. Once we have access to the admin page we then exploit an XSS vulnerability in the PDF generator to read SSH keys for the low priv user. We priv esc using a race condition vulnerability in logrotate so we can backdoor /etc/bash_completion.d.
 
 ## Summary
 
 - Create an admin account with an arbitrary password by exploiting a flaw in the web application code
-- Read `/etc/passwd` and `/home/reader/.ssh/id_rsa` files by using an XSS in the PDF creator
+- Read `/home/reader/.ssh/id_rsa` files by using an XSS in the PDF creator
 - Exploit logrotate vulnerability to gain root access
 
 ## Portscan
@@ -116,6 +118,21 @@ We can reset the administrator's password by creating a new user with `admin` as
 
 POST request: `name=admin&email=admin@book.htb++++++a&password=1234`
 
+After I rooted the box I looked at the MySQL database and it doesn't actually reset the admin's password but it creates a new user with the same name and email address:
+
+```
+mysql> select * from users;
++------------+----------------------+-------------------+
+| name       | email                | password          |
++------------+----------------------+-------------------+
+| admin      | admin@book.htb       | Sup3r_S3cur3_P455 |
+| test       | a@b.com              | test              |
+| shaunwhort | test@test.com        | casablancas1      |
+| peter      | hi@hello.com         | password          |
+| admin      | admin@book.htb       | 1234              |
++------------+----------------------+-------------------+
+```
+
 We can now log in with `admin@book.htb / 1234`.
 
 ![](/assets/images/htb-writeup-book/admin1.png)
@@ -146,7 +163,7 @@ Now that we have the username of a user with a login shell we can try to look fo
 
 ![](/assets/images/htb-writeup-book/payload2.png)
 
-We have acces to his SSH private key but I'm missing some of the output on the right because of the default font used.
+We have access to his SSH private key but I'm missing some of the output on the right because of the default font used.
 
 ![](/assets/images/htb-writeup-book/fileread2.png)
 
@@ -176,12 +193,6 @@ The version of logrotate running on the box is vulnerable to a race condition th
 
 Exploit: [https://github.com/whotwagner/logrotten](https://github.com/whotwagner/logrotten)
 
-I'll change the destination path of the exploit to write to `/etc/update-motd.d/` instead. This will execute the payload the next time we SSH to the box.
-
-![](/assets/images/htb-writeup-book/exploit.png)
-
-![](/assets/images/htb-writeup-book/compile.png)
-
 For the payload, we can use anything really so I'll make bash SUID instead of popping a reverse shell.
 
 ```sh
@@ -189,6 +200,16 @@ For the payload, we can use anything really so I'll make bash SUID instead of po
 chmod u+s /bin/bash
 ```
 
-The log file needs to be changed for the exploit to work so in another SSH window I'll use write to the log file with `echo 'pwned!!!' >> backups/access.log` and it will trigger the exploit.
+The exploit is triggered after we write to the log file. There's a cron job running as root on the machine to clean up some files so the payload will get executed by the root user.
+
+Cronjob contents from `/var/spool/cron/crontabs/root`:
+```
+@reboot /root/reset.sh
+* * * * * /root/cron_root
+*/5 * * * * rm /etc/bash_completion.d/*.log*
+*/2 * * * * /root/clean.sh
+```
+
+After a minute or two, the root user logs it and the `access.log` script in `/etc/bash_completion.d` is executed and the SUID bit is set on `/bin/bash`:
 
 ![](/assets/images/htb-writeup-book/root.png)
