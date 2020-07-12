@@ -2,7 +2,7 @@
 layout: single
 title: Sauna - Hack The Box
 excerpt: "Sauna is a good beginner-friendly AD box that covers a few key Windows exploitation topics like AS-REP roasting, enumeration for credentials, using tools such as Powerview to find attack paths, DCsync and Pass-The-Hash techniques."
-date: 2020-07-25
+date: 2020-07-18
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-sauna/sauna_logo.png
