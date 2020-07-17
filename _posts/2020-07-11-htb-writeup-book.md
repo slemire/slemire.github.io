@@ -2,7 +2,7 @@
 layout: single
 title: Book - Hack The Box
 excerpt: "I initially thought for Book that the goal was to get the administrator's session cookie via an XSS but instead we have to create a duplicate admin account by using a long email address that gets truncated to the existing one. Once we have access to the admin page we then exploit an XSS vulnerability in the PDF generator to read SSH keys for the low priv user. We priv esc using a race condition vulnerability in logrotate so we can backdoor /etc/bash_completion.d."
-date: 2020-07-04
+date: 2020-07-11
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-book/book_logo.png
