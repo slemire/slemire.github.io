@@ -4,7 +4,6 @@ title: Sauna - Hack The Box
 excerpt: "Sauna is a good beginner-friendly AD box that covers a few key Windows exploitation topics like AS-REP roasting, enumeration for credentials, using tools such as Powerview to find attack paths, DCsync and Pass-The-Hash techniques."
 date: 2020-07-18
 classes: wide
-published: false
 header:
   teaser: /assets/images/htb-writeup-sauna/sauna_logo.png
   teaser_home_page: true
@@ -40,11 +39,11 @@ Sauna is a good beginner-friendly AD box that covers a few key Windows exploitat
 
 ## Users enumeration
 
-Crackmapexec is a good tool to do a quick initial recon and find what the  domain name is, the operating system and if there are any non-default SMB shares accessible. Aside from the OS version and the domain name, I can't get any other information yet from CME.
+Crackmapexec is a good tool to do a quick initial recon and find what the domain name is, the operating system and if there are any non-default SMB shares accessible. Aside from the OS version and the domain name, I can't get any other information yet from CME.
 
 ![](/assets/images/htb-writeup-sauna/cme_recon.png)
 
-Some Active Directory machines on Hack the Box are configured so an anonymous bind session can enumerate users and groups from the box. I tried searching with windapsearch.py but I didn't get any results back so anonymous bind sessions can't dump the user list here (default Windows configuration).
+Some Active Directory machines on Hack the Box are configured so an anonymous bind session can enumerate users and groups from the box. I tried searching with windapsearch.py but I didn't get any results back so anonymous bind sessions can't dump the user list here.
 
 ![](/assets/images/htb-writeup-sauna/windapsearch_fail.png)
 
