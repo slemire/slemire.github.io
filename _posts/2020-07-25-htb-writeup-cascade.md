@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Cascade - Hack The Box
-excerpt: "Cascade was a simple straightforward enumeration-focused Windows box. We find the credentials for the initial account in a custom LDAP attibute then enumerate SMB shares, finding VNC credentials which can be decrypted. With those creds we find an SQlite database that contains encrypted credentials for yet another user. To decrypt the password we have to reverse a simple .NET application located on one of the shares. The final privesc involves getting the admin password from tombstone, a feature in AD that keeps deleted objects for a period of time."
+excerpt: "Cascade was a simple and straightforward enumeration-focused Windows box. We find the credentials for the initial account in a custom LDAP attibute then enumerate SMB shares, finding VNC credentials which can be decrypted. With those creds we find an SQlite database that contains encrypted credentials for yet another user. To decrypt the password we have to reverse a simple .NET application located on one of the shares. The final privesc involves getting the admin password from tombstone, a feature in AD that keeps deleted objects for a period of time."
 date: 2020-07-25
 classes: wide
 header:
@@ -22,7 +22,7 @@ tags:
 
 ![](/assets/images/htb-writeup-cascade/cascade_logo.png)
 
-Cascade was a simple straightforward enumeration-focused Windows box. We find the credentials for the initial account in a custom LDAP attibute then enumerate SMB shares, finding VNC credentials which can be decrypted. With those creds we find an SQlite database that contains encrypted credentials for yet another user. To decrypt the password we have to reverse a simple .NET application located on one of the shares. The final privesc involves getting the admin password from tombstone, a feature in AD that keeps deleted objects for a period of time.
+Cascade was a simple and straightforward enumeration-focused Windows box. We find the credentials for the initial account in a custom LDAP attibute then enumerate SMB shares, finding VNC credentials which can be decrypted. With those creds we find an SQlite database that contains encrypted credentials for yet another user. To decrypt the password we have to reverse a simple .NET application located on one of the shares. The final privesc involves getting the admin password from tombstone, a feature in AD that keeps deleted objects for a period of time.
 
 ## Summary
 
