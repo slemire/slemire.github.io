@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Oouch - Hack The Box
-excerpt: "TBA"
+excerpt: "Ooauth was a pretty tough box because I was unfamiliar with Oauth and it took a while to figure out the bits and pieces to chain together. The priv esc was pretty cool, we had to talk to the uwsgi socket directly to manipulate the `REMOTE_ADDR` variable and exploit a command injection vulnerability in the script calling iptables."
 date: 2020-08-01
 classes: wide
 header:
@@ -14,6 +14,8 @@ categories:
 tags:
   - linux
   - ftp
+  - python
+  - flask  
   - xss
   - oauth
   - api
@@ -23,9 +25,7 @@ tags:
 
 ![](/assets/images/htb-writeup-oouch/oouch_logo.png)
 
-TBA
-
-## Summary
+Ooauth was a pretty tough box because I was unfamiliar with Oauth and it took a while to figure out the bits and pieces to chain together. The priv esc was pretty cool, we had to talk to the uwsgi socket directly to manipulate the `REMOTE_ADDR` variable and exploit a command injection vulnerability in the script calling iptables.
 
 ## Portscan
 
@@ -61,7 +61,7 @@ ftp> ls
 226 Directory send OK.
 ```
 
-The file contains a hint about what kind of web technology runs the two web services I saw earlier on port 5000 and 8000.
+The file contains some information about what kind of web technology runs the two web services we saw earlier on port 5000 and 8000.
 
 ```
 root@kali:~/htb/ouch# cat project.txt 
@@ -71,7 +71,7 @@ Django -> Authorization Server
 
 ## Web site enumeration
 
-The site requires an account to log in but fortunately I can register a new account.
+The site on port 5000 requires an account to log in but fortunately we can register a new account.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_1.png)
 
@@ -81,7 +81,7 @@ After logging in, we have access to a couple of different pages.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_3.png)
 
-The user profile section shows that no account has been connected. Not sure what this is yet.
+The user profile section shows that no account has been connected but we're not sure what this is yet.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_4.png)
 
@@ -89,7 +89,7 @@ The documents area is still under construction and is only available to administ
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_5.png)
 
-There's also a contact section. Now that's pretty interesting because it could be a target for SQL injection or most likely an XSS since the page says the messages are read by an administrator.
+There's also a contact section. Now that's pretty interesting because it could be a target for an XSS since the page says the messages are forwarded to the administrator.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_6.png)
 
@@ -97,19 +97,19 @@ There's also a contact section. Now that's pretty interesting because it could b
 
 ## XSS on the contact form
 
-There is some filtering done on the message input and I get blacklisted for about a minute whenever I try payloads that contain blacklisted words like: `alert`, `<script>`, etc. 
+There is some filtering done on the message input and we get blacklisted for about a minute whenever we try payloads that contain blacklisted words like: `alert`, `<script>`, etc. 
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_8.png)
 
-The funny part of this XSS is that it's not really a real XSS. I don't even need to send a javascript payload, the XSS bot is configured to following whatever link I give it so entering `http://10.10.14.21` generates a callback on my VM.
+The funny part of this XSS is that it's not really a real XSS where javascript is executed in the victim's browser. Here we don't even need to send a javascript payload, the XSS bot is configured to following whatever link we give it so entering `http://10.10.14.21` generates a callback on our VM.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_9.png)
 
-This XSS will come in handy later, for now I'll move on to directory and file bruteforcing to find additional stuff on the webserver.
+This XSS will come in handy later, for now we'll move on to directory and file bruteforcing to find additional stuff on the webserver.
 
 ## Gobuster
 
-Using gobuster, I found an interesting `/oauth` directory:
+Using gobuster, we found an interesting `/oauth` directory:
 
 ```
 root@kali:~/htb/ouch# gobuster dir -w ~/tools/SecLists/Discovery/Web-Content/big.txt -u http://10.10.10.177:5000
@@ -129,36 +129,36 @@ root@kali:~/htb/ouch# gobuster dir -w ~/tools/SecLists/Discovery/Web-Content/big
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_10.png)
 
-The connect page presents me with another login prompt but this requires a different account, probably that account that will need to be linked to my main profile.
+The connect page presents another login prompt but this requires a different account, probably an account that will need to be linked to our main profile.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_11.png)
 
 ## Oauth authorization server
 
-That web server running on port 8000 is the Oauth authorization server and I can create the account there.
+That web server running on port 8000 is the Oauth authorization server and we can create the account there.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_12.png)
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_13.png)
 
-Once I go back to the connect page, I can authorize the application as follows.
+Once we go back to the connect page, we can authorize the application as follows.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_14.png)
 
-Then my account gets linked to the consumer server.
+Then the new account gets linked to the consumer server.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_15.png)
 
-Unfortunately that doesn't give me anything new since my account is not an administrator.
+Unfortunately that doesn't give us anything new since our account is not an administrator.
 
 ## XSS to authorize as administrator
 
-When I examine the Burp history from the authorization process, I see the following in the POST request to the authorization server:
+When we examine the Burp history from the authorization process, we see the following in the POST request to the authorization server:
 
 - The client_id is static. This is the application ID configured on the authorization server.
 - The response_type code tells the authorization what kind of authorization 'token' should be used.
-- The redirect_uri is self-explanatory, if we could change this we could steal the administrator's session ID cookie but it's configured on the authorization server as part of the application configuration and I cannot change it.
-- By experimentation I found that the CSRF token isn't even used / verified.
+- The redirect_uri is self-explanatory, if we could change this we could steal the administrator's session ID cookie but it's configured on the authorization server as part of the application configuration and we cannot change it.
+- By experimentation we can find that the CSRF token isn't even used / verified.
    
 ![](/assets/images/htb-writeup-oouch/Screenshot_16.png)
 
@@ -166,7 +166,7 @@ The next GET request to the consumer just uses the token code that was returned 
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_17.png)
 
-What we need to do here if have an administrator submit the token code that the authorization server returned to us and that will give us administrator privileges on that application. We must drop the initial request our client makes though because the code can only be used once. Using the contact form we can perform the SSRF to get the admin to authorize us.
+What we need to do here is have an administrator submit the token code that the authorization server returned to us and that will give us administrator privileges on that application. We must drop the initial request our client makes though because the code can only be used once. Using the contact form we can perform the SSRF to get the admin to authorize us.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_18.png)
 
@@ -178,21 +178,21 @@ That part is kinda weird, it didn't work the first time, I had to do it a couple
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_21.png)
 
-The documents has the `develop:supermegasecureklarabubu123!` credentials and an API endpoint `api/get_user`
+The documents has the `develop:supermegasecureklarabubu123!` credentials and an API endpoint `/api/get_user`
 
 The next hint is also important as it tells us we can get SSH keys.
 
 ## Enumerating the Oauth and API endpoints on the authorization server
 
-There's a `/oauth/applications` directory but even with the credentials above I can't get passed the HTTP basic authentication.
+There's a `/oauth/applications` directory but even with the credentials above we can't get passed the HTTP basic authentication.
 
-The hint talked about applications registration so by using the following link I can get to the app registration page:
+The hint talked about applications registration so by using the following link we can get to the app registration page:
 
 `http://authorization.oouch.htb:8000/oauth/applications/register/`
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_22.png)
 
-Now that I can add applications, I can exploit the redirect_uri and use the XSS again to steal the administrator's sessionid cookie.
+Now that we can add applications, we can exploit the redirect_uri and use the XSS again to steal the administrator's sessionid cookie.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_23.png)
 
@@ -200,7 +200,7 @@ Now that I can add applications, I can exploit the redirect_uri and use the XSS 
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_25.png)
 
-The python SimpleHTTPServer module doesn't display the headers by default so I'll just use Wireshark to the the cookie.
+The python SimpleHTTPServer module doesn't display the headers by default so we'll just use Wireshark to see the Cookie HTTP header.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_26.png)
 
@@ -210,29 +210,29 @@ The python SimpleHTTPServer module doesn't display the headers by default so I'l
 
 ## Getting the SSH credentials using the API
 
-Now I'm logged in as qtc.
+Now that we got the cookie, we can just use it to log in as qtc.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_28.png)
 
-To get a token for the API endpoints, I'll first register a new application with `Client credentials` as the Authorization grant type.
+To get a token for the API endpoints, we'll first register a new application with `Client credentials` as the Authorization grant type.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_29.png)
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_30.png)
 
-Making note of the credentials:
+Note of the credentials:
 - client id: `dqzxtaT48HybcM5YtruDCjCjuOSQzVdhg1eHyhiN`
 - client secret: `rSzD9UWKG1wI4GUmAuchsFm8jYP5M1TsxpLdhSTczNbIgJxkebFCRmeUbvW1FdNqUNhzrkjoMpFZtjONYi597mHyzpIYOTdaqKUJgdLoADqnGTTc8TdIpwPdtriWYTBU`
 
-Using the `/oauth/token`, I can log in with the application credentials and get an access_token.
+Using the `/oauth/token`, we can log in with the application credentials and get an access_token.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_31.png)
 
-Using the Authorization token I can use the API and see that I'm user `qtc`
+Using the Authorization token we can use the API and see that we're user `qtc`
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_33.png)
 
-After some fuzzing based on the SSH hint earlier, I found the `get_ssh` endpoint which returns the SSH key for user `qtc`
+After some fuzzing based on the SSH hint earlier, we found the `get_ssh` endpoint which returns the SSH key for user `qtc`
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_32.png)
 
@@ -240,13 +240,13 @@ After some fuzzing based on the SSH hint earlier, I found the `get_ssh` endpoint
 
 ## Privesc
 
-That SSH shell is on the host and it's showing that the two web servers are running in different containers.
+That SSH shell is on the host and we see that the two web servers are running in different containers.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_35.png)
 
-I uploaded pspy to check if any processes are running in a cronjob
+After uploading pspy we can check if any processes are running in a cronjob.
 
-We can see here that iptables is used to blacklist our IP when we trigger the XSS filter and that there's a `get_pwnd` script that runs. This script is probably the XSS bot that fetches the URL submitted on the contact form.
+We see here that iptables is used to blacklist our IP when we trigger the XSS filter and that there's a `get_pwnd` script that runs. This script is probably the XSS bot that fetches the URL submitted on the contact form.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_36.png)
 
@@ -274,7 +274,7 @@ qtc@oouch:/etc/dbus-1/system.d$ cat htb.oouch.Block.conf
 </busconfig>
 ```
 
-Fortunately, we can SSH directly to the container running the web application.
+We can SSH directly to the container running the web application.
 
 ![](/assets/images/htb-writeup-oouch/Screenshot_37.png)
 
@@ -328,7 +328,7 @@ def contact():
     return render_template('contact.html', title='Contact', send=False, form=form)
 ```
 
-In a nutshell, when the XSS filter is triggered, the application uses the REMOTE_ADDR parameter to send it through the dbus interface to the upstream iptables command. We can't spoof or modify this REMOTE_ADDR variable remotely so we'll have to exploit this another way.
+In a nutshell, when the XSS filter is triggered, the application uses the `REMOTE_ADDR` parameter to send it through the dbus interface to the upstream iptables command. We can't spoof or modify this `REMOTE_ADDR` variable remotely so we'll have to exploit this another way.
 
 The `uwsgi.ini` file shows that a UNIX socket is used to communicate between the webserver and the flask application:
 
@@ -353,7 +353,7 @@ total 0
 srw-rw-rw- 1 www-data www-data 0 Mar  2 15:21 uwsgi.socket
 ```
 
-We can write using the uwsgi protocol directly to the socket and manipulate the values.
+We can write using the uwsgi protocol directly to the socket and manipulate the values. The code below is an ugly hack put together from some examples found online. The payload I used here sets the SUID bit on `/bin/bash`: `$(chmod u+s /bin/bash)`
 
 ```python
 import sys
@@ -444,6 +444,8 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+After executing the exploit, we can run `/bin/bash` as root and get the final flag.
 
 `qtc@aeb4525789d8:/tmp$ python /tmp/exploit.py /contact`
 
