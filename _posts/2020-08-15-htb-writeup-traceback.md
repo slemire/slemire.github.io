@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Traceback - Hack The Box
-excerpt: "TBA"
+excerpt: "Traceback was an easy box where you had to look for an existing webshell on the box, then use it to get the initial foothold. Then there was some typical SUID stuff with a LUA interpreter giving us access as another user then for privesc we find that we can write to  `/etc/update-motd.d` and those scripts get executed by root."
 date: 2020-08-15
 classes: wide
 header:
@@ -20,7 +20,7 @@ tags:
 
 ![](/assets/images/htb-writeup-traceback/traceback_logo.png)
 
-TBA
+Traceback was an easy box where you had to look for an existing webshell on the box, then use it to get the initial foothold. Then there was some typical SUID stuff with a LUA interpreter giving us access as another user then for privesc we find that we can write to  `/etc/update-motd.d` and those scripts get executed by root.
 
 ## Summary
 
