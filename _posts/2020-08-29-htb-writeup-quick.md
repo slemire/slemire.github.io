@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Quick - Hack The Box
-excerpt: "TBA"
+excerpt: "Quick was a hard box with multiple steps requiring the use of the QUIC protocol to access one section of the website and get the customer onboarding PDF with a set of default credentials. We get to play with ESI template injection to get the initial shell, then abuse a race condition in a PHP script so we can pivot to another user then finally we priv esc to root by findings credentials in the printer configuration file."
 date: 2020-08-29
 classes: wide
 header:
@@ -13,16 +13,29 @@ categories:
   - infosec
 tags:
   - quic
-  - 
+  - php
+  - esi
+  - xslt
+  - port forward
+  - mysql
+  - race condition
 ---
 
 ![](/assets/images/htb-writeup-quick/quick_logo.png)
 
-TBA
+Quick was a hard box with multiple steps requiring the use of the QUIC protocol to access one section of the website and get the customer onboarding PDF with a set of default credentials. We get to play with ESI template injection to get the initial shell, then abuse a race condition in a PHP script so we can pivot to another user then finally we priv esc to root by findings credentials in the printer configuration file.
 
 ## Summary
 
-- 
+- Enumerate client names and countries from the main website testimonials and client list
+- Locate ticketing system through dirbusting
+- Use QUIC protocol to access the User Portal on UDP port 443
+- Locate employees list & PDF document containing default employee password
+- Guess the email address associated with the password based on previously obtained client & country list
+- Exploit ESI Injection vulnerability in the ticketing system to get RCE
+- Locate print server running on localhost, log in after changing the password of the account in the MySQL database
+- Exploit race condition in PHP script responsible for print jobs and read & write SSH keys for the srvadm user
+- Find the root password inside the printers.conf file
 
 ## Portscan
 
@@ -83,7 +96,7 @@ The other pages **db.php**, **search.php**, **ticket.php** can't be accessed dir
 
 ## Quick User portal
 
-Based on that interesting comment in the Update section of the main page and the name of the box, I thought about the QUIC protocol which runs on UDP instead of TCP. A quick port scan of the UDP ports on the box confirm that something is listening on port 443.
+Based on that interesting comment in the Update section of the main page and the name of the box, I thought about the QUIC protocol which runs on UDP instead of TCP. A quick port scan of the UDP ports on the box confirms that something is listening on port 443.
 
 ```
 root@kali:~# nmap -sU -F 10.10.10.186
@@ -168,11 +181,11 @@ The  **Connectivity.pdf** file has the default password assigned to customers: `
 
 ## Ticketing system
 
-I went back to the Testimonials and client information we found earlier and tried different combination of domain names and TLDs. The country indicated in client list is a hint that allow us to guess the TLD instead of fuzzing all possible TLDs.
+I went back to the Testimonials and client information we found earlier and tried different combination of domain names and TLDs. The country indicated in the client list is a hint that allows us to guess the TLD instead of fuzzing all possible TLDs.
 
 The correct credentials are: `elisa@wink.co.uk / Quick4cc3$$`
 
-The ticketing systems contains two functions:
+The ticketing system contains two functions:
 
 - Raise a new ticket
 - Search for existing ticket
