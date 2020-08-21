@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Magic - Hack The Box
-excerpt: "TBA"
+excerpt: "Magic starts with a classic PHP insecure upload vulnerability that let us place a webshell on the target host and then we exploit a subtle webserver misconfiguration to execute the webshell (even though the file name doesn't end with a .php extension). Once we land a shell, we escalate to another user with credentials found in MySQL and priv esc to root by exploiting a path hijack vulnerability in a SUID binary."
 date: 2020-08-22
 classes: wide
 header:
@@ -23,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-magic/magic_logo.png)
 
-TBA
+Magic starts with a classic PHP insecure upload vulnerability that let us place a webshell on the target host and then we exploit a subtle webserver misconfiguration to execute the webshell (even though the file name doesn't end with a .php extension). Once we land a shell, we escalate to another user with credentials found in MySQL and priv esc to root by exploiting a path hijack vulnerability in a SUID binary.
 
 ## Summary
 
@@ -46,7 +46,7 @@ The upload page is protected by a login form for which we don't have valid crede
 
 ![](/assets/images/htb-writeup-magic/login.png)
 
-We can try some default credentials like `admin / admin` on the login page but they don't work. Next we'll try a very simple SQL injection like `' or '1'='1` in the password field. This effectively make the SQL query always true and we're able to pass the authentication check.
+We can try some default credentials like `admin / admin` on the login page but they don't work. Next we'll try a very simple SQL injection like `' or '1'='1` in the password field. This makes the password condition return True and we're able to pass the authentication check.
 
 ![](/assets/images/htb-writeup-magic/upload.png)
 
@@ -58,11 +58,11 @@ The application also checks the content of the file so even if we rename the fil
 
 ![](/assets/images/htb-writeup-magic/upload3.png)
 
-By using a valid PNG image and inserting PHP code in the middle of the file we can pass the magic bytes check to the application will think it's a valid image.
+By using a valid PNG image and inserting PHP code in the middle of the file we can pass the magic bytes check and the application will think it's a valid image.
 
 ![](/assets/images/htb-writeup-magic/upload4.png)
 
-To bypass the extension check, we can append `.png` and it will still execute the file as PHP code when we do the GET to `/images/uploads/snow.php.png`. This happens because of a subtle misconfiguration in the htaccess configuration file. The regular expression only check if the `.php` string is present in the filename, not that the file name actually ends with `.php`.
+To bypass the extension check, we can append `.png` and it will still execute the file as PHP code when we send the GET request to `/images/uploads/snow.php.png`. This happens because of a subtle misconfiguration in the htaccess configuration file. The regular expression only checks if the `.php` string is present in the filename, not that the file name actually ends with `.php`.
 
 ```
 <FilesMatch ".+\.ph(p([3457s]|\-s)?|t|tml)">
@@ -151,6 +151,6 @@ By using `ltrace`, we can confirm this and see that the program uses the `popen`
 
 ![](/assets/images/htb-writeup-magic/sysinfo3.png)
 
-The program is vulnerable because we control the PATH and the program doesn't use absolute path to execute the programs so we can execute arbitrary programs as root. To get root I'll just create a script that sets the SUID bit on  `/bin/bash`, name it `free` and call `/bin/sysinfo` after setting the path to my current directory so it doesn't execute the real `free` program but my own script.
+The program is vulnerable because we control the PATH and the program doesn't use the absolute path to execute the programs so we can execute anything we want as root. To get root I'll just create a script that sets the SUID bit on  `/bin/bash`, name it `free` and call `/bin/sysinfo` after setting the path to my current directory so it doesn't execute the real `free` program but my own script.
 
 ![](/assets/images/htb-writeup-magic/root.png)
