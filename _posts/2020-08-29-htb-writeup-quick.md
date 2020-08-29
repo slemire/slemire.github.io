@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Quick - Hack The Box
-excerpt: "Quick was a hard box with multiple steps requiring the use of the QUIC protocol to access one section of the website and get the customer onboarding PDF with a set of default credentials. We get to play with ESI template injection to get the initial shell, then abuse a race condition in a PHP script so we can pivot to another user then finally we priv esc to root by findings credentials in the printer configuration file."
+excerpt: "Quick was a hard box with multiple steps requiring the use of the QUIC protocol to access one section of the website and get the customer onboarding PDF with a set of default credentials. We get to play with ESI template injection to get the initial shell, then abuse a race condition in a PHP script so we can pivot to another user then finally we priv esc to root by finding credentials in the printer configuration file."
 date: 2020-08-29
 classes: wide
 header:
@@ -23,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-quick/quick_logo.png)
 
-Quick was a hard box with multiple steps requiring the use of the QUIC protocol to access one section of the website and get the customer onboarding PDF with a set of default credentials. We get to play with ESI template injection to get the initial shell, then abuse a race condition in a PHP script so we can pivot to another user then finally we priv esc to root by findings credentials in the printer configuration file.
+Quick was a hard box with multiple steps requiring the use of the QUIC protocol to access one section of the website and get the customer onboarding PDF with a set of default credentials. We get to play with ESI template injection to get the initial shell, then abuse a race condition in a PHP script so we can pivot to another user then finally we priv esc to root by finding credentials in the printer configuration file.
 
 ## Summary
 
@@ -272,7 +272,7 @@ esigate-distribution-5.2
 shell.sh
 user.txt
 $ cat user.txt
-66246c9fe88584426e2a5d549ce29c91
+66246c9fe[...]
 ```
 
 I dropped my SSH public key to `/home/sam/.ssh/authorized_keys` so I could log in directly with a proper SSH shell.
@@ -559,5 +559,5 @@ Password:
 root@quick:/home/srvadm# id
 uid=0(root) gid=0(root) groups=0(root)
 root@quick:/home/srvadm# cat /root/root.txt
-ca70f7b716788aebb6ededeabc7156f3
+ca70f7b71[...]
 ```
