@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Travel - Hack The Box
-excerpt: "ABC"
+excerpt: "Travel is an awesome box from my ATeam teammates [xct](https://twitter.com/xct_de) and [jkr](https://twitter.com/ATeamJKR). The box has a code review part where we analyze the source code of a PHP web app to find a command injection vulnerability in a curl command. We then use the Gopher protocol to perform SSRF and write a serialized PHP payload into the memcache database. For the priv esc part, we manipulate attributes of a user in an LDAP database which is used by the NSS facility to extend the Linux authentication database."
 date: 2020-09-05
 classes: wide
 header:
@@ -26,7 +26,7 @@ tags:
 
 ![](/assets/images/htb-writeup-travel/travel_logo.png)
 
-ABC
+Travel is an awesome box from my ATeam teammates [xct](https://twitter.com/xct_de) and [jkr](https://twitter.com/ATeamJKR). The box has a code review part where we analyze the source code of a PHP web app to find a command injection vulnerability in a curl command. We then use the Gopher protocol to perform SSRF and write a serialized PHP payload into the memcache database. For the priv esc part, we manipulate attributes of a user in an LDAP database which is used by the NSS facility to extend the Linux authentication database.
 
 ## Portscan
 
@@ -54,17 +54,15 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 31.95 seconds
 ```
 
-We spotted 3 vhosts in the TLS certificate:
+We can see 3 vhosts in the TLS certificate:
 
 - www.travel.htb
-
 - blog.travel.htb
-
 - blog-dev.travel.htb
 
 ## 1st website - www.travel.htb
 
-There's nothing interesting on the main web page: it's just a static webpage with a non-functional susbcription form at the bottom of it. The other vhosts we found when running the nmap scan are probably where we want to go look next.
+There's nothing interesting on the main web page: it's just a static webpage with a non-functional susbcription form at the bottom. The other vhosts we found when running the nmap scan are probably where we want to go look next.
 
 ![image-20200519201954045](/assets/images/htb-writeup-travel/image-20200519201954045.png)
 
@@ -88,7 +86,7 @@ We don't have access to the blog-dev page because there's probably an .htaccess 
 
 ![image-20200519202202984](/assets/images/htb-writeup-travel/image-20200519202202984.png)
 
-Just because directory indexing is disabled doesn't mean we can look for other stuff that may be hidden. We use ffuf to fuzz files and directories and we find a Git repository.
+Just because directory indexing is disabled doesn't mean we can't look for other stuff that may be hidden. We'll use ffuf to fuzz files and directories and we find a Git repository.
 
 ```
 snowscan@kali:~/htb/travel$ ffuf -t 50 -w $WLRC -u http://blog-dev.travel.htb/FUZZ
@@ -137,7 +135,7 @@ snowscan@kali:~/htb/travel/tmp$ ~/tools/git-dumper/git-dumper.py http://blog-dev
 
 ## First glance at the PHP source code
 
-There's only one commit in the repo so it's doubtful we have to look for leftover credentials that were removed by a second commit or anything like that.
+There's only one commit in the repo so we won't have to look for leftover credentials that were removed by a second commit or anything like that.
 
 ![image-20200519203730705](/assets/images/htb-writeup-travel/image-20200519203730705.png)
 
@@ -174,7 +172,6 @@ The readme tells us there's a custom RSS feed PHP application in `wp-content/the
 **rss_template** is the main PHP code and contains a couple of interesting parts:
 
 1. It's using memcache to store the generated content for up to 60 seconds and it uses _xct as the prefix for the key.
-
 ```php
 $data = url_get_contents($url);
      if ($url) {
@@ -185,9 +182,7 @@ $data = url_get_contents($url);
          $simplepie->init();
          $simplepie->handle_content_type();
 ```
-
-2. The URL of the custom feed if passed through the **custom_feed_url** parameter.
-
+2. The URL of the custom feed is passed through the **custom_feed_url** parameter.
 ```php
 $url = $_SERVER['QUERY_STRING'];
 if(strpos($url, "custom_feed_url") !== false){
@@ -197,9 +192,7 @@ $url = end($tmp);
 $url = "http://www.travel.htb/newsfeed/customfeed.xml";
 }
 ```
-
-3. There's a **debug.php** script that can be enabled by setting the debug parameter
-
+3. There's a **debug.php** script that can be enabled by setting the debug parameter in the GET request
 ```php
 <!--
 DEBUG
@@ -266,13 +259,13 @@ In the source code, we see that there are HTML comments that are added, presumab
 
 ![image-20200519212210864](/assets/images/htb-writeup-travel/image-20200519212210864.png)
 
-It's possible to smuggle request to the memcache backend service through the custom_url_feed parameter who gets sent to the curl command. As we saw earlier, there's some anti-SSRF filtering but it's pretty weak and easily bypasse by using a 0 instead of localhost or 127.0.0.1. To send precise memcache commands to the server, we can use the Gopher protocol URI handler and the [Gopherus](https://github.com/tarunkant/Gopherus) utility that'll encode our payload in the right format.
+It's possible to smuggle requests to the memcache backend service through the custom_url_feed parameter that gets processed by the curl command. As we saw earlier, there's some anti-SSRF filtering but it's pretty weak and easily bypassed by using a 0 instead of localhost or 127.0.0.1. To send precise memcache commands to the server, we can use the Gopher protocol URI handler and the [Gopherus](https://github.com/tarunkant/Gopherus) utility that'll encode our payload in the right format.
 
 First we'll do a test and create a simple key/value pair in the memcache instance. Gopherus automatically uses **SpyD3r** as the key name, something we'll need to change later. Also, I'm not using a properly serialized payload for the first test, this is just to see if we'll be able to write to memcache.
 
 ![image-20200519212815234](/assets/images/htb-writeup-travel/image-20200519212815234.png)
 
-We'll test locally on a netcal listener to see if it sends the payload correctly. Here we see that it correctly sends the command to set the **SpyD3r** key and passed the CR and LF.
+We'll test locally on a netcat listener to see if it sends the payload correctly. Here we see that it correctly sends the command to set the **SpyD3r** key and passed the CR and LF.
 
 ![image-20200519213114194](/assets/images/htb-writeup-travel/image-20200519213114194.png)
 
@@ -402,7 +395,7 @@ We can now log in with SSH to the box and get the user flag.
 
 ## LDAP recon
 
-The machine is running a container from the wordpress instance we saw earlier but there's also another container running an LDAP server and indicated in the host file.
+The machine is running a container for the wordpress instance we saw earlier but there's also another container running an LDAP server as indicated in the host file.
 
 ![image-20200519221749649](/assets/images/htb-writeup-travel/image-20200519221749649.png)
 
@@ -414,7 +407,7 @@ In the home directory, the `.viminfo` file contains a password.
 
 ![image-20200519222239619](/assets/images/htb-writeup-travel/image-20200519222239619.png)
 
-We're able to pull a list of users from the LDAP server:
+We're now able to pull a list of users from the LDAP server:
 
 ![image-20200519222401264](/assets/images/htb-writeup-travel/image-20200519222401264.png)
 
