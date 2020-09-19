@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Multimaster - Hack The Box
-excerpt: "Multimaster was a challenging Windows machine that starts with an SQL injection so we can get a list of hashes. The box author threw a little curve ball here and it took me a while to figure that the hash type was Keccak-384, and not SHA-384. After successfully spraying the cracked pasword, we exploit a local command execution vulnerability in VS Code, then find a password in a DLL file, perform a targeted Kerberoasting attack and finally use our Server Operators group membership to get the flag."
+excerpt: "Multimaster was a challenging Windows machine that starts with an SQL injection so we can get a list of hashes. The box author threw a little curve ball here and it took me a while to figure that the hash type was Keccak-384, and not SHA-384. After successfully spraying the cracked password, we exploit a local command execution vulnerability in VS Code, then find a password in a DLL file, perform a targeted Kerberoasting attack and finally use our Server Operators group membership to get the flag."
 date: 2020-09-19
 classes: wide
 header:
@@ -27,7 +27,7 @@ tags:
 
 ![](/assets/images/htb-writeup-multimaster/multimaster_logo.png)
 
-Multimaster was a challenging Windows machine that starts with an SQL injection so we can get a list of hashes. The box author threw a little curve ball here and it took me a while to figure that the hash type was Keccak-384, and not SHA-384. After successfully spraying the cracked pasword, we exploit a local command execution vulnerability in VS Code, then find a password in a DLL file, perform a targeted Kerberoasting attack and finally use our Server Operators group membership to get the flag.
+Multimaster was a challenging Windows machine that starts with an SQL injection so we can get a list of hashes. The box author threw a little curve ball here and it took me a while to figure that the hash type was Keccak-384, and not SHA-384. After successfully spraying the cracked password, we exploit a local command execution vulnerability in VS Code, then find a password in a DLL file, perform a targeted Kerberoasting attack and finally use our Server Operators group membership to get the flag.
 
 ## Summary
 
