@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Admirer - Hack The Box
-excerpt: "Admirer is an easy box with the typical "gobuster/find creds on the webserver" part, but after we use a Rogue MySQL server to read files from the server file system, then for privesc there's a cool sudo trick with environment variables so we can hijack the python library path and get RCE as root."
+excerpt: "Admirer is an easy box with the typical 'gobuster/find creds on the webserver' part, but after we use a Rogue MySQL server to read files from the server file system, then for privesc there's a cool sudo trick with environment variables so we can hijack the python library path and get RCE as root."
 date: 2020-09-26
 classes: wide
 header:
@@ -23,7 +23,7 @@ tags:
 
 ![](/assets/images/htb-writeup-admirer/admirer_logo.png)
 
-Admirer is an easy box with the typical "gobuster/find creds on the webserver" part, but after we use a Rogue MySQL server to read files from the server file system, then for privesc there's a cool sudo trick with environment variables so we can hijack the python library path and get RCE as root.
+Admirer is an easy box with the typical 'gobuster/find creds on the webserver' part, but after we use a Rogue MySQL server to read files from the server file system, then for privesc there's a cool sudo trick with environment variables so we can hijack the python library path and get RCE as root.
 
 ## Portscan
 
