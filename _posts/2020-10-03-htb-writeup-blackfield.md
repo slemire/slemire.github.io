@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Blackfield - Hack The Box
-excerpt: "Blackfield was a fun Windows box where we get a list of potential usernames from an open SMB share then validate that list using kerbrute, then find and crack the hash of an account through the AS-Reproasting technique. After getting that first user, we'll use Bloodhound to discover that we can change another account's password, then from there access a previously locked down SMB share, retrieve an LSASS dump file and get more credentials. For the last part of the box we'll abuse the Backup Operators role to download a copy of the NTDS.dit file and recover the administrator NT hash."
+excerpt: "Blackfield was a fun Windows box where we get a list of potential usernames from an open SMB share, validate that list using kerbrute, then find and crack the hash of an account with the AS-REProasting technique. After getting that first user, we'll use Bloodhound to discover that we can change another account's password, then from there access a previously locked down SMB share, retrieve an LSASS dump file and get more credentials. For the last part of the box we'll abuse the Backup Operators role to download a copy of the NTDS.dit file and recover the administrator NT hash."
 date: 2020-10-03
 classes: wide
 header:
@@ -22,7 +22,7 @@ tags:
   - bloodhound
 ---
 
-Blackfield was a fun Windows box where we get a list of potential usernames from an open SMB share, validate that list using kerbrute, then find and crack the hash of an account through the AS-REProasting technique. After getting that first user, we'll use Bloodhound to discover that we can change another account's password, then from there access a previously locked down SMB share, retrieve an LSASS dump file and get more credentials. For the last part of the box we'll abuse the Backup Operators role to download a copy of the NTDS.dit file and recover the administrator NT hash.
+Blackfield was a fun Windows box where we get a list of potential usernames from an open SMB share, validate that list using kerbrute, then find and crack the hash of an account with the AS-REProasting technique. After getting that first user, we'll use Bloodhound to discover that we can change another account's password, then from there access a previously locked down SMB share, retrieve an LSASS dump file and get more credentials. For the last part of the box we'll abuse the Backup Operators role to download a copy of the NTDS.dit file and recover the administrator NT hash.
 
 ## Portscan
 
