@@ -12,7 +12,17 @@ categories:
   - hackthebox
   - infosec
 tags:
-  - 
+  - linux
+  - vhosts
+  - gogs
+  - memcache
+  - sqlite
+  - minecraft
+  - capabilities
+  - pcap
+  - amqp
+  - rabbitmq
+  - lua
 ---
 
 ![](/assets/images/htb-writeup-dyplesher/dyplesher_logo.png)
