@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Blunder - Hack The Box
-excerpt: "Blunder was an easy box for beginners that required bruteforcing the login for a Bludit CMS, then exploiting a known CVE through Metasploit to get remote code execution. The priv esc is a neat little bypass of the username policy that is supposed to block execution of a new shell as user root."
+excerpt: "Blunder was an easy box for beginners that required bruteforcing the login for a Bludit CMS, then exploiting a known CVE through Metasploit to get remote code execution. The priv esc is a neat little CVE with sudo that allows us to execute commands as root even though the root username is supposed to be blocked."
 date: 2020-10-17
 classes: wide
 header:
@@ -18,12 +18,11 @@ tags:
   - cewl
   - bruteforce
   - sudo 
-  - shitbox
 ---
 
 ![](/assets/images/htb-writeup-blunder/blunder_logo.png)
 
-Blunder was an easy box for beginners that required bruteforcing the login for a Bludit CMS, then exploiting a known CVE through Metasploit to get remote code execution. The priv esc is a neat little bypass of the username policy that is supposed to block execution of a new shell as user root.
+Blunder was an easy box for beginners that required bruteforcing the login for a Bludit CMS, then exploiting a known CVE through Metasploit to get remote code execution. The priv esc is a neat little CVE with sudo that allows us to execute commands as root even though the root username is supposed to be blocked.
 
 ## Portscan
 
@@ -285,4 +284,3 @@ root@blunder:/home/hugo# cat /root/root.txt
 cat /root/root.txt
 5d649f5bcb1be5f93702a7a71cd4d77e
 ```
-
