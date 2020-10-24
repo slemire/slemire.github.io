@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Dyplesher - Hack The Box
-excerpt: "TBA"
+excerpt: "Dyplesher was a pretty tough box that took me more than 10 hours to get to the user flag. There's quite a bit of enumeration required to get to the git repo and then find memcached credentials from the source code. I couldn't use the memcache module from Metasploit here since it doesn't support credentials so I wrote my own memcache enumeration script. We then make our way to more creds in Gogs, then craft a malicious Minecraft plugin to get RCE. To get to the first flag we'll sniff AMQP creds from the loopback interface. To priv esc, we send messages on the RabbitMQ bug and get the server to download and execute a lua script (Cubberite plugin)."
 date: 2020-10-24
 classes: wide
 header:
@@ -27,7 +27,7 @@ tags:
 
 ![](/assets/images/htb-writeup-dyplesher/dyplesher_logo.png)
 
-TBA
+Dyplesher was a pretty tough box that took me more than 10 hours to get to the user flag. There's quite a bit of enumeration required to get to the git repo and then find memcached credentials from the source code. I couldn't use the memcache module from Metasploit here since it doesn't support credentials so I wrote my own memcache enumeration script. We then make our way to more creds in Gogs, then craft a malicious Minecraft plugin to get RCE. To get to the first flag we'll sniff AMQP creds from the loopback interface. To priv esc, we send messages on the RabbitMQ bug and get the server to download and execute a lua script (Cubberite plugin).
 
 ## Portscan
 
@@ -57,7 +57,7 @@ On the website we have a couple of non-functional links like **Forums** and **St
 
 ![](/assets/images/htb-writeup-dyplesher/image-20200524104356684.png)
 
-Dirbusting shows a few interesting URL: **login**, **register** and **home**:
+Dirbusting shows a few interesting links: **login**, **register** and **home**:
 
 ```
 snowscan@kali:~/htb/dyplesher$ ffuf -w $WLRD -t 50 -u http://dyplesher.htb/FUZZ
