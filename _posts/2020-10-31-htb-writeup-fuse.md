@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Fuse - Hack The Box
-excerpt: "TBA"
+excerpt: "To solve Fuse, we'll do some enumeration to gather potential usernames from the print jobs information then build a password list from the strings on the website. After successfully password spraying, we'll reset the expired password to a new one then use rpcclient to identify a printer service account and find its password in a description field. To priv esc, we'll use the ability of our user with Printer Operators right to load a malicous kernel driver and get SYSTEM."
 date: 2020-10-31
 classes: wide
 header:
@@ -21,13 +21,15 @@ tags:
 
 ![](/assets/images/htb-writeup-fuse/fuse_logo.png)
 
+To solve Fuse, we'll do some enumeration to gather potential usernames from the print jobs information then build a password list from the strings on the website. After successfully password spraying, we'll reset the expired password to a new one then use rpcclient to identify a printer service account and find its password in a description field. To priv esc, we'll use the ability of our user with Printer Operators right to load a malicous kernel driver and get SYSTEM.
+
 ## Summary
 
 - Find usernames from the print logger website & build a small wordlist
 - Password spray and find an expired password for three users
 - Reset password for the user with smbpasswd then use rpcclient to find credentials for the svc-print account in a printer description
 - Get a shell and identify that svc-print is a members of Print Operators and can load kernel drivers
-- Use the Capcom.sys driver to gain RCE as SYSTEM
+- Use the Capcom.sys driver to gain code execution as SYSTEM
 
 ## Portscan
 
@@ -73,17 +75,17 @@ PORT      STATE SERVICE      VERSION
 49745/tcp open  msrpc        Microsoft Windows RPC
 ```
 
-
-
 ## Website recon
 
 The PaperCut Print Logger application is running on the server. There's not much exposed by the application except some print jobs that contain the hostname, some usernames and the file names.
 
 ![](/assets/images/htb-writeup-fuse/image-20200613205151216.png)
 
+![](/assets/images/htb-writeup-fuse/image-20201030163223157.png)
+
 ## Password spray
 
-Based on the printer job information, we can infer that the following usernames are present on the domain:
+Based on the printer job information, we can assume that the following usernames are present on the domain/machine:
 
 - pmerton
 - tlavel
@@ -91,7 +93,7 @@ Based on the printer job information, we can infer that the following usernames 
 - bhult
 - bnielson (From New Starter - bnielson.txt)
 
-There's not much we can use to build a wordlist except the words from the papercut website. Here's the small wordlist I built:
+For passwords, we'll build a wordlist with the words found on from the papercut website. Here's the small wordlist I built:
 
 ```
 backup_tapes
@@ -109,7 +111,7 @@ printing_issue_test
 Starter
 ```
 
-Using **crackmapexec** we password spray and find 3 accounts with the `Fabricorp01` password but it's expired because the server responds with `STATUS_PASSWORD_MUST_CHANGE`.
+Using **crackmapexec** we'll password spray those passwords and we find 3 accounts with the `Fabricorp01` password but it's expired as we can see from the server response: `STATUS_PASSWORD_MUST_CHANGE`.
 
 ![](/assets/images/htb-writeup-fuse/image-20200613211345368.png)
 
@@ -119,7 +121,7 @@ Using **smbpasswd** we can reset the user's password, and then after poking arou
 
 ![](/assets/images/htb-writeup-fuse/image-20200613211912843.png)
 
-We can get the list of users with **rpcclient** and we see that there is a **svc-print** account so this is probably the account that will use the password we found earlier.
+We can get the list of users with **rpcclient** and we see that there is an **svc-print** account so this is probably the account that uses the password we found earlier.
 
 ![](/assets/images/htb-writeup-fuse/image-20200613212151259.png)
 
@@ -129,32 +131,35 @@ Yup, this is our user. We can get a shell now with WinRM.
 
 ## Privesc
 
-The **svc-print** user is a member of **Print Operators**, this is very dangerous since members of this group can load Kernel Drivers and get RCE as SYSTEM.
+The **svc-print** user is a member of **Print Operators**. This is very dangerous since members of this group can load Kernel Drivers and get code execution with SYSTEM privileges.
 
 ![](/assets/images/htb-writeup-fuse/image-20200613213352780.png)
 
 ![](/assets/images/htb-writeup-fuse/image-20200613213519478.png)
 
-Ref: https://www.tarlogic.com/en/blog/abusing-seloaddriverprivilege-for-privilege-escalation/
+There's a nice blog post from Tarlogic that explains how to perform privilege escalation by loading drivers: [https://www.tarlogic.com/en/blog/abusing-seloaddriverprivilege-for-privilege-escalation/](https://www.tarlogic.com/en/blog/abusing-seloaddriverprivilege-for-privilege-escalation/)
 
-Kernel driver loader:
+We need the following in order to privesc:
+- A way to load the kernel driver from our shell. We can use the following PoC: [https://github.com/TarlogicSecurity/EoPLoadDriver/](https://github.com/TarlogicSecurity/EoPLoadDriver/)
+- The Capcom signed driver that contains the rootkit: [https://github.com/FuzzySecurity/Capcom-Rootkit/blob/master/Driver/Capcom.sys](https://github.com/FuzzySecurity/Capcom-Rootkit/blob/master/Driver/Capcom.sys)
+- The Capcom rootkit PoC that will let us execute code with the driver: [https://github.com/tandasat/ExploitCapcom](https://github.com/tandasat/ExploitCapcom)
 
-![](/assets/images/htb-writeup-fuse/image-20200613215755601.png)
+The kernel driver loader doesn't need any need modification and can be compiled as-is.
 
-Capcom exploit (modified to run xc):
+I modified the capcom exploit to run [xc](https://github.com/xct/xc):
 
 ![](/assets/images/htb-writeup-fuse/image-20200613220144218.png)
 
 ![](/assets/images/htb-writeup-fuse/image-20200613220610515.png)
 
-Load the Capcom driver:
+We'll first load the Capcom driver:
 
 ![](/assets/images/htb-writeup-fuse/image-20200613220725179.png)
 
-Running the exploit:
+Then run the Capcom exploit, which will trigger code execution in the driver:
 
 ![](/assets/images/htb-writeup-fuse/image-20200613220831186.png)
 
-Getting the shell as SYSTEM:
+Our xc reverse shell gets executed and we can finally get the last flag:
 
 ![](/assets/images/htb-writeup-fuse/image-20200613220855458.png)
