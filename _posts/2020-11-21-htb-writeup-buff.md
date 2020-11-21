@@ -19,7 +19,7 @@ tags:
   - cloudme sync
 ---
 
-![](/assets/images/htb-writeup-intense/intense_logo.png)
+![](/assets/images/htb-writeup-buff/buff_logo.png)
 
 Buff is pretty straightforward: Use a public exploit against the Gym Management System, then get RCE. Do some port-forwarding, then use another exploit (buffer overflow against Cloudme Sync) to get Administrator access.
 
