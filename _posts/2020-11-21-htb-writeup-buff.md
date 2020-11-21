@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Buff - Hack The Box
-excerpt: ""
+excerpt: "Use public exploit, get RCE. Do some port-forwarding, then use another exploit (buffer overflow) to get Administrator access. Done. Yawn."
 date: 2020-11-14
 classes: wide
 header:
