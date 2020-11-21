@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Buff - Hack The Box
-excerpt: "Use public exploit, get RCE. Do some port-forwarding, then use another exploit (buffer overflow) to get Administrator access. Done. Yawn."
+excerpt: "Buff is pretty straightforward: Use a public exploit against the Gym Management System, then get RCE. Do some port-forwarding, then use another exploit (buffer overflow against Cloudme Sync) to get Administrator access."
 date: 2020-11-14
 classes: wide
 header:
@@ -21,7 +21,7 @@ tags:
 
 ![](/assets/images/htb-writeup-intense/intense_logo.png)
 
-Use public exploit, get RCE. Do some port-forwarding, then use another exploit (buffer overflow) to get Administrator access. Done. Yawn.
+Buff is pretty straightforward: Use a public exploit against the Gym Management System, then get RCE. Do some port-forwarding, then use another exploit (buffer overflow against Cloudme Sync) to get Administrator access.
 
 ## Summary
 
