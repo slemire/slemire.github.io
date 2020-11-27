@@ -2,7 +2,7 @@
 layout: single
 title: Buff - Hack The Box
 excerpt: "Buff is pretty straightforward: Use a public exploit against the Gym Management System, then get RCE. Do some port-forwarding, then use another exploit (buffer overflow against Cloudme Sync) to get Administrator access."
-date: 2020-11-14
+date: 2020-11-21
 classes: wide
 header:
   teaser: /assets/images/htb-writeup-buff/buff_logo.png
