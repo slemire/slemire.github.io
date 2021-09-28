@@ -5,7 +5,7 @@
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
-
+//
 /* override syntax highlighting (base16) */
 $base00: #111111 !default;
 $base01: #242422 !default;
