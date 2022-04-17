@@ -270,3 +270,4 @@ defaults:
       comments: false
       share: false
       related: true
+theme: jekyll-theme-cayman
