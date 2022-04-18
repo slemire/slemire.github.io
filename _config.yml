@@ -20,7 +20,7 @@ title                    : "ocortesl.io | Hacking Ético y Ciberdefensa"
 title_separator          : "-"
 name                     : "Ocortesl"
 description              : "Artículos sobre ciberseguridad, CTFs e investigaciones"
-url                      : "https://ocortesl.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+url                      : "https://ocortesl.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : "ocortesl/ocortesl.github.io" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 #logo                     : "/assets/images/masthead.png"
@@ -103,7 +103,7 @@ analytics:
 author:
   name             : "ocortesl"
   avatar           : "/assets/images/avatar.png"
-  bio              : "Pentester, CTF player<br>HackTheBox ATeam"
+  bio              : "Pentester, CTF player<br>THM - HTB"
   location         : "Colombia - Bogotá"
   email            : "oscolo79@gmail.com"
   uri              :
