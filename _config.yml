@@ -16,7 +16,11 @@ minimal_mistakes_skin    : "haxor" # "air", "aqua", "contrast", "dark", "dirt", 
 
 # Site Settings
 locale                   : "en-US"
+<<<<<<< HEAD
 title                    : "ocortesl.github.io | Hacking Ético y Ciberdefensa"
+=======
+title                    : "ocortesl | Hacking Ético y Ciberdefensa"
+>>>>>>> 3e3378af658bb93476ef2c22439536de4e395257
 title_separator          : "-"
 name                     : "Ocortesl"
 description              : "Artículos sobre ciberseguridad, CTFs e investigaciones"
