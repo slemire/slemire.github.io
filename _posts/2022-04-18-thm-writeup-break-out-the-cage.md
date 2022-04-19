@@ -385,3 +385,19 @@ Saludos
 
   Fuentes:
 
+  ¿Atascado con un cifrado o criptograma? Esta herramienta lo ayudará a identificar el tipo de cifrado, así como también le brindará información sobre herramientas posiblemente útiles para resolverlo.
+  https://www.boxentriq.com/code-breaking/cipher-identifier
+
+  GTFOBins es una lista seleccionada de archivos binarios de Unix que se pueden usar para eludir las restricciones de seguridad locales en sistemas mal configurados.
+  https://gtfobins.github.io/#
+
+  Cyberchef: herramienta en linea para descifrar.
+  https://gchq.github.io/CyberChef/
+
+  Writeup:
+  https://0xnirvana.gitbook.io/writeups/tryhackme/easy/break-out-of-the-cage
+
+
+
+
+
