@@ -425,11 +425,22 @@ root@hackerdog:~#
 
   Fuentes:
 
-  ¿Atascado con un cifrado o criptograma? Esta herramienta lo ayudará a identificar el tipo de cifrado, así como también le brindará información sobre herramientas posiblemente útiles para resolverlo.
-  <https://www.boxentriq.com/code-breaking/cipher-identifier>
+  Exploit Exploit for SQL Injection in Phpipam CVE-2022-23046
+  <https://sploitus.com/exploit?id=E7055726-504A-542F-8AA0-CBA281FCCF99>
+
+  phpIPAM v1.4.4 allows an authenticated admin user to inject SQL sentences in the "subnet" parameter while searching a subnet via app/admin/routing/edit-bgp-mapping-search.php.
+  <https://fluidattacks.com/advisories/mercury/>
 
   GTFOBins es una lista seleccionada de archivos binarios de Unix que se pueden usar para eludir las restricciones de seguridad locales en sistemas mal configurados.
   <https://gtfobins.github.io/>#
 
   Cyberchef: herramienta en linea para descifrar.
   <https://gchq.github.io/CyberChef/>
+
+  pspy is a command line tool designed to snoop on processes without need for root permissions. It allows you to see commands run by other users, cron jobs, etc. as they execute. Great for enumeration of Linux systems in CTFs. Also great to demonstrate your colleagues why passing secrets as arguments on the command line is a bad idea.The tool gathers the info from procfs scans. Inotify watchers placed on selected parts of the file system trigger these scans to catch short-lived processes.
+  <https://github.com/DominicBreuker/pspy>
+
+  pentestmonkey taking the monkey work out of pentesting
+  <https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet>
+
+---
