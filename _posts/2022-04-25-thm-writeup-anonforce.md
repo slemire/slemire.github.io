@@ -285,7 +285,7 @@ ftp:*:18120:0:99999:7:::
 
 ![hash_id](/assets/images/thm-writeup-anonforce/anonforce_hash1.png)
 
-- Procedemos a analizar la cabecera del hash en la siguiente página: <https://hashcat.net/wiki/doku.php?id=example_hashes> en la que se evidencia que el identificador del hash es: ***1800**
+- Procedemos a analizar la cabecera del hash en la siguiente página: <https://hashcat.net/wiki/doku.php?id=example_hashes> en la que se evidencia que el identificador del hash es: **1800**
 
 ![hash_id](/assets/images/thm-writeup-anonforce/anonforce_hash_id.png)
 
