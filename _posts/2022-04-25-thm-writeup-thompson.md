@@ -43,7 +43,7 @@ ping -c 1 {ip}
 
 ## 2. Enumeración / Escaneo
 
-- Escaneo de la totalidad de los ***65535*** puerto de red con el siguiente comando:
+- Escaneo de la totalidad de los ***65535*** puertos de red con el siguiente comando:
   
 ~~~css
 └─# nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn 10.10.25.173
@@ -95,7 +95,7 @@ Nmap done: 1 IP address (1 host up) scanned in 14.11 seconds
 
 ---
 
-- Whatweb nos da la siguiente información que nos indica que no hay una página http:
+- Whatweb nos da la siguiente información que nos entrega la siguiente información:
 
 ~~~css
 └─# whatweb http://10.10.25.173:8080/
@@ -132,7 +132,7 @@ ID           Response   Lines    Word       Chars       Payload
 thompson_manager.png000024784:   404        0 L      47 W       1002 Ch     "8646"     
 ~~~
 
-- Del escaneo anterior se encotró la siguiente ruta para interesante ***manager***:
+- Del escaneo anterior se encotró la siguiente ruta interesante ***manager***:
 
 ![manager](/assets/images/thm-writeup-thompson/thompson_manager.png)
 
@@ -202,7 +202,7 @@ whoami
 tomcat
 ~~~
 
-- Tratamiento de la shell, con el siguiente comando mejoramos la shell:
+- Tratamiento de la shell, con el siguiente comando:
 
 ~~~python
 python3 -c 'import pty; pty.spawn("/bin/bash")'
