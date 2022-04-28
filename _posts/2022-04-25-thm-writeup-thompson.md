@@ -218,7 +218,7 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 ## Bandera root
 
-- Busqueda de vulnerabilidades con el siguiente comando:
+- Búsqueda de vulnerabilidades con el siguiente comando:
 
 ~~~css
 tomcat@ubuntu:/home/jack$ cat /etc/crontab
