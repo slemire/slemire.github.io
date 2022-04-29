@@ -13,10 +13,9 @@ categories:
   - infosec
 tags:
   - Security
-  - Metasploit
-  - Tomcat
-  - nmap
-  - wfuzz
+  - Windows
+  - CMD
+  - FW
 ---
 
 ![logo](/assets/images/thm-writeup-investigating-windows/windows_logo.png)
