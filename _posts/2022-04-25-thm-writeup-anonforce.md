@@ -184,7 +184,7 @@ local: private.asc remote: private.asc
 └─# gpg2john backup.pgp > back
 
 File backup.pgp
-	Encrypted data [sym alg is specified in pub-key encrypted session key]
+Encrypted data [sym alg is specified in pub-key encrypted session key]
 SYM_ALG_MODE_PUB_ENC is not supported yet!
 ~~~
 

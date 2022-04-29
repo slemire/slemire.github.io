@@ -151,7 +151,7 @@ The command completed successfully.
 
 ---
 
-## 5. Whats the name of the scheduled task that is malicous.
+## 5. Whats the name of the scheduled task that is malicous
 
 - Abrimos ***Server Manager***, ***herramientas*** y ***task sheduler***, aca observamos que tarea se ejecuta a diario:
 
@@ -251,6 +251,3 @@ The command completed successfully.
 ---
 
 Gracias!
-
-
-
