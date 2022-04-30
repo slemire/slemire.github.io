@@ -125,7 +125,7 @@ ID           Response   Lines    Word       Chars       Payload
 
 - Buscando contraseñas por defecto me encontré con la siguiente página que entrega una información importante ***<http://xforeveryman.blogspot.com/2012/01/helper-webdav-xampp-173-default.html>***
 
-![url](/assets/images/thm-writeup-dav/dav_webdav2.png)
+![url](/assets/images/thm-writeup-dav/dav_web3.png)
 
 ---
 
