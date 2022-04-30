@@ -13,7 +13,8 @@ categories:
   - infosec
 tags:
   - Security
-  - Metasploit
+  - Cat
+  - Cadaver
   - Tomcat
   - nmap
   - wfuzz
@@ -102,7 +103,7 @@ whatweb http://10.10.122.249
 
 ---
 
-## WFUZ
+## 3. WFUZ
 
 - Escaeno de subdominios con wfuzz:
 
@@ -120,7 +121,7 @@ ID           Response   Lines    Word       Chars       Payload
 
 ---
 
-## Exploit
+## 4. Exploit
 
 - Buscando contraseñas por defecto me encontré con la siguiente página que entrega una información importante ***<http://xforeveryman.blogspot.com/2012/01/helper-webdav-xampp-173-default.html>***
 
@@ -202,7 +203,7 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 ---
 
-## Bandera de usuario
+## 5. Bandera de usuario
 
 - Nos dirigimos a la carpeta ***home*** en esta accedmos al usuario ***merlin*** y en está última encontramos el archivo ***user.txt***:
 
@@ -210,7 +211,7 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 ---
 
-## Bandera root
+## 6. Bandera root
 
 - Búsqueda de vulnerabilidades con el comando ***sudo -l***, en el cual observamos el binario ***cat*** :
 
@@ -247,8 +248,9 @@ sudo cat /root/root.txt
 
 ![root](/assets/images/thm-writeup-dav/dav_root.png)
 
+---
 
-## Fuentes
+## 7. Fuentes
 
 - Exploit
 <http://xforeveryman.blogspot.com/2012/01/helper-webdav-xampp-173-default.html>
