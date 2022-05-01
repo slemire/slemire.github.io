@@ -38,8 +38,6 @@ ping -c 1 {ip}
 
 ![ping](/assets/images/thm-writeup-library/library_ping.png)
 
-
-
 - De acuerdo con el ttl=63 sabemos que nos estamos enfrentando a una máquina con sistema operativo Linux.
 
 ---
