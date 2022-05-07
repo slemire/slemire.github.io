@@ -118,7 +118,7 @@ gobuster -w /usr/share/dirb/wordlists/common.txt dir -u http://10.10.24.13 -x ht
 
 ## 2.3 Burpsuite
 
-- Realizamos la del home captura mediante burpsuite y nos encotramos con lo siguiente
+- Realizamos la captura del home mediante burpsuite y nos encotramos con lo siguiente
 
 ![Burp](/assets/images/thm-writeup-glitch/glitch_burp_home.png)
 
