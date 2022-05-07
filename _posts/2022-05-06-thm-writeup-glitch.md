@@ -14,8 +14,11 @@ categories:
 tags:
   - Security
   - Linux
+  - wfuzz
+  - gobuster
+  - Burpsuite
   - Web
-  - Javascript
+  - Nodejs
   - Privilege escalation
 ---
 
@@ -249,7 +252,7 @@ v0id@ubuntu:/home/user$
 
 ---
 
-### 5 Root
+### 4 Root
 
 - Con el siguiente comando procedemos a escanerar los binarios que pueden ser explotados y **doas** nos permite
 
