@@ -55,7 +55,7 @@ ping -c 1 {ip}
 
 - De acuerdo con el escaneo anterior, se encuentran el siguiente puerto abierto; 80 (htp)
 
-- Escaeno de vulnerabilidades sobre el 80:
+- Escaeno de vulnerabilidades sobre el 80 donde encontramos la ruta **secret**, que más adelante con **wfuzz** corroboramos:
 
 ```css
 nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
