@@ -77,7 +77,7 @@ whatweb {ip}
 
 - Revisión de la URL **_<http://10.10.24.23>_**:
 
-![URL] (/assets/images/thm-writeup-glitch/glitch_nmap_vuln.png)
+![url](/assets/images/thm-writeup-glitch/glitch_web.png)
 
 ---
 
