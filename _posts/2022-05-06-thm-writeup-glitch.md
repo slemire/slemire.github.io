@@ -220,9 +220,9 @@ Connection to 10.9.0.68 3333 port [tcp/*] succeeded!
 ...
 ```
 
-### 4 Exploit para descifar las contraseñas
+### 3.4 Exploit para descifar las contraseñas
 
-- Descargamos el exploit desde la siguiente página <https://raw.githubusercontent.com/unode/firefox_decrypt/master/firefox_decrypt.py> lo guardamos con el nombre **exp.py**, o ejecutamos con el siguiente comando y marcamos la opción **2** y de está manera obtenemos un usuario y contraseña:
+- Descargamos el exploit desde la siguiente página <https://raw.githubusercontent.com/unode/firefox_decrypt/master/firefox_decrypt.py> lo guardamos con el nombre **exp.py**, lo ejecutamos con el siguiente comando, marcamos la opción **2** y de está manera obtenemos un usuario y contraseña:
 
 ```css
 ─# python3 exp.py .firefox 
