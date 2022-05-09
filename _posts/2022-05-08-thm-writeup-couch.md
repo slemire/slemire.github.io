@@ -111,7 +111,7 @@ root
 
 ![9](/assets/images/thm-writeup-couch/couch_root1.png)
 
-![9](/assets/images/thm-writeup-couch/couch_root2.png)
+![9](/assets/images/thm-writeup-couch/couch_root3.png)
 
 ---
 
