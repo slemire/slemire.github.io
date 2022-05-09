@@ -22,9 +22,9 @@ tags:
   - Privilege escalation
 ---
 
-![logo](/assets/images/thm-writeup-glitch/glitch_logo.png)
+![nmap](/assets/images/thm-writeup-couch/couch_logo.png)
 
-[Link](https://tryhackme.com/room/glitch "Glitch")
+[Link](https://tryhackme.com/room/couch "Couch")
 
 This is a simple challenge in which you need to exploit a vulnerable web application and root the machine. It is beginner oriented, some basic JavaScript knowledge would be helpful, but not mandatory. Feedback is always appreciated.
 
@@ -92,13 +92,9 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 
 ![6](/assets/images/thm-writeup-couch/couch_ssh.png)
 
-
-
-
-
-
-
 ## 8. Compromise the machine and locate user.txt
+
+- En la ruta que estamos ubicados encotramos la bandera de usuario.
 
 ![6](/assets/images/thm-writeup-couch/couch_user.png)
 
