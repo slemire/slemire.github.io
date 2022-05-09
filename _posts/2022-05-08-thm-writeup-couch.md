@@ -14,11 +14,9 @@ categories:
 tags:
   - Security
   - Linux
-  - wfuzz
-  - gobuster
-  - Burpsuite
+  - nmap
+  - couchdb
   - Web
-  - Nodejs
   - Privilege escalation
 ---
 
@@ -119,5 +117,11 @@ root
 
 Fuentes:
 
+- Guide couchdb
 
+https://guide.couchdb.org/draft/tour.html
+
+- HackTricks
+
+<https://book.hacktricks.xyz/network-services-pentesting/5984-pentesting-couchdb>
 
