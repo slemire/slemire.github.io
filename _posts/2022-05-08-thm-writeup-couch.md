@@ -30,7 +30,7 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 
 ### 1. Scan the machine. How many ports are open?
 
-- Con el siguiente comando podemos explorar de los **65535** puertos, cuantos estan abiertos:
+- Con el siguiente comando podemos explorar de los **65535** puertos cuales están abiertos:
 
 ```cs
 └─# nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn 10.10.245.171
@@ -42,13 +42,13 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 
 ### 2. What is the database management system installed on the server?
 
-- En la imagen anterior se puede observar el administrador de bases de datos.
+- En la imagen anterior, se puede observar el administrador de bases de datos.
 
 ---
 
 ### 3. What port is the database management system running on?
 
-- En la imagen del punto 1 se observa el puerto de la base de datos.
+- En la imagen del punto # 1 se observa el puerto de la base de datos.
 
 ---
 
@@ -74,7 +74,7 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 
 ### 6. What is the path to list all databases in the web browser of the database management system?
 
-- Revisando en Google me encontré con la siguiente **url**, en la que se puede dar respuesta a esta pregunta -> <https://guide.couchdb.org/draft/tour.html>
+- Revisando en Google me encontré con la siguiente **url**, la que da respuesta a la pregunta -> <https://guide.couchdb.org/draft/tour.html>
 
 ![6](/assets/images/thm-writeup-couch/couch_allbd.png)
 
