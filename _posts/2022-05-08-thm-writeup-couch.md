@@ -92,13 +92,13 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 
 ## 8. Compromise the machine and locate user.txt
 
-- En la ruta que estamos ubicados encotramos la bandera de usuario.
+> - En la ruta que estamos ubicados encotramos la bandera de usuario.
 
 ![6](/assets/images/thm-writeup-couch/couch_user.png)
 
 ## 9. Escalate privileges and obtain root.txt
 
-- Después de realizar varias consultas y ejecutar linpeas, encontré que con el siguiente comando se puede realizar una montura y luego realizar lectura del archivo **root.txt**:
+`- Después de realizar varias consultas y ejecutar linpeas, encontré que con el siguiente comando se puede realizar una montura y luego realizar lectura del archivo **root.txt**:`
 
 ```cs
 atena@ubuntu:~$ docker -H 127.0.0.1:2375 run --rm -it --privileged --net=host -v /:/mnt alpine
