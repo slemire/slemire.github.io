@@ -74,13 +74,13 @@ This is a simple challenge in which you need to exploit a vulnerable web applica
 
 ### 6. What is the path to list all databases in the web browser of the database management system?
 
-- Revisando en Google me encontré con la siguiente **url**, la que da respuesta a la pregunta -> <https://guide.couchdb.org/draft/tour.html>
+- Revisando en Google, me encontré con la siguiente **url** la que da respuesta a la pregunta -> <https://guide.couchdb.org/draft/tour.html>
 
 ![6](/assets/images/thm-writeup-couch/couch_allbd.png)
 
 ## 7. What are the credentials found in the web administration tool?
 
-- Revisando en el panel de administrador encontramos la ruta **secret** cuyo nombre es muy indicativo
+- Revisando en el panel de administrador encontramos la ruta **secret** cuyo nombre es muy revelador:
 
 ![6](/assets/images/thm-writeup-couch/couch_secret.png)
 
