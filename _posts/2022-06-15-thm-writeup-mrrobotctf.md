@@ -15,6 +15,7 @@ categories:
 tags:
   - linux
   - privilege escalation
+  - level medium
 ---
 
 ![](/assets/images/thm-writeup-mrrobotctf/mrrobotctf.png)
