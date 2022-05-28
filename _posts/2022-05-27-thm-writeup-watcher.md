@@ -36,6 +36,8 @@ Revisando el directorio **robots.txt** encontramos una ruta, que al abrir, encon
 
 ![flag1](/assets/images/thm-writeup-watcher/watcher_flag1.png)
 
+---
+
 - Flag 2 ->
 Con la segunda ruta obtenida en el directorio **robots.txt** y con la pista, que nos indica que la página es vulnerable a **lfi**, procedemos con los siguientes pasos:
 
@@ -46,10 +48,17 @@ Con la segunda ruta obtenida en el directorio **robots.txt** y con la pista, que
 3. Con el usuario y contraseñas encontrados ingresamos vía **ftp**, listamos los archivos y descargamos la **flag_2.txt** como mostramos a continuación:
 ![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_3.png)
 
+---
 
+- Flag 3 ->
 
+1. Preparamos una **reverse-shell.php**, descargada de <https://pentestmonkey.net/tools/web-shells/php-reverse-shell> con los datos de la máquina atacante, como observamos a continuación:
 
-
+![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_1.png)
+2. Procedemos a subirla **rshell.php** al servidor **ftp** como lo muestra la siguiente imagen:
+![flag3](/assets/images/thm-writeup-watcher/watcher_flag3.png)
+3. Nos ponemos en escucha por el puerto configurado, en nuestro caso **4444** con el siguiente comando: ~~~ nc -nlvp 4444 ~~~
+4. Ejecutamos la **rshell.php**
 
 ----
 
