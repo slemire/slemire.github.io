@@ -48,6 +48,7 @@ Con la segunda ruta obtenida en el directorio **robots.txt** y con la pista, que
 3. Con el usuario y contraseñas encontrados ingresamos vía **ftp**, listamos los archivos y descargamos la **flag_2.txt** como mostramos a continuación:
 ![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_3.png)
 
+ftpuser:givemefiles777
 ---
 
 - Flag 3 ->
@@ -58,7 +59,7 @@ Con la segunda ruta obtenida en el directorio **robots.txt** y con la pista, que
 2. Procedemos a subirla **rshell.php** al servidor **ftp** como lo muestra la siguiente imagen:
 ![flag3](/assets/images/thm-writeup-watcher/watcher_flag3.png)
 3. Nos ponemos en escucha por el puerto configurado, en nuestro caso **4444** con el siguiente comando: ~~~ nc -nlvp 4444 ~~~
-4. Ejecutamos la **rshell.php**, ejecutando la siguiente ruta `/home/ftpuser/ftp/files/rshell.php`, desde burpsuite o desde el navegador:
+4. Ejecutamos la **rshell.php**, ejecutando la siguiente ruta http://watcher.local/post.php?post=/home/ftpuser/ftp/files/php-reverse-rshell.php, desde burpsuite o desde el navegador:
 dd
 5. dddd
 
