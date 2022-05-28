@@ -20,13 +20,38 @@ tags:
   - Privilege escalation
 ---
 
-![nmap](/assets/images/thm-writeup-watcher/watcher_logo.png)
+![logo](/assets/images/thm-writeup-watcher/watcher_logo.png)
 
 [Link](https://tryhackme.com/room/watcher "Watcher")
 
-This is a simple challenge in which you need to exploit a vulnerable web application and root the machine. It is beginner oriented, some basic JavaScript knowledge would be helpful, but not mandatory. Feedback is always appreciated.
+A boot2root Linux machine utilising web exploits along with some common privilege escalation techniques, Work your way through the machine and try to find all the flags you can!
+
+Made by @rushisec
 
 ---
+
+- Flag 1 -> hint: (<https://moz.com/learn/seo/robotstxt>)
+
+Revisando el directorio **robots.txt** encontramos una ruta, que al abrir, encontramos la la bandera correspondiente a este punto:
+
+![flag1](/assets/images/thm-writeup-watcher/watcher_flag1.png)
+
+- Flag 2 ->
+Con la segunda ruta obtenida en el directorio **robots.txt** y con la pista, que nos indica que la página es vulnerable a **lfi**, procedemos con los siguientes pasos:
+
+1. Verificamos la vulnerabilidad con **burpsuite** listando la ruta **/etc/passwd** como se oberva a continuación:
+![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_1.png)
+2. Con está información, listamos la ruta No. 2 de **robots.txt**, obteniendo un usuario y contraseña **ftp**, como se observa a continuación:
+![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_2.png)
+3. Con el usuario y contraseñas encontrados ingresamos vía **ftp**, listamos los archivos y descargamos la **flag_2.txt** como mostramos a continuación:
+![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_3.png)
+
+
+
+
+
+
+----
 
 ## 1. Fase de reconocimiento
 
@@ -64,7 +89,7 @@ nmap -sCV -T4 -p22,111,139,445,873,2049,6379,34583,37021,37295,52355 vuln.local 
 
 ---
 
-- Revisión de la URL ***http://10.10.25.173:8080/***:
+- Revisión de la URL ***<http://10.10.25.173:8080/>***:
 
 ![url](/assets/images/thm-writeup-dav/dav_url.png)
 
@@ -182,8 +207,6 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 - Búsqueda de vulnerabilidades con el comando ***sudo -l***, en el cual observamos el binario ***cat*** :
 
-
-
 ~~~css
 www-data@ubuntu:/usr/lib/openssh$ sudo -l
 sudo -l
@@ -205,9 +228,9 @@ www-data@ubuntu:/bin$ cd ..
 cd ..
 www-data@ubuntu:/$ ls
 ls
-bin   etc	  initrd.img.old  lost+found  opt   run   sys  var
-boot  home	  lib		  media       proc  sbin  tmp  vmlinuz
-dev   initrd.img  lib64		  mnt	      root  srv   usr  vmlinuz.old
+bin   etc   initrd.img.old  lost+found  opt   run   sys  var
+boot  home   lib    media       proc  sbin  tmp  vmlinuz
+dev   initrd.img  lib64    mnt       root  srv   usr  vmlinuz.old
 www-data@ubuntu:/$ sudo cat /root/root.txt
 sudo cat /root/root.txt
 ??????
