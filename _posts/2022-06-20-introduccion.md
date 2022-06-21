@@ -16,10 +16,9 @@ con los cursos que estoy haciendo, mis investigaciones, proyectos personales y d
 
 
 
-
-´´´ Python
+```Python
 import request
 
 r = request.get("http://isat-lab.github.io")
 
-´´´
+```
