@@ -14,10 +14,11 @@ categories:
 tags:
   - Security
   - Linux
-  - nmap
-  - couchdb
+  - Burp
+  - Cyberchef
+  - hash
+  - gobuster
   - Web
-  - Privilege escalation
 ---
 
 ![nmap](/assets/images/thm-writeup-couch/couch_logo.png)
