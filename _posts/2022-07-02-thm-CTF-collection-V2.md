@@ -594,6 +594,98 @@ ctf2_flag10.png
 
 ## Easter 14 -> **Embed image code**
 
+- Buscando en el código "Easter 14" y encontramos un código, como se observa a continuación:
+
+![flag14](/assets/images/thm-writeup-ctf-vol2/ctf2_flag14_A.png)
+
+- Desde cyberchef procedemos a descifrar desde base 64 y a renderizar la imagen y obtenemos el Easter 14:
+
+
+![flag14](/assets/images/thm-writeup-ctf-vol2/ctf2_flag14.png)
+
+---
+
+## Easter 15 -> **Try guest the alphabet and the hash code**
+
+- De acuerdo con la pista y desde burpsuite intentamos con todo el abcedario en minúscula y mayúscula como observamos a continuación:
+
+![flag15](/assets/images/thm-writeup-ctf-vol2/ctf2_flag15_1.png)
+
+
+![flag15](/assets/images/thm-writeup-ctf-vol2/ctf2_flag15.png)
+
+a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+---
+89 90 91 92 93 94 95 41 42 43 75 76 77 78 79 80 81 10 11 12 13 14 15 16 17 18
+
+A  B   C   D   E   F   G  H  I  J  K  L  M  N  O   P   Q   R   S   T   U   V   W   X   Y   Z
+---
+99 100 101 102 103 104 51 52 53 54 55 56 57 58 126 127 128 129 130 131 136 137 138 139 140 141
+
+- Con esta información procedemos a descifrar: hints: 51 89 77 93 126 14 93 10 obteniendo:
+
+51 89 77 93 126 14 93 10
+---
+G  a  m  e  O   v  e  r
+
+![flag15](/assets/images/thm-writeup-ctf-vol2/ctf2_flag15_2.png)
+
+---
+
+## Easter 16 -> **Make all inputs into one form.**
+
+- Desde "game2" capturamos la petición de presionar "Button 1" y obtenemos la siguiente respuesta:
+
+![flag16](/assets/images/thm-writeup-ctf-vol2/ctf2_flag16.png)
+
+
+- Con base en lo anterior unimos las tres peticiones con la siguiente petición "button1=button1&button2=button2&button3=button3&submit=submit", como se observa a continuación obteniendo el "Easter 16":
+
+![flag16](/assets/images/thm-writeup-ctf-vol2/ctf2_flag16_1.png)
+
+---
+
+## Easter 17 -> **bin -> dec -> hex -> ascii**
+
+- Con el siguiente código en **python** obtenemos el "Easter 17":
+
+![flag17](/assets/images/thm-writeup-ctf-vol2/ctf2_flag17.png)
+
+
+~~~python
+#bin -> dec -> hex -> ascii
+binary = "100010101100001011100110111010001100101011100100010000000110001001101110011101000100000010101000100100001001101011110110110101000110101010111110110101000110101010111110110101100110011011100000101111101100100001100110110001100110000011001000011001101111101"
+decimal = int(binary, 2)
+print (decimal)
+hexa = hex(decimal) [2:]
+print (hexa)
+print (bytes.fromhex(hexa).decode("ASCII"))
+~~~
+
+---
+
+## Easter 18 -> **Request header. Format is egg:Yes**
+
+- Modificamos la solicitud como se observa a continuación:
+
+![flag18](/assets/images/thm-writeup-ctf-vol2/ctf2_flag18.png)
+
+---
+
+## Easter 19 -> **A thick dark line**
+
+- Buscando en el código imagenes, encontramos "small.png" e ingresamos a esta, obteniendo el "easter 19"
+
+![flag19](/assets/images/thm-writeup-ctf-vol2/ctf2_flag19.png)
+![flag19](/assets/images/thm-writeup-ctf-vol2/ctf2_flag19_1.png)
+
+---
+
+## Easter 20 -> **You need to POST the data instead of GET. Burp suite or curl might help.**
+
+- Revisando en el código "Easter 20" encontramos un usuario y contraseña, que cambiando el método de solicitud en "burp" de get a post y agregando la siguiente línea "username=DesKel&password=heIsDumb).", obtenemos el "Easter 20":
+
+![flag20](/assets/images/thm-writeup-ctf-vol2/ctf2_flag20.png)
 
 ---
 
@@ -602,11 +694,8 @@ ctf2_flag10.png
 - Cyberchef:
 <https://gchq.github.io/CyberChef/>
 
-- Que son Los permisos 777 755 700 664 666 y CHMOD:
-<https://americandominios.com/conta/knowledgebase/627/Que-son-Los-permisos-777-755-700-664-666-y-CHMOD.html>
+- Writeup:
+<https://www.aldeid.com/wiki/TryHackMe-CTF-collection-Vol2>
 
-- explainshell.com
-<https://explainshell.com/explain?cmd=ssh%20-i%20keyfile%20host>
-
-- Reverse Shell Cheat Sheet
-<https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md#python>
+- Crackstation:
+<https://crackstation.net/>
