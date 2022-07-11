@@ -79,7 +79,7 @@ gobuster dir -u http://10.10.174.164/ -w /usr/share/dirb/wordlists/common.txt
 
 ![flag3](/assets/images/thm-writeup-ctf-vol2/ctf2_flag4.png)
 
-Revisamos el código de la página **/login** y encontramos la bandera 3:
+Revisamos el código de la página **/login** y encontramos el **Easter 3**:
 
 ![flag3](/assets/images/thm-writeup-ctf-vol2/ctf2_flag4_1.png)
 
