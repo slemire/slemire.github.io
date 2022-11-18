@@ -1,0 +1,16 @@
+current directory: /home/ocortesl/web/ocortesl.github.io/vendor/bundle/ruby/3.0.0/gems/unf_ext-0.0.7.7/ext/unf_ext
+/usr/bin/ruby3.0 -I /usr/lib/ruby/vendor_ruby -r ./siteconf20220417-53232-19xc4s.rb extconf.rb
+checking for -lstdc++... yes
+creating Makefile
+
+current directory: /home/ocortesl/web/ocortesl.github.io/vendor/bundle/ruby/3.0.0/gems/unf_ext-0.0.7.7/ext/unf_ext
+make DESTDIR\= clean
+
+current directory: /home/ocortesl/web/ocortesl.github.io/vendor/bundle/ruby/3.0.0/gems/unf_ext-0.0.7.7/ext/unf_ext
+make DESTDIR\=
+compiling unf.cc
+linking shared-object unf_ext.so
+
+current directory: /home/ocortesl/web/ocortesl.github.io/vendor/bundle/ruby/3.0.0/gems/unf_ext-0.0.7.7/ext/unf_ext
+make DESTDIR\= install
+/usr/bin/install -c -m 0755 unf_ext.so ./.gem.20220417-53232-1zuow2
