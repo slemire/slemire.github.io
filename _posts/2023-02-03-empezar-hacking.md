@@ -5,7 +5,7 @@ excerpt: "Empezar a trastear con las siguientes plataformas es un buen inicio ha
 date: 2023-03-02
 classes: wide
 header:
-  teaser: /assets/images/hacking/study_hard.gif
+  teaser: /assets/images/empezar-hacking/study.gif
   teaser_home_page: true
   icon: 
 categories:
