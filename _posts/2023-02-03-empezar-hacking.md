@@ -12,11 +12,10 @@ categories:
   - hacking
   - learning
 tags:  
-  - osticket
-  - mysql
-  - mattermost
-  - hashcat
-  - rules
+  - tryHackMe
+  - CTFs
+  - starterPack
+ 
 ---
 
 ![](/assets/images/empezar-hacking/studyhard.jpg)
