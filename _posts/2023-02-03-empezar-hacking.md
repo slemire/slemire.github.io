@@ -1,6 +1,6 @@
 ---
 layout: single
-title: Test new post
+title: Primeros pasos en hacking
 excerpt: "Empezar a trastear con las siguientes plataformas es un buen inicio hacking"
 date: 2023-02-03
 classes: wide
