@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Cooming soon
-excerpt: "R..."
+excerpt: "..."
 date: 2023-02-06
 classes: wide
 header:
