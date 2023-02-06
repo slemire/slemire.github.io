@@ -5,9 +5,9 @@ excerpt: "R..."
 date: 2023-02-06
 classes: wide
 header:
-  teaser: #/assets/images/htb-writeup-ready/ready_logo.png
+  teaser: 
   teaser_home_page: true
-  icon: #/assets/images/hackthebox.webp
+  icon: 
 categories:
  
 tags:
