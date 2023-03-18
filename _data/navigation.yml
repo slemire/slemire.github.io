@@ -1,11 +1,13 @@
 main:
   - title: "Home"
     url: /
-  - title: "Posts"
+  - title: "Artículos"
     url: /year-archive/
-  - title: "Categories"
+  - title: "Categorías"
     url: /categories/
-  - title: "Tags"
+  - title: "Etiquetas"
     url: /tags/
-  - title: "About"
+  - title: "Buscador"
+    url: /buscador/
+  - title: "Acerca de Mi"
     url: /about/
