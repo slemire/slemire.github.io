@@ -16,7 +16,7 @@ minimal_mistakes_skin    : "haxor" # "air", "aqua", "contrast", "dark", "dirt", 
 
 # Site Settings
 locale                   : "es-MX"
-title                    : "Ciberseguridad y Hacking Ético"
+title                    : "BerserkWings | Hacking Ético"
 title_separator          : "-"
 name                     : "BerserkWings"
 description              : "Posts acerca de ciberseguridad, write ups, redes, etc."
@@ -105,7 +105,7 @@ author:
   avatar           : "/assets/images/avatar.png"
   bio              : "Aspirante a Pentester, CTF player<br>HackTheBox:BerserkPrit64"
   location         : "México"
-  email            : 
+  email            :
   uri              :
   home             : # null (default), "absolute or relative url to link to author home"
   bitbucket        :

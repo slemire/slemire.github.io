@@ -14,6 +14,7 @@ tags:
   - Linux
   - Samba
   - FTP
+  - Exploit
   - Username Map Script
   - OSCP Style
   - Metasploit
@@ -72,21 +73,21 @@ Read data files from: /usr/bin/../share/nmap
 Nmap done: 1 IP address (1 host up) scanned in 31.56 seconds
            Raw packets sent: 131084 (5.768MB) | Rcvd: 37 (1.628KB)
 ```
--p-: Para indicarle un escaneo en ciertos puertos.
+* -p-: Para indicarle un escaneo en ciertos puertos.
 
---open: Para indicar que aplique el escaneo en los puertos abiertos.
+* --open: Para indicar que aplique el escaneo en los puertos abiertos.
 
--sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
+* -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
 
---min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
+* --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
 
--vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
+* -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
 
--n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
+* -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
 
--Pn: Para indicar que se omita el descubrimiento de hosts.
+* -Pn: Para indicar que se omita el descubrimiento de hosts.
 
--oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
+* -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 ## Escaneo de servicios
 Analizando el escaneo de servicios, observamos que hay 3 servicios que nos interesan. El primero es el servicio FTP ya que podemos logearnos como anonymous, el servicio ssh aunque de momento no tenemos ningun usuario ni credencial y el servicio Samba aunque lo vemos en 2 puertos, el que nos interesa más sera el puerto 445.
@@ -139,13 +140,13 @@ Host script results:
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done at Wed Jan 11 14:11:32 2023 -- 1 IP address (1 host up) scanned in 54.32 seconds
 ```
--sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
+* -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
 
--sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
+* -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
 
--p: Para indicar puertos especificos.
+* -p: Para indicar puertos especificos.
 
--oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
+* -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
 ## Analizando el servicio FTP
 Entraremos a este servicio como usuario anonymous, para ver que podemos encontrar que nos pueda ser util.
@@ -220,9 +221,9 @@ print('Send `exit` to quit shell')
 tn2.interact()
 
 ```
-Searchsploit -x: Para ver el exploit.
+* Searchsploit -x: Para ver el exploit.
 
-Searchsploit -m: Para copiar el exploit.
+* Searchsploit -m: Para copiar el exploit.
 
 Lo que hace este exploit es tratar de conectarnos al servicio FTP a traves del puerto 6200 (o eso creo xd), pero no creo que funcione porque dicho puerto no esta abierto, asi que no perdamos tiempo y mejor analicemos el servicio Samba.
 
@@ -251,9 +252,9 @@ Anonymous login successful
         ---------            -------
         WORKGROUP            LAME
 ```
--L: Sirve para listar los recursos compartidos.
+* -L: Sirve para listar los recursos compartidos.
 
--N: Sirve para que no nos pida usuario y contraseña para logearnos, osea un Null Session.
+* -N: Sirve para que no nos pida usuario y contraseña para logearnos, osea un Null Session.
 
 Observamos ahi algo curioso en el recurso tmp, puede que ahi tengamos algo que nos ayude asi que vamos a logearnos directamente ahi:
 ```
@@ -309,7 +310,7 @@ def exploit
                 handler
         end
 ```
-Quiza podamos usar esta parte "username = "/=`nohup " + payload.encoded + "`""  para poder ganar acceso. Para intentar logearnos usaremos el comando logon que nos pide un usuario y contraseña para ver si podemos inyectar codigo.
+Quiza podamos usar esta parte **username = "/=`nohup " + payload.encoded + "`"**  para poder ganar acceso. Para intentar logearnos usaremos el comando logon que nos pide un usuario y contraseña para ver si podemos inyectar codigo.
 
 Levantamos un tcpdump para capturas los paquetes lanzados por traza ICMP:
 ```
@@ -412,7 +413,7 @@ root@lame:/# cat ./root/root.txt
 ```
 Y listo ya quedo esta maquina al estilo OSCP.
 
-## Metasploit
+# Metasploit
 Con esta madre es super sencillo y ps casi no aprende ni papa pero aun asi por si lo quieren probar, asi se usa:
 
 ## Activando Metaspploit
@@ -539,4 +540,4 @@ msf6 exploit(multi/samba/usermap_script) > exit
 └─# msfdb stop 
 [+] Stopping database
 ```
-## FIN
+# FIN
