@@ -47,7 +47,7 @@ Vamos a realizar un escaneo de los puertos que tenga abiertos la maquina, este e
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.3 -oG allPorts
 
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
-Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-16 13:59 CST
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-01-11 13:59 CST
 Initiating SYN Stealth Scan at 13:59
 Scanning 10.10.10.3 [65535 ports]
 Discovered open port 21/tcp on 10.10.10.3
@@ -59,7 +59,7 @@ Increasing send delay for 10.10.10.3 from 0 to 5 due to 11 out of 21 dropped pro
 Completed SYN Stealth Scan at 14:00, 31.35s elapsed (65535 total ports)
 Nmap scan report for 10.10.10.3
 Host is up, received user-set (0.97s latency).
-Scanned at 2023-03-16 13:59:43 CST for 31s
+Scanned at 2023-01-11 13:59:43 CST for 31s
 Not shown: 65530 filtered tcp ports (no-response)
 Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
 PORT     STATE SERVICE      REASON
