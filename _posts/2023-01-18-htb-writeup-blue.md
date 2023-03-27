@@ -10,6 +10,7 @@ header:
   icon: /assets/images/hackthebox.webp
 categories:
   - HackTheBox
+  - Easy Machine
 tags:
   - Windows
   - SMB
@@ -70,14 +71,29 @@ Read data files from: /usr/bin/../share/nmap
 Nmap done: 1 IP address (1 host up) scanned in 48.61 seconds
            Raw packets sent: 227709 (10.019MB) | Rcvd: 24244 (969.820KB)
 ```
-Vemos varios puertos abiertos, pero ya podemos deducir que la maquina usa el servicio SMB. Ahora vamos al escaneo de servicios.
+* -p-: Para indicarle un escaneo en ciertos puertos.
 
+* --open: Para indicar que aplique el escaneo en los puertos abiertos.
+
+* -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
+
+* --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
+
+* -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
+
+* -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
+
+* -Pn: Para indicar que se omita el descubrimiento de hosts.
+
+* -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
+
+Vemos varios puertos abiertos, pero ya podemos deducir que la maquina usa el servicio SMB. Ahora vamos al escaneo de servicios.
 
 ## Escaneo de Servicios
 Aplicando escaneo de servicios a los puertos abiertos:
 ```
-nmap -sC -sV -p135,139,445,49152,49154,49156 10.10.10.40              
-Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-21 13:31 CST
+nmap -sC -sV -p135,139,445,49152,49154,49156 10.10.10.40 -oN targeted              
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-01-18 13:31 CST
 Nmap scan report for 10.10.10.40
 Host is up (0.13s latency).
 
@@ -107,13 +123,21 @@ Host script results:
 |   210: 
 |_    Message signing enabled but not required
 | smb2-time: 
-|   date: 2023-01-21T19:32:33
+|   date: 2023-01-18T19:32:33
 |_  start_date: 2023-01-18T19:27:28
 |_clock-skew: mean: 5s, deviation: 1s, median: 4s
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 74.54 seconds
 ```
+* -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
+
+* -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
+
+* -p: Para indicar puertos especificos.
+
+* -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
+
 Aqui vemos que se usa el servicio Samba(smb), es tiempo de buscar un exploit. Pero antes veamos un par de cositas que nos dice este escaneo.
 
 Ojito con la siguiente información: servidor pero primero veamos si podemos listar los recursos compartidos:
