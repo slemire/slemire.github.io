@@ -15,7 +15,7 @@ tags:
   - Windows
   - Samba
   - SMB
-  - Remote Code Execution (RCE) - MS17-010
+  - Remote Command Execution (RCE) - MS17-010
   - Eternal Blue
   - Microsoft Windows Server Code Execution - MS08-067
   - OSCP Style
@@ -29,6 +29,7 @@ Una máquina no tan complicada, ya que vamos a utilizar un exploit que ya hemos 
 * https://www.youtube.com/watch?v=uV6WNOfP8s8
 Les doy creditos a S4vitar pues andaba atorado en la forma de acceder a la maquina usando Eternal Blue y a HackerSploit por su forma de usar el exploit MS08-067 ya que cuando investigue los servicios de la maquina aparecio dicho exploit y abajo un video suyo.
 
+# Recopilación de Información
 ## Traza ICMP
 Realizamos un ping hacia la maquina para ver si esta conectada y con el TTL vemos que tipo SO ocupa
 ```
@@ -126,6 +127,7 @@ session setup failed: NT_STATUS_INVALID_PARAMETER
 ```
 No pues no, entonces es momento de investigar por internet un exploit que nos sirva.
 
+# Analisis de Vulnerabilidades
 ## Buscando un Exploit
 De acuerdo al escaneo de servicios, tenemos 2 para buscar, aunque empecemos mejor por el servicio del puerto 445 y luego el puerto 139.
 
@@ -155,6 +157,7 @@ Despues de analizarlo, no creo que nos vaya a servir porque dicho exploit solo s
 
 WUALA! Aparece el github que uso el tito S4vitar y que fue uno de los que probe despues en la máquina Blue, vamos a probarlo aqui para que vean como funciona.
 
+# Explotando Vulnerabilidades
 ## Configurando y Usando un Exploit
 Vamonos por pasos:
 * Descargamos el github: https://github.com/worawit/MS17-010

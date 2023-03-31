@@ -14,13 +14,14 @@ categories:
 tags:
   - Linux
   - Elastix 
-  - Remote Code Execution (RCE) - CVE-2012-4869
+  - Remote Command Execution (RCE) - CVE-2012-4869
   - SUDO Exploitation
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-beep/beep_logo.png)
 Esta máquina es facil, hay bastantes maneras de poder vulnerarla, lo que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit.
 
+# Recopilación de Información
 ## Traza ICMP
 Vamos a realizar un ping para saber si la máquina esta conectada y vamos a analizar el TTL para saber que SO tiene dicha máquina.
 ```
@@ -218,6 +219,7 @@ Wow, wow, wow, salieron demasiados codigos de estado 302, este codigo quiere dec
 
 Entonces no creo que podamos hacer mucho, busquemos directamente un exploit para este servicio.
 
+# Analisis de Vulnerabilidades
 ## Buscando y Probando un Exploit
 ```
 searchsploit elastix      
@@ -237,6 +239,7 @@ Papers: No Results
 ```
 Hay varios que me gustaria probar como el LFI, XSS y PHP Code Injection, pero creo que seria mejor si probamos con el RCE. Vamos a analizar y despues los demás.
 
+# Explotación de Vulnerabilidades
 ### Probando el Exploit: Elastix 2.2.0 - Remote Code Execution
 ```
 searchsploit -x php/webapps/18650.py     
@@ -287,6 +290,7 @@ asterisk
 id
 uid=100(asterisk) gid=101(asterisk)
 ```
+# Post Explotación
 Bueno y ahora que? El mismo exploit nos indica que hacer y es activar el nmap con sudo de forma interactiva, para poder usar nmap desde la consola y no como comando, solamente escribimos !sh y podremos escalar privilegios para ser root:
 ```
 sudo nmap --interactive

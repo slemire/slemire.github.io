@@ -17,7 +17,7 @@ tags:
   - Samba
   - SMB
   - Umbraco (RCE - Authenticated)
-  - Remote Code Execution (RCE)
+  - Remote Command Execution (RCE)
   - NFS Pentesting
   - Reverse Shell
   - TeamViewer Enumeration & Exploitation

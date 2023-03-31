@@ -17,7 +17,7 @@ tags:
   - PRTG Network Monitor
   - FTP Enumeration
   - Command Injection
-  - Remote Code Execution (RCE) - CVE-2018-9276
+  - Remote Command Execution (RCE) - CVE-2018-9276
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-netmon/netmon_logo.png)
