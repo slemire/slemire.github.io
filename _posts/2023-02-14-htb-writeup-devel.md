@@ -14,8 +14,11 @@ categories:
 tags:
   - Windows
   - FTP Enumeration
+  - Local File Inclusion (LFI)
+  - Reverse Shell
   - IIS Exploitation
-  - Local Privilege Escalation (MS11-046)
+  - Local Privilege Escalation - MS11-046
+  - OSCP Style
 ---
 ![](/assets/images/htb-writeup-devel/devel_logo.png)
 Una máquina bastante sencilla, en la cual usaremos el servicio FTP para cargar un payload que contendra una shell que se activara en el puerto http que corre el servicio IIS y despues escalaremos privilegios usando el exploit MS11-046.
@@ -202,12 +205,13 @@ Que nos dice el Wappalizer:
 
 No hay mucho que destacar y un fuzzing no creo que sea util.
 
-MOMENTO!, recuerdas que subimos un archivo al servicio FTP? Bueno, ese archivo tiene el comando **whoami**, no se podia ejecutar en el FTP pero quiza aqui si.
+MOMENTO! recuerdas que subimos un archivo al servicio FTP? Bueno, ese archivo tiene el comando **whoami**, no se podia ejecutar en el FTP pero quiza aqui si.
 
 Intentemos ver si se puede ejecutar:
+
 ![](/assets/images/htb-writeup-devel/Captura3.png)
 
-SI FUNCIONA!!Asi que podemos subir una netcat o un payload de msfvenom para que nos conecte directamente, podriamos hacer los dos pero, que archivos son los que lee este servicio? Porque no servira ni el payload ni la netcat si los subimos como archivos de texto, o al menos es lo que yo creo.
+SI FUNCIONA!! Asi que podemos subir una netcat o un payload de msfvenom para que nos conecte directamente, podriamos hacer los dos pero, que archivos son los que lee este servicio? Porque no servira ni el payload ni la netcat si los subimos como archivos de texto, o al menos es lo que yo creo.
 
 Hay que investigar un poco sobre el servicio IIS.
 

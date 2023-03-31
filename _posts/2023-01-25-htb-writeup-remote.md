@@ -16,9 +16,12 @@ tags:
   - FTP
   - Samba
   - SMB
-  - Umbraco
+  - Umbraco (RCE - Authenticated)
+  - Remote Code Execution (RCE)
   - NFS Pentesting
+  - Reverse Shell
   - TeamViewer Enumeration & Exploitation
+  - Privilege Escalation
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-remote/remote_logo.png)

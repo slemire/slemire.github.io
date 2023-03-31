@@ -15,7 +15,9 @@ tags:
   - Linux
   - Samba
   - FTP
-  - Username Map Script
+  - Backdoor Command Execution - CVE-2011-2523
+  - Username Map Script - CVE-2007-2447
+  - Command Injection
   - OSCP Style
   - Metasploit
 ---
@@ -89,7 +91,7 @@ Nmap done: 1 IP address (1 host up) scanned in 31.56 seconds
 
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-## Escaneo de servicios
+## Escaneo de Servicios
 Analizando el escaneo de servicios, observamos que hay 3 servicios que nos interesan. El primero es el servicio FTP ya que podemos loguearnos como anonymous, el servicio ssh aunque de momento no tenemos ningún usuario ni credencial y el servicio Samba aunque lo vemos en 2 puertos, el que nos interesa más será el puerto 445.
 ```
 nmap -sC -sV -p21,22,139,445,3632

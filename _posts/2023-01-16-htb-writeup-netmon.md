@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Netmon - Hack The Box
-excerpt: "Esta es una maquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor."
+excerpt: "Esta es una máquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor."
 date: 2023-01-16
 classes: wide
 header:
@@ -13,16 +13,16 @@ categories:
   - Easy Machine
 tags:
   - Windows
-  - FTP
   - SMB
+  - PRTG Network Monitor
   - FTP Enumeration
   - Command Injection
-  - Remote Code Execution (RCE)
+  - Remote Code Execution (RCE) - CVE-2018-9276
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-netmon/netmon_logo.png)
 
-Esta es una maquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar codigo en dicho servicio.
+Esta es una máquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar codigo en dicho servicio.
 
 ## Traza ICMP
 Realizamos un ping para saber si la maquina esta conectada y para saber que sistema operativo tiene, analizando el TTL.

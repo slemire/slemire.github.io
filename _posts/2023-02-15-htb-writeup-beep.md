@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Beep - Hack The Box
-excerpt: "Esta máquina es facil, hay bastantes maneras de poder vulnerar esta máquina, la que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit."
+excerpt: "Esta máquina es facil, hay bastantes maneras de poder vulnerarla, lo que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit."
 date: 2023-02-15
 classes: wide
 header:
@@ -14,11 +14,12 @@ categories:
 tags:
   - Linux
   - Elastix 
-  - Remote Code Execution (RCE)
+  - Remote Code Execution (RCE) - CVE-2012-4869
   - SUDO Exploitation
+  - OSCP Style
 ---
 ![](/assets/images/htb-writeup-beep/beep_logo.png)
-Esta máquina es facil, hay bastantes maneras de poder vulnerar esta máquina, la que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit.
+Esta máquina es facil, hay bastantes maneras de poder vulnerarla, lo que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit.
 
 ## Traza ICMP
 Vamos a realizar un ping para saber si la máquina esta conectada y vamos a analizar el TTL para saber que SO tiene dicha máquina.
@@ -153,7 +154,7 @@ Ok, para empezar no tenemos ninguna credencial para el servicio SSH por lo que e
 ## Investigación de Servicios
 Vamos a iniciar con el **Postfix smtpd**:
 
-**Postfix es un agente de transporte de mensajes (MTA) de última generación, también conocido como servidor SMTP, que tiene dos propósitos: Es responsable de transportar mensajes de correo electrónico desde un cliente de correo / agente de usuario de correo (MUA) a un servidor SMTP remoto. **
+**Postfix es un agente de transporte de mensajes (MTA) de última generación, también conocido como servidor SMTP, que tiene dos propósitos: Es responsable de transportar mensajes de correo electrónico desde un cliente de correo o  agente de usuario de correo (MUA) a un servidor SMTP remoto.**
 
 No tenemos una versión y de hecho busque con **Searchsploit** para saber si habia algo pero no, no mostro ningun resultado:
 ```
@@ -326,7 +327,10 @@ User asterisk may run the following commands on this host:
     (root) NOPASSWD: /sbin/chkconfig
     (root) NOPASSWD: /usr/sbin/elastix-helper
 ```
-Vaya, vaya, tenemos varios permisos como root. Existe una pagina muy util que nos ayudara en este caso para ver de que otra forma podemos escalar privilegios para convertirnos en **Root**. Esta pagina es GTFOBins: https://gtfobins.github.io/
+Vaya, vaya, tenemos varios permisos como root. Existe una pagina muy util que nos ayudara en este caso para ver de que otra forma podemos escalar privilegios para convertirnos en **Root**. 
+Esta pagina es GTFOBins: 
+
+https://gtfobins.github.io/
 
 Entonces veamos de que formas podemos escalar para ser **Root**, ojito que incluso ahi se ve el nmap que fue el que uso el exploit para convertirnos en Root, asi que PROBEMOS OTROS!!
 
@@ -344,21 +348,6 @@ whoami
 root
 ```
 Por lo que lei en GTFOBins, se puede escalar usando chown, yum y service. Intentalo!
-
-<!--
-## Probando el Exploit: Elastix 2.2.0 - 'graph.php' Local File Inclusion
-```
-searchsploit -x php/webapps/18650.py                                                                               
-  Exploit: FreePBX 2.10.0 / Elastix 2.2.0 - Remote Code Execution
-      URL: https://www.exploit-db.com/exploits/18650
-     Path: /usr/share/exploitdb/exploits/php/webapps/18650.py
-    Codes: OSVDB-80544, CVE-2012-4869
- Verified: True
-File Type: Python script, ASCII text executable, with very long lines (418)
-```
-Es curioso este exploit, el problema es que esta hecho en perl, otro lenguaje que no domino ni conozco, intente correrlo y me marco muchos errores. Voy a intentar buscarlo por internet a ver si hay alguna explicación de como usarlo, aunque se me hace que podemos probar con **BurpSuite** cambiando la data como con la máquina **Bounty Hunter**. Vamos a intentarlo a ver que pasa:
-
--->
 
 ## Links de Investigación
 * https://stackoverflow.com/questions/63111167/ssl-error-unsupported-version-when-attempting-to-debug-with-iis-express

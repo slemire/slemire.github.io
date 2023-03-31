@@ -15,7 +15,9 @@ tags:
   - Windows
   - Samba
   - SMB
+  - Remote Code Execution (RCE) - MS17-010
   - Eternal Blue
+  - Microsoft Windows Server Code Execution - MS08-067
   - OSCP Style
   - Metasploit
 ---
@@ -335,9 +337,14 @@ Y este nos mostraba que la máquina era vulnerable al Eternal Blue, no lo record
 Bueno, exiten otras dos formas de poder ganar acceso a esta máquina, una sera usando el exploit de Metasploit y la otra sera usando Metasploit en si, asi que vamos a probar con el exploit de Metasloit.
 
 ## Exploit de Metasploit
-Esta forma la encontre usando el metodo que se uso en el sig. link: https://ivanitlearning.wordpress.com/2019/02/24/exploiting-ms17-010-without-metasploit-win-xp-sp3/
+Esta forma la encontre usando el metodo que se uso en el sig. link: 
 
-Vamos a descargar el siguiente git: https://github.com/helviojunior/MS17-010
+https://ivanitlearning.wordpress.com/2019/02/24/exploiting-ms17-010-without-metasploit-win-xp-sp3/
+
+Vamos a descargar el siguiente git: 
+
+https://github.com/helviojunior/MS17-010
+
 Este que contiene una variante del zzz_exploit.py que por asi decirlo nos automatiza un poco el proceso, pues ya solo tendriamos que comentar un par de lineas y debemos hacer un payload con msfvenom como en la máquina Blue.
 ```
 git clone https://github.com/helviojunior/MS17-010.git

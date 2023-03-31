@@ -15,6 +15,7 @@ tags:
   - Windows
   - SMB
   - Samba
+  - Remote Code Execution (RCE) - MS17-010
   - Eternal Blue
   - Reverse Shell
   - OSCP Style
