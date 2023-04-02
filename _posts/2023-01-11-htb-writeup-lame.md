@@ -15,17 +15,19 @@ tags:
   - Linux
   - Samba
   - FTP
-  - Backdoor Command Execution - CVE-2011-2523
-  - Username Map Script - CVE-2007-2447
+  - Backdoor Command Execution (BCE)
+  - BCE - CVE-2011-2523
+  - Username Map Script Command Execution (UMSCE) 
+  - UMSCE - CVE-2007-2447
   - Command Injection
   - OSCP Style
   - Metasploit
 ---
 
 ![](/assets/images/htb-writeup-lame/lame_logo.png)
-
 La máquina lame es una de las primeras maquinas que hice, justo después del **Starting Point**, obviamente necesité mucha ayuda porque había cosas que aún no comprendía del todo. Es una maquina super fácil, ya que lo único que haremos será utilizar el servicio Samba para poder obtener acceso a la máquina.
 
+# Recopilación de Información
 ## Traza ICMP
 Para comenzar, debemos saber si la maquina está conectada o no. Para esto lanzamos una traza ICMP que no es más que enviar paquetes de datos con la finalidad de que lleguen a un destino, si se pierden es que la maquina no está conectada, pero si llegan, entonces podemos empezar.
 ```
@@ -76,19 +78,12 @@ Nmap done: 1 IP address (1 host up) scanned in 31.56 seconds
            Raw packets sent: 131084 (5.768MB) | Rcvd: 37 (1.628KB)
 ```
 * -p-: Para indicarle un escaneo en ciertos puertos.
-
 * --open: Para indicar que aplique el escaneo en los puertos abiertos.
-
 * -sS: Para indicar un TCP Syn Port Scan para que nos agilice el escaneo.
-
 * --min-rate: Para indicar una cantidad de envió de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
-
 * -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
-
 * -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
-
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
-
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 ## Escaneo de Servicios
@@ -147,6 +142,7 @@ Nmap done at Wed Jan 11 14:11:32 2023 -- 1 IP address (1 host up) scanned in 54.
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
+# Analisis de Vulnerabilidades
 ## Analizando el Servicio FTP
 Entraremos a este servicio como usuario anonymous, para ver que podemos encontrar que nos pueda ser util.
 ```
@@ -195,6 +191,7 @@ vsftpd 2.3.4 - Backdoor Command Execution (Metasploit)                          
 Shellcodes: No Results
 Papers: No Results
 ```
+### Probando Exploit: vsftpd 2.3.4 - Backdoor Command Execution
 Encontramos un exploit creado en python, vamos a analizarlo, utiliza el comando `searchsploit -x unix/remote/49757.py` para analizar el exploit:
 
 ```
@@ -225,6 +222,7 @@ tn2.interact()
 
 Lo que hace este exploit es tratar de conectarnos al servicio FTP a través del puerto 6200 (o eso entiendo), pero no creo que funcione porque dicho puerto no está abierto, así que no perdamos tiempo y mejor analicemos el servicio Samba.
 
+# Explotando Vulnerabilidades
 ## Analizando el Servicio Samba
 Ahora nos logueamos en el Samba para ver que hay dentro, lo haremos de una forma sin que tengamos que meter un usuario.
 
@@ -274,6 +272,7 @@ smb: \>
 ```
 Pues no veo nada útil, bueno que yo sepa ahí no nos sirve algo, así que mejor vamos a buscar un exploit que no ayude aquí.
 
+# Post Explotación
 ## Buscando, Analizando y Probando un Exploit para Samba
 Como mencione anteriormente como no encontramos mucho aquí lo que podemos hacer es buscar un exploit que nos ayude.
 ```
@@ -289,6 +288,7 @@ Samba < 3.6.2 (x86) - Denial of Service (PoC)                                   
 Shellcodes: No Results
 Papers: No Results
 ```
+### Probando Exploit: Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution (Metasploit)
 Vamos a analizar el exploit que esta hecho en ruby, ósea el **Username Map Script**. El exploit es usado en **Metasploit** de forma automatizada pero analicemos cual es el exploit que usa. Recuerda usar el comando **searchsploit -x** para analizar el exploit.
 
 ```
@@ -410,6 +410,7 @@ root@lame:/# cat ./root/root.txt
 ```
 Y listo ya quedo esta máquina al estilo OSCP.
 
+# Otras Formas
 # Metasploit
 Con esta madre es super sencillo y ps casi no aprendes ni papa pero aun así por si lo quieren probar, así se usa:
 

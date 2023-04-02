@@ -16,14 +16,14 @@ tags:
   - SMB
   - PRTG Network Monitor
   - FTP Enumeration
-  - Command Injection
-  - Remote Command Execution (RCE) - CVE-2018-9276
+  - Remote Code Execution (Authenticated) 
+  - RCE(A) - CVE-2018-9276
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-netmon/netmon_logo.png)
-
 Esta es una máquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar codigo en dicho servicio.
 
+# Recopilación de Información
 ## Traza ICMP
 Realizamos un ping para saber si la maquina esta conectada y para saber que sistema operativo tiene, analizando el TTL.
 ```
@@ -72,19 +72,12 @@ Nmap done: 1 IP address (1 host up) scanned in 27.44 seconds
            Raw packets sent: 126822 (5.580MB) | Rcvd: 10051 (402.100KB)
 ```
 * -p-: Para indicarle un escaneo en ciertos puertos.
-
 * --open: Para indicar que aplique el escaneo en los puertos abiertos.
-
 * -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
-
 * --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
-
 * -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
-
 * -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
-
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
-
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 Vemos varios puertos abiertos siendo el FTP, Web y SMB. Ahora vamos a analizar los servicios que hay en estos puertos.
@@ -137,11 +130,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 18.51 seconds
 ```
 * -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
-
 * -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
-
 * -p: Para indicar puertos especificos.
-
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
 Observamos que el servicio FTP tiene activo el login como **Anonymous** por lo que podemos empezar por ahi nuestra busqueda de acceso a la maquina, tambien vemos el servicio SMB activo que podemos analizar despues y por ultimo vemos un servicio web abierto que podemos analizar a continuación:
@@ -163,6 +153,7 @@ Pero que chuchas es este servicio?:
 
 Osease que monitera redes, quiza nos sirva despues pero ahora vamos a ir primero por el servicio FTP.
 
+# Analisis de Vulnerabilidades
 ## Analizando Servicio FTP
 Para entrar es tan simple como usar el usuario anonymous y poner una contraseña cualquiera:
 ```
@@ -358,16 +349,20 @@ Vamos a analizar este exploit: **PRTG Network Monitor 18.2.38 - (Authenticated) 
 ```
 El exploit nos pide una cookie, no se por que razon pero lo que nos da a entender es que, una vez auntenticados en la pagina, es posible vulnerar el sistema e incluso viene la referencia del blog en la que se baso el exploit, asi que veamos dicho blog: https://www.codewatch.org/blog/?p=453
 
-## Utilizando Vulnerabilidad de PRTG para Inyectar Codigo
+# Explotando Vulnerabilidades
+### Probando Exploit: PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution
 En resumen, podemos vulnerar la pagina usando las notificaciones, vamos a hacerlo de este modo:
+
 ![](/assets/images/htb-writeup-netmon/Captura3.png)
 
 ![](/assets/images/htb-writeup-netmon/Captura4.png)
 
 Nos vamos a la sección de crear nueva notificación:
+
 ![](/assets/images/htb-writeup-netmon/Captura5.png)
 
 Llamamos a nuestra notificación **HackeadoPrro!** y nos vamos a la sección **Execute Programs**:
+
 ![](/assets/images/htb-writeup-netmon/Captura6.png)
 
 Ahi lo que haremos sera casi lo mismo que en el blog, la diferencia va a radicar en que nosotros vamos a agregar el usuario al grupo de administradores, con el fin de poder logearnos y ser root. Esto es lo mismo que hace el exploit pero nosotros lo vamos a indicar directamente en la inyección a diferencia del exploit que usa la cookie para hacer esta movida, este sera el codigo que ejecutara:

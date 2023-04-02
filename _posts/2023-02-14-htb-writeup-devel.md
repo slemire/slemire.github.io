@@ -17,12 +17,14 @@ tags:
   - Local File Inclusion (LFI)
   - Reverse Shell
   - IIS Exploitation
-  - Local Privilege Escalation - MS11-046
+  - Local Privilege Escalation (LPE)
+  - LPE - MS11-046
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-devel/devel_logo.png)
 Una máquina bastante sencilla, en la cual usaremos el servicio FTP para cargar un payload que contendra una shell que se activara en el puerto http que corre el servicio IIS y despues escalaremos privilegios usando el exploit MS11-046.
 
+# Recopilación de Información
 ## Traza ICMP
 Vamos a realizar un ping para saber si la máquina esta conectada, además vamos a analizar el TTL para saber que SO usa dicha máquina.
 ```
@@ -106,6 +108,7 @@ Nmap done: 1 IP address (1 host up) scanned in 14.80 seconds
 
 Vemos que en el servicio FTP tenemos activado el login como anonymous, vamos a meternos para ver que podemos encontrar y despues analizaremos la pagina web.
 
+# Analisis de Vulnerabilidades
 ## Enumerando Servicio FTP
 ```
 ftp 10.10.10.5  
@@ -232,6 +235,7 @@ Osea que es una pagina en si.
 **La extensión de archivo ASPX se utiliza para páginas web que son generadas automáticamente por el servidor y dirigen directamente a un servidor activo.**
 Osea que es un archivo ejecutable, ya tenemos con que trabajar.
 
+# Explotando Vulnerabilidades
 ## Configurando un Payload y Netcat
 ### Configurando el Payload con Msfvenom
 Vamos a empezar configurando un payload con msfvenom para que nos conecte como lo hemos hecho con máquinas anteriores:
@@ -520,8 +524,12 @@ Registered Owner:          babis
 ```
 Ok tenemos el privilegio **SeImpersonatePrivilege** y vemos que el SO es 6.1.7600, además de que el dueño es **babis**. Vamos a buscar un exploit.
 
+# Post Explotación
 ## Buscando, Configurando y Activando un Exploit
-Buscando por internet, nos aparece uno en particular que es el MS11-046 que es un **Local Privilege Escalation** y que justamente nos serviria en estos momentos. Puede verlo en el siguiente link: https://www.exploit-db.com/exploits/40564
+Buscando por internet, nos aparece uno en particular que es el MS11-046 que es un **Local Privilege Escalation** y que justamente nos serviria en estos momentos. 
+Puede verlo en el siguiente link: 
+
+https://www.exploit-db.com/exploits/40564
 
 Vamos a buscarlo con la herramienta **Searchsploit**:
 ```
@@ -541,6 +549,7 @@ MS11-046 - Dissecting a 0day                                                    
 ```
 Justamente lo tenemos, vamos a copiarlo y a analizarlo para saber como usarlo.
 
+### Probando Exploit: Microsoft Windows (x86) - 'afd.sys' Local Privilege Escalation (MS11-046)
 Gracias al creador del exploit, nos deja una pequeña explicación para convertir el exploit en un ejecutable .exe:
 ```
 Exploit notes:

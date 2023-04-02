@@ -16,18 +16,19 @@ tags:
   - FTP
   - Samba
   - SMB
-  - Umbraco (RCE - Authenticated)
-  - Remote Command Execution (RCE)
+  - Umbraco
+  - Remote Code Execution (Authenticated)
   - NFS Pentesting
   - Reverse Shell
   - TeamViewer Enumeration & Exploitation
-  - Privilege Escalation
+  - AES key Authentication - CVE-2019-18988
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-remote/remote_logo.png)
 
 Esta maquina es algo dificil, pues hay que investigar todos los servicios que usa y ver de cual nos podemos aprovechar para poder vulnerar los sistemas de la maquina, además de analizar los exploits, estos se deben configurar correctamente para su uso.
 
+# Recopilación de Información
 ## Traza ICMP
 Vamos a hacer un ping y analicemos el TTL para saber que SO utiliza la maquina:
 ```
@@ -192,6 +193,7 @@ Mmmm pues no es más que una API de microsoft al parecer.
 
 Antes de continuar e investigar la pagina web que esta operando, veamos si no hay algun exploit para los 4 servicios que ya investigamos, vamos a buscar por internet primero ya que no tenemos una version en si de todos los servicios, si lo tuvieramos seria solamente buscar un exploit con la herramienta **Searchsploit**.
 
+# Analisis de Vulnerabilidades
 ## Buscando Vulnerabilidades para los Servicios Investigados
 Encontramos una pagina bastante interesante y que al parecer nos puede ayudar de aqui en adelante para futuras maquinas, pues te da referencias de lo que puedes hacer, lo que no puedes y de lo que necesitar para vulnerar ciertos servicios:
 
@@ -398,7 +400,7 @@ Ya tenemos la version que usa Umbraco, ahora podemos buscar un exploit:
 
 ![](/assets/images/htb-writeup-remote/Captura11.png)
 
-## Buscando, Configurando y Activando un Exploit
+# Explotando Vulnerabilidades
 Usamos searchsploit para buscar el exploit e incluso podemos buscar por internet:
 ```
 searchsploit umbraco 7.12.4                                                                                    
@@ -411,6 +413,8 @@ Umbraco CMS 7.12.4 - Remote Code Execution (Authenticated)                      
 Shellcodes: No Results
 Papers: No Results
 ```
+
+### Probando Exploit: Umbraco CMS 7.12.4 - (Authenticated) Remote Code Execution
 Vamos a usar el primero, aunque al parecer ambos son lo mismo:
 ```
 searchsploit -m aspx/webapps/46153.py
@@ -540,7 +544,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
 Bien ya estamos dentro, ahora es cosa de buscar la flag del user y listo.
 
-## Acceso como Root
+# Post Explotación
 Ahora que hacemos? Bien, es hora de buscar que hay en la maquina. Investigamos en varios lados pero hay algo interesante en la carpte de Program Files (x86) y es el servicio TeamViewer, pero que es esto?
 
 **TeamViewer es un software para el acceso remoto, así como para el control y el soporte en remoto de ordenadores y otros dispositivos finales.​**
@@ -670,6 +674,13 @@ Mode                LastWriteTime         Length Name
 ```
 Y ya, con esto obtenemos ambas flags y terminamos con esta maquina.
 
+# Otras Formas
+Para obtener acceso como root o NT Authority System en este caso, hay otras opciones que se pueden probar, aqui algunos:
+* Abusar del SeImpersonatePrivilege que esta activo para ejecutar una shell que nos conecta como root.
+* Usando el script de Metasploit hecho en ruby para obtener las credenciales como lo hice.
+* Usar la herramienta winPEAS para editar el servicio UsoSvc y con este mismo podemos entrar como root.
+Puedes investigar y probar estas formas! Apoyate de otros WriteUps.
+
 ## Links de Investigación
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind
 * https://our.umbraco.com/forum/developers/api-questions/8905-Where-does-Umbraco-store-data
@@ -681,12 +692,5 @@ Y ya, con esto obtenemos ambas flags y terminamos con esta maquina.
 * https://kalilinuxtutorials.com/decryptteamviewer/
 * https://gist.github.com/rishdang/442d355180e5c69e0fcb73fecd05d7e0
 * https://bobbyhadz.com/blog/python-no-module-named-crypto
-
-## Otras Formas
-Para obtener acceso como root o NT Authority System en este caso, hay otras opciones que se pueden probar, aqui algunos:
-* Abusar del SeImpersonatePrivilege que esta activo para ejecutar una shell que nos conecta como root.
-* Usando el script de Metasploit hecho en ruby para obtener las credenciales como lo hice.
-* Usar la herramienta winPEAS para editar el servicio UsoSvc y con este mismo podemos entrar como root.
-Puedes investigar y probar estas formas! Apoyate de otros WriteUps.
 
 # FIN

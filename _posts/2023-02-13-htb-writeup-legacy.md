@@ -15,7 +15,8 @@ tags:
   - Windows
   - Samba
   - SMB
-  - Remote Command Execution (RCE) - MS17-010
+  - Remote Command Execution (RCE) 
+  - RCE - MS17-010
   - Eternal Blue
   - Microsoft Windows Server Code Execution - MS08-067
   - OSCP Style
@@ -59,7 +60,7 @@ Discovered open port 135/tcp on 10.10.10.4
 Completed SYN Stealth Scan at 13:54, 23.60s elapsed (65535 total ports)
 Nmap scan report for 10.10.10.4
 Host is up, received user-set (0.44s latency).
-Scanned at 2023-03-27 13:53:49 CST for 23s
+Scanned at 2023-02-13 13:53:49 CST for 23s
 Not shown: 36144 closed tcp ports (reset), 29388 filtered tcp ports (no-response)
 Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
 PORT    STATE SERVICE      REASON

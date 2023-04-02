@@ -18,11 +18,10 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-jerry/jerry_logo.png)
-
 Esta es una máquina bastante sencilla, realizada en windows y en la cual vamos a usar el servicio Tomcat para poder hackearla, usando un payload en lugar de un exploit, para crear una Backdoor en la maquina para que nos devuelva una shell.
 
+# Recopilación de Información
 ## Traza ICMP
-
 ```
 ping -c 4 10.10.10.95
 PING 10.10.10.95 (10.10.10.95) 56(84) bytes of data.
@@ -62,19 +61,12 @@ Nmap done: 1 IP address (1 host up) scanned in 31.60 seconds
            Raw packets sent: 131090 (5.768MB) | Rcvd: 14 (608B)
 ```
 * -p-: Para indicarle un escaneo en ciertos puertos.
-
 * --open: Para indicar que aplique el escaneo en los puertos abiertos.
-
 * -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
-
 * --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
-
 * -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
-
 * -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
-
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
-
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 ## Escaneo de Servicios
@@ -95,11 +87,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 14.64 seconds
 ```
 * -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
-
 * -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
-
 * -p: Para indicar puertos especificos.
-
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
 Vemos que el servicio que opera es el Tomcat, ademas de ver que es una pagina web podemos analizarla tambien con la herramienta "whatweb" siendo que nos dara el mismo resultado pero con un poco más de información. OJO, en este caso hay que indicarle el puerto, esto se hace porque el puerto esta ocupando proxy, si no fuera ese caso, solo se pondria la ip de la maquina y listo:
@@ -107,6 +96,7 @@ Vemos que el servicio que opera es el Tomcat, ademas de ver que es una pagina we
 whatweb http://10.10.10.95:8080/
 http://10.10.10.95:8080/ [200 OK] Apache, Country[RESERVED][ZZ], HTML5, HTTPServer[Apache-Coyote/1.1], IP[10.10.10.95], Title[Apache Tomcat/7.0.88]
 ```
+# Analisis de Vulnerabilidades
 ## Investigación del Servicio
 Bueno pero, ¿que chuchas es el servicio Tomcat? pues vamos a investigarlo:
 
@@ -134,7 +124,7 @@ Un usuario y contraseña...vamos a usarlos y listo ya accedimos xd:
 Analizando un poco la pagina, ya como administrador vemos que podemos subir archivos tipo **.war** por lo que podemos usar esto para buscar un exploit que podamos usar pues lo que podemos subir es una reverse shell y con eso obtenemos una shell conectada, osease que lo que estamos haciendo es una **BackDoor**.
 
 ## Buscando y Configurando un Payload
-Si bien antes usamos **searchsploit** para buscar exploits en la base de datos de Metasploit para usarlos, esta vez vamos a usar la herramienta *msfvenom* que por asi decirlo es similar, la diferencia radica en que aqui le podemos indicar los mismos parametros que en Metasploit además de que usa **Payloads** en lugar de **Exploits**.
+Si bien antes usamos **searchsploit** para buscar exploits en la base de datos de Metasploit para usarlos, esta vez vamos a usar la herramienta **msfvenom** que por asi decirlo es similar, la diferencia radica en que aqui le podemos indicar los mismos parametros que en Metasploit además de que usa **Payloads** en lugar de **Exploits**.
 
 Ahora para buscar los payloads debemos usar el siguiente comando, especificando que buscamos los tipo **Java**:
 ```
@@ -168,6 +158,7 @@ Lo seleccionamos y ya lo subimos, ahi mismo observamos que el archivo es tipo **
 
 ![](/assets/images/htb-writeup-jerry/Captura5.png)
 
+# Explotando Vulnerabilidades
 ## Accediendo a la Maquina
 Una vez subido el archivo que creamos con el payload, que es una **Reverse Shell**, ya solamente debemos alzar una netcat y activar el payload:
 ```
@@ -191,7 +182,7 @@ C:\apache-tomcat-7.0.88>
 C:\apache-tomcat-7.0.88>whoami
 nt authority\system
 ```
-Y ya solamente es buscar las flags, que normalmente siempre estan alojadas en la carpte usuarios, dentro del escritorio del usuario y del administrados:
+Y ya solamente es buscar las flags, que normalmente siempre estan alojadas en la carpeta usuarios, dentro del escritorio del usuario y del administrados:
 ```
 :\apache-tomcat-7.0.88>cd C:\
 cd C:\

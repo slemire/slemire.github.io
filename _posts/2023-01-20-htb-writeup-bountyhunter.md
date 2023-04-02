@@ -14,9 +14,9 @@ categories:
 tags:
   - Linux
   - BurpSuite
-  - SUDO Exploitation
   - XXE Injection
   - Python Vulnerability
+  - SUDO Exploitation
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-bountyhunter/bounty_logo.png)
@@ -27,6 +27,7 @@ Esta es una maquina un poco más dificil que las anteriores, siendo que nos apro
 * Canal de IppSec: https://www.youtube.com/@ippsec
 * Canal de S4vitar: https://www.youtube.com/@s4vitar
 
+# Recopilación de Información
 ## Traza ICMP
 Veamos si la maquina esta conectada, además vamos a analizar el TTL para saber que Sisema Operativo usa:
 ```
@@ -116,14 +117,18 @@ Nmap done: 1 IP address (1 host up) scanned in 12.39 seconds
 
 De momento no tenemos credeciales para logearnos en SSH, vamos a revisar la pagina web que esta en el puerto 80.
 
+# Analisis de Vulnerabilidades
 ## Analizando Puerto 80
 Viendo todos los botones interactivos de la pagina, algunos no funcionan y otros no sabemos que hacen, con excepción del que dice **Portal**, una vez le demos click nos redirige a una subpagina:
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura1.png)
 
 Al parecer esta sección no esta completa y nos pide ir a otra subpagina, vamos a ver que hay.
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura2.png)
 
 Una vez dentro, quiza podamos tratar de inyectar codigo, probemos utilizando la herramienta **BurpSuite** y nos vamos a utilizar la siguiente pagina como guia del XXE Injection(XML external entity): https://portswigger.net/web-security/xxe
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura3.png)
 
 Pero que es XXE Injection? Bueno esto es:
@@ -131,21 +136,34 @@ Pero que es XXE Injection? Bueno esto es:
 **Es una vulnerabilidad de seguridad web que permite a un atacante interferir con el procesamiento de datos XML de una aplicación. A menudo, permite que un atacante vea archivos en el sistema de archivos del servidor de aplicaciones e interactúe con cualquier sistema externo o de back-end al que pueda acceder la propia aplicación.**
 
 Todo esto viene explicado en la pagina web guia de **BurpSuite**
+
 ## BurpSuite
 Antes de continuar debemos configurar algunas cosas para que **BurpSuite** vaya sin problemas:
 * Instala en el navegador la herramienta **FoxyProxy**
+
 * Una vez instalado, ve a la sección **Add** para agregar un proxy que usara Burpsuite.
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura4.png)
+
 * Configuralo como la siguiente imagen:
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura5.png)
+
 Esto lo hacemos porque **BurpSuite** tiene un proxy configurado por defecto:
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura7.png)
+
 * Una vez configurado, ya deberia aparecer cuando des click en el **FoxyProxy**
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura6.png)
+
 * Instala el certificado CA en tu navegador, es posible que **BurpSuite** automaticamente te lo pida y te de pasos a seguir, si usas FireFox aqui estan los pasos: https://portswigger.net/burp/documentation/desktop/external-browser-config/certificate/ca-cert-firefox
+
 * Activa la intercepción en Burpsuite y activa el FoxyProxy.
 
-Ahora si, ya estamos listos para trabajar:
+Ahora si, ya estamos listos para trabajar.
+
+# Explotando Vulnerabilidades
 En la ultima subpagina, llena los campos con lo que quieras y dale submit para que **BurpSuite** pueda interceptar la petición, osea que debemos obtener un POST, que sera con el que vamos a seguir trabajando:
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura8.png)
@@ -245,6 +263,7 @@ Vamonos por pasos:
 * php://filter/convert.base64-encode/: Con este codigo podemos encodear archivos de php a base64.
 * php://filter/convert.base64-encode/resource=db.php: Con resourse le agregamos la subpagina y ya podemos encodearlo
 * Una vez más mandamos todo a la data del repeater, lo ponemos como URL code y lo mandamos.
+
 ![](/assets/images/htb-writeup-bountyhunter/Captura19.png)
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura20.png)
@@ -285,6 +304,7 @@ Last login: Wed Jul 21 12:04:13 2021 from 10.10.14.8
 development@bountyhunter:~$ 
 
 ```
+# Post Explotación
 ESTAMOS DENTRO!! Es hora de buscar que nos puede ser util:
 ```
 development@bountyhunter:~$ ls
@@ -316,6 +336,7 @@ xd
 Wrong file type.
 ```
 Es momento de analizar el script en python.
+
 ## Analisis de Script
 Vamos a ir deshuesando este script y veremos que hace cada funcion:
 * En esta función lo que se hace es validar que el archivo sea .md
@@ -330,7 +351,7 @@ def load_file(loc):
         print("Wrong file type.")
         exit()
 ```
-En la siguiente funcion se hace la validación del ticket:
+En la siguiente función se hace la validación del ticket:
 ```
 def evaluate(ticketFile):
     #Evaluates a ticket to check for ireggularities.

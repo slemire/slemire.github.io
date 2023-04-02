@@ -15,9 +15,12 @@ tags:
   - Windows
   - FTMP
   - Adobe ColdFusion
-  - Remote Command Execution (RCE) - CVE-2009-2265
+  - Remote Command Execution (RCE) 
+  - RCE - CVE-2009-2265
   - Reverse Shell
-  - Local Privilege Escalation - MS10-059
+  - Local Privilege Escalation (LPE) 
+  - LPE - MS10-059
+  - OSCP Style
 ---
 ![](/assets/images/htb-writeup-artic/artic_logo.png)
 Una máquina algo sencilla, vamos a vulnerar el servicio Adobe ColdFusion 8 usando el exploit CVE-2009-2264 que nos conectara directamente a la máquina usando una Reverse Shell, entraremos como usuario y usaremos el MS10-059 para ganar acceso como NT Authority System.
@@ -45,7 +48,7 @@ Al parecer la máquina usa Windows. Es momentos de hacer los escaneos de puertos
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.11 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
-Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-31 13:43 CST
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-17 13:43 CST
 Initiating SYN Stealth Scan at 13:43
 Scanning 10.10.10.11 [65535 ports]
 Discovered open port 135/tcp on 10.10.10.11
@@ -53,7 +56,7 @@ Discovered open port 8500/tcp on 10.10.10.11
 Completed SYN Stealth Scan at 13:43, 27.46s elapsed (65535 total ports)
 Nmap scan report for 10.10.10.11
 Host is up, received user-set (0.28s latency).
-Scanned at 2023-03-31 13:43:06 CST for 28s
+Scanned at 2023-02-17 13:43:06 CST for 28s
 Not shown: 65533 filtered tcp ports (no-response)
 Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
 PORT     STATE SERVICE REASON
@@ -78,7 +81,7 @@ Solamente hay 2 puertos activos y que yo recuerde no nos hemos enfrentado a esos
 ## Escaneo de Servicios
 ```
 nmap -sC -sV -p135,8500 10.10.10.11 -oN targeted                        
-Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-31 13:45 CST
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-17 13:45 CST
 Nmap scan report for 10.10.10.11
 Host is up (0.13s latency).
 
@@ -379,7 +382,7 @@ whoami
 nt authority\system
 ```
 
-## Otras Formas
+# Otras Formas
 ### Prueba Exploit: Adobe ColdFusion - Directory Traversal
 Existe otra forma de acceder a la máquina como usuario, para esto usariamos el exploit **Adobe ColdFusion - Directory Traversal**.
 

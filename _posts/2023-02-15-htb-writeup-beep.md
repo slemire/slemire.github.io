@@ -14,7 +14,8 @@ categories:
 tags:
   - Linux
   - Elastix 
-  - Remote Command Execution (RCE) - CVE-2012-4869
+  - Remote Command Execution (RCE) 
+  - RCE - CVE-2012-4869
   - SUDO Exploitation
   - OSCP Style
 ---
@@ -239,7 +240,6 @@ Papers: No Results
 ```
 Hay varios que me gustaria probar como el LFI, XSS y PHP Code Injection, pero creo que seria mejor si probamos con el RCE. Vamos a analizar y despues los demás.
 
-# Explotación de Vulnerabilidades
 ### Probando el Exploit: Elastix 2.2.0 - Remote Code Execution
 ```
 searchsploit -x php/webapps/18650.py     
@@ -271,6 +271,7 @@ Para buscar una extension es necesario el paquete de herramientas **sipvicious**
 
 Claro que en este caso ya no es necesario, pues ya hay una extension que sirve dentro del exploit modificado en el github, lo unico que tenemos que hacer es copiar los cambios, osea, la extension, las 3 lineas de codigo abajo de la extension y agregar el context al urlopen.
 
+# Explotando Vulnerabilidades
 Ahora si, levantamos la netcat otra vez:
 ```
 nc -nvlp 443
@@ -290,6 +291,7 @@ asterisk
 id
 uid=100(asterisk) gid=101(asterisk)
 ```
+
 # Post Explotación
 Bueno y ahora que? El mismo exploit nos indica que hacer y es activar el nmap con sudo de forma interactiva, para poder usar nmap desde la consola y no como comando, solamente escribimos !sh y podremos escalar privilegios para ser root:
 ```

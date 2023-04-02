@@ -14,14 +14,17 @@ categories:
 tags:
   - Windows
   - Http File Server (HFS)
-  - Remote Command Execution (RCE) - CVE-2014-6287
+  - Remote Command Execution (RCE)
+  - RCE - CVE-2014-6287
   - Windows Exploit Suggester
-  - Local Privilege Escalation - MS16-098
+  - Local Privilege Escalation (LPE)
+  - LPE - MS16-098
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-optimum/optimum_logo.png)
 La máquina Optimum, bastante sencilla con muchas formas para poder vulnerarla, en mi caso use el CVE-2014-6287 para poder acceder a la máquina como usuario y aunque intente probar otro exploit (MS16-032) para escalar privilegios como Root, no funciono, hay más por probar pues el que si sirvio fue el MS16-098.
 
+# Recopilación de Información
 ## Traza ICMP
 Realicemos un ping para saber si la máquina esta conectada y analizaremos el TTL para saber que SO opera en dicha máquina.
 ```
@@ -42,14 +45,14 @@ Gracias al TTL sabemos que la máquina usa Windows. Realicemos los escaneos de p
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.8 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
-Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-30 13:28 CST
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-16 13:28 CST
 Initiating SYN Stealth Scan at 13:28
 Scanning 10.10.10.8 [65535 ports]
 Discovered open port 80/tcp on 10.10.10.8
 Completed SYN Stealth Scan at 13:28, 26.96s elapsed (65535 total ports)
 Nmap scan report for 10.10.10.8
 Host is up, received user-set (0.32s latency).
-Scanned at 2023-03-30 13:28:24 CST for 27s
+Scanned at 2023-02-16 13:28:24 CST for 27s
 Not shown: 65534 filtered tcp ports (no-response)
 Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
 PORT   STATE SERVICE REASON
@@ -73,7 +76,7 @@ Al parecer, solamente hay un puerto abierto y es el de http. En vez de realizar 
 ## Escaneo de Servicios
 ```
 nmap -sC -sV -p80 10.10.10.8 -oN targeted                                            
-Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-30 13:31 CST
+Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-16 13:31 CST
 Nmap scan report for 10.10.10.8
 Host is up (0.14s latency).
 
@@ -118,6 +121,7 @@ Vamos a investigar que es este servicio:
 
 Entonces el servicio que esta operando, es el **HFS 2.3**. Es momento de buscar un exploit.
 
+# Analisis de Vulnerabilidades
 ## Buscando un Exploit
 ```
 searchsploit HFS 2.3                 
@@ -161,6 +165,8 @@ searchsploit -m windows/remote/39161.py
  Verified: True
 File Type: Python script, ASCII text executable, with very long lines (540)
 ```
+
+# Explotación de Vulnerabilidades
 Ahora si, hagamoslo por pasos:
 
 * Para empezar busquemos la netcat, si tienes Kali ya sabras como:
@@ -306,7 +312,7 @@ python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.t
 ```
 Puedes intentar probar con varios, yo en especial voy a probar con el **MS16-098** porque intente probar el **MS16-032** pero no me funciono, casi 3 horas perdidas ahi jeje.
 
-## Post Explotación
+# Post Explotación
 ```
 searchsploit MS16-098                  
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
