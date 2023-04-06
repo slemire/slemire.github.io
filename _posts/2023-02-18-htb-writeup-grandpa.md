@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Grandpa - Hack The Box
-excerpt: "Esta fue una máquina facil en la cual vamos a vulnerar el servicio http del puerto 80, que esta usando Microsofr IIS 6.0 WebDAV, usando un exploit que nos conectara de forma remota a la máquina (CVE-2017-7269), de ahi podemos escalar privilegios a NT Authority System aprovechando que tenemos el privilegio SeImpersonatePrivilege, justamente usando Churrasco.exe (una variante de Juicy Potato para sistemas windows viejos) y utilizando un Payload.."
+excerpt: "Esta fue una máquina facil en la cual vamos a vulnerar el servicio http del puerto 80, que esta usando Microsofr IIS 6.0 WebDAV, usando un exploit que nos conectara de forma remota a la máquina (CVE-2017-7269), de ahi podemos escalar privilegios a NT Authority System aprovechando que tenemos el privilegio SeImpersonatePrivilege, justamente usando Churrasco.exe (una variante de Juicy Potato para sistemas windows viejos) y utilizando un Payload."
 date: 2023-02-18
 classes: wide
 header:

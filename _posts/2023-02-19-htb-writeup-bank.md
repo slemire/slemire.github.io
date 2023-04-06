@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Bank - Hack The Box
-excerpt: "Esta máquina fue algo dificil porque no pude escalar privilegios usando un exploit sino que se usa un binario que automaticamente te convierte en root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el ataque de transferencia de zona DNS y veremos acerca del virtual hosting que por lo que he investigado, hay otras máquina que lo van a ocupar.."
+excerpt: "Esta máquina fue algo dificil porque no pude escalar privilegios usando un exploit sino que se usa un binario que automaticamente te convierte en root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el ataque de transferencia de zona DNS y veremos acerca del virtual hosting que por lo que he investigado, hay otras máquina que lo van a ocupar."
 date: 2023-02-19
 classes: wide
 header:
