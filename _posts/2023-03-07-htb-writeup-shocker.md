@@ -10,7 +10,7 @@ header:
   icon: /assets/images/hackthebox.webp
 categories:
   - HackTheBox
-  - Easy Machines
+  - Easy Machine
 tags:
   - Linux
   - ShellShock Attack
