@@ -343,7 +343,7 @@ Bueno, exiten otras dos formas de poder ganar acceso a esta máquina, una sera u
 ## Exploit de Metasploit
 Esta forma la encontre usando el metodo que se uso en el sig. link: 
 
-https://ivanitlearning.wordpress.com/2019/02/24/exploiting-ms17-010-without-metasploit-win-xp-sp3/
+* https://ivanitlearning.wordpress.com/2019/02/24/exploiting-ms17-010-without-metasploit-win-xp-sp3/
 
 Vamos a descargar el siguiente git: 
 

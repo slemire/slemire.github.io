@@ -139,7 +139,7 @@ Ok, entonces por lo que entiendo, nos estamos enfrentando a una máquina que usa
 
 Vaya, osea que es una mini computadora por asi decirlo. Además este aparato tiene un sistema operativo propio llamado **Raspberry Pi OS**, este SO esta hecho con Linux por lo que debe de tener claves por defecto que quiza podamos usar en el SSH. Busquemos:
 
-https://www.makeuseof.com/tag/raspbian-default-password/
+* https://www.makeuseof.com/tag/raspbian-default-password/
 
 Según la página que encontre, el usuario y contreseña por defecto son:
 * Usuario: pi
@@ -285,12 +285,3 @@ Ahora si! Ya tenemos la flag del root.
 * https://www.stackscale.com/es/blog/inodos-linux/
 
 # FIN
-
-
-
-
-
-
-
-
-

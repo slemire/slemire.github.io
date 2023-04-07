@@ -259,7 +259,7 @@ La máquina usa **Windows 2012 6.3.9600 N/A Build 9600**, busquemos un exploit p
 
 La herramienta **Windows Exploit Suggester** nos va a ayudar a encontrar los exploits a los que es vulnerable la maquina, unicamente debemos pasarle un fichero que almacene toda la información que nos de el comando **systeminfo** de la máquina victima, primero vamos a descargar esta herramienta:
 
-https://github.com/AonCyberLabs/Windows-Exploit-Suggester
+* https://github.com/AonCyberLabs/Windows-Exploit-Suggester
 
 ```
 git clone https://github.com/AonCyberLabs/Windows-Exploit-Suggester.git
@@ -292,7 +292,7 @@ pip2 install xlrd==1.2.0
 ```
 Aqui viene ese problema:
 
-https://www.reddit.com/r/learnpython/comments/ft0h3p/windowsexploitsuggester_error/
+* https://www.reddit.com/r/learnpython/comments/ft0h3p/windowsexploitsuggester_error/
 
 Ahora si, usemos el suggester:
 ```
@@ -332,7 +332,7 @@ Despues de descargarlo, vamos a meterlo a la maquina, para esto usaremos un prog
 
 Aqui un link con esta info:
 
-https://tecnonucleous.com/2018/04/05/certutil-exe-podria-permitir-que-los-atacantes-descarguen-malware-mientras-pasan-por-alto-el-antivirus/
+* https://tecnonucleous.com/2018/04/05/certutil-exe-podria-permitir-que-los-atacantes-descarguen-malware-mientras-pasan-por-alto-el-antivirus/
 
 Entonces vamos a usar el siguiente comando dentro de la maquina:
 ```

@@ -166,6 +166,12 @@ Processed Requests: 220560
 Filtered Requests: 220543
 Requests/sec.: 144.4310
 ```
+* -c: Para que se muestren los resultados con colores.
+* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
+* -t: Para usar una cantidad especifica de hilos.
+* -w: Para usar un diccionario de wordlist.
+* Diccionario que usamos: dirbuster
+
 Veo 2 subpáginas pero installer no servira así que vamos directamente con la **tree**:
 
 ![](/assets/images/htb-writeup-sense/Captura5.png)

@@ -197,7 +197,8 @@ Antes de continuar e investigar la pagina web que esta operando, veamos si no ha
 ## Buscando Vulnerabilidades para los Servicios Investigados
 Encontramos una pagina bastante interesante y que al parecer nos puede ayudar de aqui en adelante para futuras maquinas, pues te da referencias de lo que puedes hacer, lo que no puedes y de lo que necesitar para vulnerar ciertos servicios:
 
-Pagina HackTricks: https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind
+Pagina HackTricks: 
+* https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind
 
 Ahi incluso hay una sección que nos dice que el servicio RPCBIND puede ser vulnerable para cargar archivos si esta activo junto al servicio NFS.
 
@@ -384,7 +385,8 @@ Podriamos usar la herramienta john o hashID pero vamos a usar cualquiera que nos
 
 ![](/assets/images/htb-writeup-remote/Captura12.png)
 
-Aqui el link de esta pagina: https://hashes.com/es/decrypt/hash
+Aqui el link de esta pagina: 
+* https://hashes.com/es/decrypt/hash
 
 La contraseña es: **baconandcheese**
 

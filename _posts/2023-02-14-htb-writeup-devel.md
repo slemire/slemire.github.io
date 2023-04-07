@@ -529,7 +529,7 @@ Ok tenemos el privilegio **SeImpersonatePrivilege** y vemos que el SO es 6.1.760
 Buscando por internet, nos aparece uno en particular que es el MS11-046 que es un **Local Privilege Escalation** y que justamente nos serviria en estos momentos. 
 Puede verlo en el siguiente link: 
 
-https://www.exploit-db.com/exploits/40564
+* https://www.exploit-db.com/exploits/40564
 
 Vamos a buscarlo con la herramienta **Searchsploit**:
 ```

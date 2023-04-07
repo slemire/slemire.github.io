@@ -69,19 +69,12 @@ Nmap done: 1 IP address (1 host up) scanned in 23.66 seconds
            Raw packets sent: 115632 (5.088MB) | Rcvd: 34152 (1.366MB)
 ```
 * -p-: Para indicarle un escaneo en ciertos puertos.
-
 * --open: Para indicar que aplique el escaneo en los puertos abiertos.
-
 * -sS: Para indicar un TCP SYN port Scan para que nos agilice el escaneo.
-
 * --min-rate: Para indicar una cantidad de envio de paquetes de datos no menor a la que indiquemos (en nuestro caso pedimos 5000).
-
 * -vvv: Para indicar un triple verbose, un verbose nos muestra lo que vaya obteniendo el escaneo.
-
 * -n: Para indicar que no se aplique resolución dns para agilizar el escaneo.
-
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
-
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 Solamente hay dos puertos abiertos, uno con SSH y otro con web abierto. Realicemos un escaneo de servicios, a ver cuales son.
@@ -108,11 +101,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 12.39 seconds
 ```
 * -sC: Para indicar un lanzamiento de scripts basicos de reconocimiento.
-
 * -sV: Para identificar los servicios/version que estan activos en los puertos que se analicen.
-
 * -p: Para indicar puertos especificos.
-
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
 De momento no tenemos credeciales para logearnos en SSH, vamos a revisar la pagina web que esta en el puerto 80.

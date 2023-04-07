@@ -169,7 +169,7 @@ Entonces vamos a descartar este servicio de momento y pasemos a analizar la pagi
 
 **IMPORTANTE**, tuve problemas para entrar pues salia el error **SSL_ERROR_UNSUPPORTED_VERSION**, el sig. link explica como resolverlo, echale un ojo: 
 
-https://stackoverflow.com/questions/63111167/ssl-error-unsupported-version-when-attempting-to-debug-with-iis-express
+* https://stackoverflow.com/questions/63111167/ssl-error-unsupported-version-when-attempting-to-debug-with-iis-express
 
 Muy bien, ya estamos dentro:
 
@@ -216,6 +216,12 @@ ID           Response   Lines    Word       Chars       Payload
 000000080:   302        9 L      26 W       288 Ch      "media"
 ...
 ```
+* -c: Para que se muestren los resultados con colores.
+* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
+* -t: Para usar una cantidad especifica de hilos.
+* -w: Para usar un diccionario de wordlist.
+* Diccionario que usamos: dirbuster
+
 Wow, wow, wow, salieron demasiados codigos de estado 302, este codigo quiere decir que el recurso solicitado ha sido movido temporalmente a la URL dada por las cabeceras Location (en-US), osea que no podremos accesar a ellos.
 
 Entonces no creo que podamos hacer mucho, busquemos directamente un exploit para este servicio.
@@ -259,7 +265,7 @@ lport=443
 Cambia esos datos y corre el script con python2 y...nada, no me conecto a nada y no salio nada en la pagina. Supongo que es por el problema que tuve antes para poder entrar a la pagina, pues el certificado SSL parece ya no servir, quiza si lo modificamos puede que apruebe el exploit y sirva, vamos a investigar un poco como podemos modificarlo.
 
 Durante la busqueda, encontre un github que justamente cambia el exploit para que este opere bien:
-https://github.com/infosecjunky/FreePBX-2.10.0---Elastix-2.2.0---Remote-Code-Execution
+* https://github.com/infosecjunky/FreePBX-2.10.0---Elastix-2.2.0---Remote-Code-Execution
 
 Para modificar el exploit se debe buscar una extension que sirva con el servicio FreePBX que esta relacionado con el servicio Elastix de esta máquina, pero que es FreePBX?
 
@@ -336,7 +342,7 @@ User asterisk may run the following commands on this host:
 Vaya, vaya, tenemos varios permisos como root. Existe una pagina muy util que nos ayudara en este caso para ver de que otra forma podemos escalar privilegios para convertirnos en **Root**. 
 Esta pagina es GTFOBins: 
 
-https://gtfobins.github.io/
+* https://gtfobins.github.io/
 
 Entonces veamos de que formas podemos escalar para ser **Root**, ojito que incluso ahi se ve el nmap que fue el que uso el exploit para convertirnos en Root, asi que PROBEMOS OTROS!!
 

@@ -169,7 +169,8 @@ Papers: No Results
 ```
 A canijote, no nos salio nada. Entonces vamos a buscar por internet a ver que nos aparece, solo añadamos exploit al final para que tengamos algun resultado favorable:
 
-Y justo nos sale un gihub con un exploit: https://github.com/AnikateSawhney/Pwning_Blue_From_HTB_Without_Metasploit
+Y justo nos sale un gihub con un exploit: 
+* https://github.com/AnikateSawhney/Pwning_Blue_From_HTB_Without_Metasploit
 
 Leyendolo un poco, este exploit necesita usar un entorno virtual en python 2, necesitamos tener instalada la libreria Impacket de python y crear una **Reverse Shell**, obviamente antes de continuar hay que clonar el github en nuestro equipo.
 

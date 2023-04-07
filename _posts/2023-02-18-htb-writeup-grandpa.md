@@ -153,6 +153,12 @@ Processed Requests: 220560
 Filtered Requests: 220541
 Requests/sec.: 341.8143
 ```
+* -c: Para que se muestren los resultados con colores.
+* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
+* -t: Para usar una cantidad especifica de hilos.
+* -w: Para usar un diccionario de wordlist.
+* Diccionario que usamos: dirbuster
+
 No pues nada, vamos directamente a buscar un exploit para el servicio **Microsoft IIS httpd 6.0**.
 ```
 searchsploit Microsoft IIS httpd 6.0
@@ -198,7 +204,7 @@ Mmmmm no entiendo muy bien como usarlo, podria ser que debemos meter los datos d
 
 Investigando un poco, nos aparece este github:
 
-https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269
+* https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269
 
 Ahi viene el mismo que vamos a ocupar pero ya nos explica que debemos poner para poder usarlo:
 ```
@@ -390,11 +396,11 @@ No se porque razón ninguno funciono, así que en este caso ahora si vamos a apr
 
 Con solo poner **windows server 2003 juicy potato exploit** en el buscador, nos dara una pagina web, la abrimos y vemos la explicación.
 
-https://binaryregion.wordpress.com/2021/06/14/privilege-escalation-windows-juicypotato-exe/
+* https://binaryregion.wordpress.com/2021/06/14/privilege-escalation-windows-juicypotato-exe/
 
 La versión de Juicy Potato que ofrece esta pagina no nos servira, pero si nos vamos hasta abajo ahi vendra una variante llamada Churrasco.exe, esa es la que vamos a usar.
 
-https://binaryregion.wordpress.com/2021/08/04/privilege-escalation-windows-churrasco-exe/
+* https://binaryregion.wordpress.com/2021/08/04/privilege-escalation-windows-churrasco-exe/
 
 Siguiendo las indicaciones de la pagina, una vez descargado el Churrasco.exe vamos a hacer lo sig:
 

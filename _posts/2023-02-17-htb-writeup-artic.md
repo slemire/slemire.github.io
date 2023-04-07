@@ -327,7 +327,7 @@ Hay varios exploits que podemos usar, vamos a usar el MS10-059 para poder ganar 
 ### Probando Exploit: MS10-059: Vulnerabilities in the Tracing Feature for Services Could Allow Elevation of Privilege (982799)
 Para descargarlo, usaremos el siguiente link:
 
-https://github.com/SecWiki/windows-kernel-exploits
+* https://github.com/SecWiki/windows-kernel-exploits
 
 Una vez descargado, lo pasamos a nuestro directorio de trabajo y lo vamos a subir a la máquina para activarlo, vamonos por pasos:
 

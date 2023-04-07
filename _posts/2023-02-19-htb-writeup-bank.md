@@ -171,7 +171,7 @@ Tenemos bastante información que nos puede ser util más adelante. Ahora vamos 
 
 Aqui el link con más información:
 
-https://www.hostinger.mx/tutoriales/comando-dig-linux
+* https://www.hostinger.mx/tutoriales/comando-dig-linux
 
 Entonces, utilicemos esta herramienta, hagamos varias pruebas:
 * Vamos a especificar los nombres de servidores:
@@ -264,6 +264,12 @@ Processed Requests: 220560
 Filtered Requests: 220539
 Requests/sec.: 376.8565
 ```
+* -c: Para que se muestren los resultados con colores.
+* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
+* -t: Para usar una cantidad especifica de hilos.
+* -w: Para usar un diccionario de wordlist.
+* Diccionario que usamos: dirbuster
+
 Bien, vemos algunos subdominios que podemos investigar, ahora el ataque.
 
 Que es un **Ataque de Transferencia de Zona**:
@@ -374,7 +380,7 @@ Veo que podemos subir archivos pero no dice de que tipo. Quiza si analisamos el 
 Ahi esta! Solamente acepta archivos con terminación **.htb** y dichos archivos deben ser hechos en **PHP**, lo que podemos hacer es cargar un payload para poder conectarnos de manera remota. Busquemos uno en internet:
 
 Aqui un payload:
-https://github.com/pentestmonkey/php-reverse-shell
+* https://github.com/pentestmonkey/php-reverse-shell
 
 # Explotando Vulnerabilidadaes
 
@@ -456,7 +462,7 @@ Linux bank 4.4.0-79-generic #100~14.04.1-Ubuntu SMP Fri May 19 18:37:52 UTC 2017
 ```
 Muy bien, busquemos un exploit. Buscando un exploit por internet, encontre este:
 
-https://www.exploit-db.com/exploits/44298
+* https://www.exploit-db.com/exploits/44298
 
 Bien, busquemoslo con **SearchSploit**:
 ```

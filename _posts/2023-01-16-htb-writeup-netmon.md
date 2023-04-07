@@ -222,7 +222,8 @@ Ojito con lo siguiente:
 * PRTG Configuration.dat: Configuración de monitoreo (por ejemplo, sondas, grupos, dispositivos, sensores, usuarios, mapas, informes y más)
 * Configuracion de PRTG.old: Copia de seguridad de la versión anterior de la configuración de monitoreo
 
-**Aqui podemos ver más información:** https://kb.rolosa.com/np-donde-almacena-la-informacion-prtg/
+**Aqui podemos ver más información:** 
+* https://kb.rolosa.com/np-donde-almacena-la-informacion-prtg/
 
 ## Enumeración del FTP
 Muy bien, ahora sabemos que podemos buscar dentro del servicio FTP para no estar dando tantas vueltas o buscando cosas que no sirven.

@@ -205,6 +205,12 @@ Processed Requests: 220560
 Filtered Requests: 220536
 Requests/sec.: 432.3768
 ```
+* -c: Para que se muestren los resultados con colores.
+* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
+* -t: Para usar una cantidad especifica de hilos.
+* -w: Para usar un diccionario de wordlist.
+* Diccionario que usamos: dirbuster
+
 Hay varios que podemos ver, el que me llama la atención es el **wp-includes**, veamos que hay ahi.
 
 ![](/assets/images/htb-writeup-blocky/Captura9.png)
@@ -222,7 +228,7 @@ A kbron, si les damos click a esos archivos se pueden descargar pero... que es l
 Ahhhh entonces son archivos comprimidos de java, tratemos de ver su interior. Para esto es necesario descompilarlo porque no podremos abrir uno de estos archivos a menos que tengamos java para podrer abrirlo y verlo y posiblemente este contenga una contraseña, entonces busquemos una herramienta para descompilar estos archivos.
 
 Encontre una:
-http://java-decompiler.github.io/
+* http://java-decompiler.github.io/
 
 Bien, instalemosla en nuestro equipo:
 ```
@@ -313,11 +319,11 @@ Esta vez tuvimos suerte al intuir que existia un usuario, pero como sabremos si 
 
 Despues de investigar un rato, gracias a **HackTricks** se puede enumerar los usuarios de un servicio SSH usando Metasploit, asi que existe un exploit que nos permita esto:
 
-https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh
+* https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh
 
 Investigando un exploit, encontre este:
 
-https://www.exploit-db.com/exploits/45233
+* https://www.exploit-db.com/exploits/45233
 
 Este nos sirve para la versión de SSH que esta usando la máquina, pues es **OpenSSH 7.2**. Busquemoslo con **Searchsploit**:
 
@@ -399,6 +405,3 @@ Esta es una forma de saber si existe un usuario en un servicio SSH, para el futu
 * https://www.exploit-db.com/exploits/45233
 
 # FIN
-
-
-
