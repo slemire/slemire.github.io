@@ -403,7 +403,7 @@ Ya tenemos la versión que usa **Umbraco**, ahora podemos buscar un Exploit:
 
 ![](/assets/images/htb-writeup-remote/Captura11.png)
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 Usamos **Searchsploit** para buscar el Exploit e incluso podemos buscar por internet:
 ```
 searchsploit umbraco 7.12.4                                                                                    

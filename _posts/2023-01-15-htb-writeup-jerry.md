@@ -158,7 +158,7 @@ Lo seleccionamos y ya lo subimos, ahí mismo observamos que el archivo es tipo *
 
 ![](/assets/images/htb-writeup-jerry/Captura5.png)
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 Una vez subido el archivo que creamos con el Payload, que es una **Reverse Shell**, ya solamente debemos alzar una netcat y activar el Payload:
 ```
 rlwrap nc -nlvp 443

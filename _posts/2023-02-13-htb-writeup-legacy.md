@@ -158,7 +158,7 @@ Después de analizarlo, no creo que nos vaya a servir porque dicho Exploit solo 
 
 ¡WUALA! Aparece el GitHub que uso el tito S4vitar y que fue uno de los que probe después en la máquina Blue, vamos a probarlo aquí para que vean cómo funciona.
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 ## Configurando y Usando un Exploit
 Vamonos por pasos:
 * Descargamos el GitHub: https://github.com/worawit/MS17-010

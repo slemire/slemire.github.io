@@ -276,7 +276,7 @@ ftp> cd PRTG\ Network\ Monitor
 ```
 Una vez dentro de la carpeta donde están los archivos ocultos, descargamos él **.dat**, él **.old** y él **old.bak**, como investigamos anteriormente, sabemos que él **.dat** y él **.old** son lo mismo, siendo que el **.old** es un **BackUp** del **.dat**, así que descargaremos únicamente los **.dat** y él **.old.bak**. Lo que buscamos es ver si estos archivos contienen un usuario y contraseña que nos permitan acceder a la página.
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 ## Analizando Contenido Descargado del FTP
 Ahora toca analizar los archivos que descargamos, recuerda que buscamos un usuario y contraseña para poder acceder a la página web.
 ```

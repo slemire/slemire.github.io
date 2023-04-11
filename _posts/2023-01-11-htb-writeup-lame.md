@@ -142,7 +142,7 @@ Nmap done at Wed Jan 11 14:11:32 2023 -- 1 IP address (1 host up) scanned in 54.
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Analizando el Servicio FTP
 Entraremos a este servicio como usuario anonymous, para ver que podemos encontrar que nos pueda ser util.
 ```
@@ -222,7 +222,7 @@ tn2.interact()
 
 Lo que hace este exploit es tratar de conectarnos al servicio FTP a través del puerto 6200 (o eso entiendo), pero no creo que funcione porque dicho puerto no está abierto, así que no perdamos tiempo y mejor analicemos el servicio Samba.
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 ## Analizando el Servicio Samba
 Ahora nos logueamos en el Samba para ver que hay dentro, lo haremos de una forma sin que tengamos que meter un usuario.
 

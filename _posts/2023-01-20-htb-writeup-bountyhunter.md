@@ -154,7 +154,7 @@ Esto lo hacemos porque **BurpSuite** tiene un proxy configurado por defecto:
 
 Ahora sí, ya estamos listos para trabajar.
 
-# Explotando Vulnerabilidades
+# Explotación de Vulnerabilidades
 En la última subpágina, llena los campos con lo que quieras y dale **submit** para que **BurpSuite** pueda interceptar la petición, ósea que debemos obtener un POST, que será con el que vamos a seguir trabajando:
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura8.png)
