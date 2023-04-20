@@ -19,6 +19,7 @@ tags:
   - Script Manager
   - Python Exploitation
   - SUDO Exploitation
+  - OSCP Style
 ---
 ![](/assets/images/htb-writeup-bashed/bashed_logo.png)
 Una máquina realmente sencilla, si acaso lo que costo un poquillo fue el cómo usar el comando **scriptmanager**, pero de ahí en fuera, todo fue fácil. Vamos a aprovecharnos de una subpágina que es una shell de bash como web, la cual vamos a usar para conectarnos de manera remota y en la cual, usaremos el usuario **scriptmanager** para escalar privilegios, usando un script en Python con él cambiaremos los permisos de la **Bash** para convertirnos en Root.
