@@ -166,7 +166,9 @@ rtt min/avg/max/mdev = 130.266/130.266/130.266/0.000 ms
 
 Ahí está, tenemos un login, veamos que nos dice el **Wappalizer**:
 
-![](/assets/images/htb-writeup-bank/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bank/Captura3.png">
+</p>
 
 Tenemos bastante información que nos puede ser útil más adelante. Ahora vamos a utilizar una herramienta bastante útil para estos casos llamada **dig**.
 
@@ -306,7 +308,9 @@ Hice dos pruebas de **Fuzzing**, una normal, que es la que está arriba, y la ot
 
 Como vemos, hay algunos subdominios, pero el que más llama la atención es el **balance-transfer**, entremos a ese:
 
-![](/assets/images/htb-writeup-bank/Captura5.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bank/Captura5.png">
+</p>
 
 Changos, hay muchos archivos, pero ¿qué es esa extención **.acc**?, vamos a investigarla:
 
@@ -353,7 +357,9 @@ Server bank.htb
 ```
 ¡BRAVO! Hay 3 archivos poco comunes pero el que más llama la atención es el que pesa 257, vamos a descargarlo buscándolo en la página y dándole click:
 
-![](/assets/images/htb-writeup-bank/Captura6.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bank/Captura6.png">
+</p>
 
 Lo mandamos al directorio de trabajo y vemos su contenido:
 ```
@@ -416,7 +422,9 @@ mv php-reverse-shell.php LocalPE.htb
 ```
 * Una vez ya modificado, lo subimos:
 
-![](/assets/images/htb-writeup-bank/Captura10.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bank/Captura10.png">
+</p>
 
 * Levantamos una netcat con el puerto que pusimos en el Payload:
 ```
@@ -425,7 +433,9 @@ listening on [any] 443 ...
 ```
 * Ya cargado en la página el Payload, le damos click en donde lo pide:
 
-![](/assets/images/htb-writeup-bank/Captura11.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bank/Captura11.png">
+</p>
 
 * ¡Y estamos dentro!:
 ```

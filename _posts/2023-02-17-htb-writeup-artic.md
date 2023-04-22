@@ -1,6 +1,6 @@
 ---
 layout: single
-title: Artic - Hack The Box
+title: Arctic - Hack The Box
 excerpt: "Una máquina algo sencilla, vamos a vulnerar el servicio Adobe ColdFusion 8 usando el Exploit CVE-2009-2264 que nos conectara directamente a la máquina usando una Reverse Shell, entraremos como usuario y usaremos el MS10-059 para ganar acceso como NT Authority System."
 date: 2023-02-17
 classes: wide
@@ -110,15 +110,21 @@ Vamos a empezar por el **FMTP**:
 
 Ósea que es una página web, vamos a verla:
 
-![](/assets/images/htb-writeup-artic/Captura1.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-artic/Captura1.png">
+</p>
 
 Hay solamente 2 carpetas, veamos que hay en la primera:
 
-![](/assets/images/htb-writeup-artic/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-artic/Captura2.png">
+</p>
 
 Hay una en especial que podemos ver, que es el directorio **administrator**. Antes de meternos ahí, veamos que hay en el otro directorio principal:
 
-![](/assets/images/htb-writeup-artic/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-artic/Captura3.png">
+</p>
 
 No hay nada que sea de interés que yo sepa, entonces vamos al directorio **administrator**:
 

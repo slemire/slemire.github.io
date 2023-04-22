@@ -362,7 +362,9 @@ En resumen, podemos vulnerar la página usando las notificaciones, vamos a hacer
 
 Nos vamos a la sección de crear nueva notificación:
 
-![](/assets/images/htb-writeup-netmon/Captura5.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-netmon/Captura5.png">
+</p>
 
 Llamamos a nuestra notificación **HackeadoPrro!** y nos vamos a la sección **Execute Programs**:
 
@@ -375,11 +377,17 @@ Esto es lo mismo que hace el Exploit pero nosotros lo vamos a indicar directamen
 test.txt;net user BerserkP B3rs3rkP123$! /add; net localgroup Administrators BerserkP /add
 ```
 
-CUando guardemos la notificación, ya estará disponible:
-![](/assets/images/htb-writeup-netmon/Captura7.png)
+Cuando guardemos la notificación, ya estará disponible:
+
+<p align="center">
+<img src="/assets/images/htb-writeup-netmon/Captura7.png">
+</p>
 
 Y la activamos, una vez activada nos deberá mandar el siguiente mensaje:
-![](/assets/images/htb-writeup-netmon/Captura8.png)
+
+<p align="center">
+<img src="/assets/images/htb-writeup-netmon/Captura8.png">
+</p>
 
 Bien ahora para poder ver si ya estamos dentro de dicho grupo, vamos a usar la herramienta **crackmapexec**:
 ```

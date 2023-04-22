@@ -1,5 +1,6 @@
 ---
-title: "About"
+layout: splash
+title: "Información del Autor"
 permalink: /about/
 date: 2023-03-08
 ---

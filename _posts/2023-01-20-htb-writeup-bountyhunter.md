@@ -120,7 +120,9 @@ Al parecer esta sección no está completa y nos pide ir a otra subpágina, vamo
 Una vez dentro, quizá podamos tratar de inyectar código, probemos utilizando la herramienta **BurpSuite** y nos vamos a utilizar la siguiente página como guía del XXE Injection (XML external entity): 
 * https://portswigger.net/web-security/xxe
 
-![](/assets/images/htb-writeup-bountyhunter/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura3.png">
+</p>
 
 Pero ¿qué es XXE Injection? Bueno esto es:
 
@@ -134,7 +136,9 @@ Antes de continuar debemos configurar algunas cosas para que **BurpSuite** vaya 
 
 * Una vez instalado, ve a la sección **Add** para agregar un proxy que usara **BurpSuite**.
 
-![](/assets/images/htb-writeup-bountyhunter/Captura4.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura4.png">
+</p>
 
 * Configúralo como la siguiente imagen:
 
@@ -142,11 +146,15 @@ Antes de continuar debemos configurar algunas cosas para que **BurpSuite** vaya 
 
 Esto lo hacemos porque **BurpSuite** tiene un proxy configurado por defecto:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura7.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura7.png">
+</p>
 
 * Una vez configurado, ya debería aparecer cuando des click en el **FoxyProxy**
 
-![](/assets/images/htb-writeup-bountyhunter/Captura6.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura6.png">
+</p>
 
 * Instala el certificado CA en tu navegador, es posible que **BurpSuite** automáticamente te lo pida y te dé pasos a seguir, si usas **FireFox** aquí estan los pasos: https://portswigger.net/burp/documentation/desktop/external-browser-config/certificate/ca-cert-firefox
 
@@ -157,19 +165,25 @@ Ahora sí, ya estamos listos para trabajar.
 # Explotación de Vulnerabilidades
 En la última subpágina, llena los campos con lo que quieras y dale **submit** para que **BurpSuite** pueda interceptar la petición, ósea que debemos obtener un POST, que será con el que vamos a seguir trabajando:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura8.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura8.png">
+</p>
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura9.png)
 
 Una vez obtenido, vamos a mandar todo a la sección **Repeater**:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura10.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura10.png">
+</p>
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura11.png)
 
 Y del **Repeater** vamos a mandar la data al **Decoder**:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura12.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura12.png">
+</p>
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura13.png)
 
@@ -183,11 +197,15 @@ Bien, según la página guía de **BurpSuite**, aquí podemos inyectar código p
 
 Una vez que la data este en base64, lo copiamos, nos vamos al **Repeater**, cambiamos la data por la nueva que acabamos de obtener y enviamos la petición para ver que obtenemos. IMPORTANTE, para que funcione hay que convertir la data a **URL code**, solamente seleccionamos la nueva data y oprimimos **ctrl + u** y ya quedara **URL code**:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura16.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura16.png">
+</p>
 
 Vaya, vaya, al parecer podemos vulnerar la página de esta forma:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura17.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura17.png">
+</p>
 
 Incluso, si analizamos bien lo que nos muestra, en la parte de abajo, podemos ver un usuario llamado **Development**, esto nos puede servir más adelante.
 ```
@@ -255,13 +273,17 @@ Vámonos por pasos:
 * php://filter/convert.base64-encode/resource=db.php: Con resourse le agregamos la subpagina y ya podemos encodearlo
 * Una vez más mandamos todo a la data del **Repeater**, lo ponemos como **URL code** y lo mandamos.
 
-![](/assets/images/htb-writeup-bountyhunter/Captura19.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura19.png">
+</p>
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura20.png)
 
 Si seleccionamos el resultado que nos arrojó en **BurpSuite**, del lado derecho nos mostrara como se vería sino estuviera en base64:
 
-![](/assets/images/htb-writeup-bountyhunter/Captura21.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-bountyhunter/Captura21.png">
+</p>
 
 Ojito, nos da una contraseña, recordemos que ya tenemos un usuario, así que intentemos meternos al SSH que está activo en la máquina para ver si podemos accesar:
 ```

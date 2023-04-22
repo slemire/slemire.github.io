@@ -182,7 +182,9 @@ Aparece el nombre **Elastix**, investiguemos que es eso:
 
 Mmmmm entonces podemos entrar directamente a la máquina para poder encontrar las flags una vez que lo vulneremos, o bueno eso pienso. Veamos que nos dice **Wappalizer**:
 
-![](/assets/images/htb-writeup-beep/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-beep/Captura2.png">
+</p>
 
 Usan PHP, entonces podemos hacer un **Fuzzing** para ver que otras subpáginas hay, pero antes de hacerlo, probemos si sirven las credenciales por defecto que tiene el servicio **Elastix**, las credenciales son:
 * eLaStIx.

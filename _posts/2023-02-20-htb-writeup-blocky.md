@@ -130,11 +130,15 @@ Bien, recarguemos la página a ver si ya funciona:
 
 Excelente, ya funciona. Que nos dice **Wappalizer**:
 
-![](/assets/images/htb-writeup-blocky/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura3.png">
+</p>
 
 Ok, la página esta hecha con **Wordpress**, **PHP** y ahí viene el servidor **Apache**. Veamos que podemos hacer dentro de la página web.
 
-![](/assets/images/htb-writeup-blocky/Captura4.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura4.png">
+</p>
 
 Ahí vemos un login y si damos click en **Comments** y **Entries**, nos descargara 2 archivos **XML**:
 ```
@@ -145,19 +149,27 @@ OTX7NxW5: XML 1.0 document, Unicode text, UTF-8 text, with very long lines (302)
 ```
 Los analice un poco rápido, pero no vi nada que nos pueda ayudar de momento, sigamos buscando.
 
-![](/assets/images/htb-writeup-blocky/Captura5.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura5.png">
+</p>
 
 Vemos un post y podemos verlo mejor si damos click, entremos.
 
-![](/assets/images/htb-writeup-blocky/Captura6.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura6.png">
+</p>
 
 Una vez dentro, podemos comentar también, pero lo importante es que arriba del post aparece un usuario llamado **notch**, supongo que ese debe estar registrado en la página. Vamos al login.
 
-![](/assets/images/htb-writeup-blocky/Captura7.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura7.png">
+</p>
 
 Va, una vez aquí intentemos ver si existe el usuario notch:
 
-![](/assets/images/htb-writeup-blocky/Captura8.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura8.png">
+</p>
 
 ¡Si existe! Puede que ese usuario este registrado en el **SSH**, solo nos falta la contraseña. Ahora hagamos un Fuzzing para saber que otras subpáginas hay.
 
@@ -243,15 +255,21 @@ Una vez instalada solo ponemos **jd-gui** para abrirla, así igual abrimos el **
 
 Bien, como nos indica ahí, vamos a cargar los archivos, primero veamos el **BlockyCore.jar**:
 
-![](/assets/images/htb-writeup-blocky/Captura12.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura12.png">
+</p>
 
 Si no mal recuerdo de mis autoclases de Java, el cuadro amarillo debe ser una clase, veamos que contenido tiene:
 
-![](/assets/images/htb-writeup-blocky/Captura13.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura13.png">
+</p>
 
 En efecto, es una clase, veamos el contenido:
 
-![](/assets/images/htb-writeup-blocky/Captura14.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-blocky/Captura14.png">
+</p>
 
 ¿Es neta? jajaja que kgado, ya tenemos un usuario y la contraseña del Root, quiza **notch** es el Root o no sé, hay que probarlos.
 

@@ -109,11 +109,15 @@ Vamos a entrar a ver que show:
 
 Mmmmm no había visto algo parecido, pareciera como si ya estuviéramos dentro pero no, si nos vamos al login nos pedirá credenciales que obviamente no tenemos:
 
-![](/assets/images/htb-writeup-optimum/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-optimum/Captura2.png">
+</p>
 
 ¿Se podrá subir archivos? Al parecer no todavía, ahí mismo nos aparece la información del servidor que ya nos dio el escaneo de servicios y **whatweb**:
 
-![](/assets/images/htb-writeup-optimum/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-optimum/Captura3.png">
+</p>
 
 Vamos a investigar que es este servicio:
 **HTTP File Server es una herramienta simple que le permite acceder a los archivos de su teléfono desde una computadora de escritorio, tableta u otros dispositivos sin ningún software especial, solo un navegador web.**

@@ -111,7 +111,9 @@ Primero entremos a la página web:
 
 No veo nada que nos pueda ayudar. Veamos lo que nos dice el **Wappalizer**.
 
-![](/assets/images/htb-writeup-grandpa/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-grandpa/Captura2.png">
+</p>
 
 Nada, no veo nada que nos ayude. Intentemos hacer **Fuzzing** para ver si puede encontrar algo, aunque lo dudo bastante.
 

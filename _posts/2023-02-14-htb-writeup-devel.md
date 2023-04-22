@@ -204,7 +204,9 @@ Al entrar en la página, no hay nada, más que una imagen del servicio que está
 
 Que nos dice el **Wappalizer**:
 
-![](/assets/images/htb-writeup-devel/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-devel/Captura2.png">
+</p>
 
 No hay mucho que destacar y un **Fuzzing** no creo que sea útil.
 
@@ -212,7 +214,9 @@ No hay mucho que destacar y un **Fuzzing** no creo que sea útil.
 
 Intentemos ver si se puede ejecutar:
 
-![](/assets/images/htb-writeup-devel/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-devel/Captura3.png">
+</p>
 
 ¡¡SI FUNCIONA!! Así que podemos subir una netcat o un Payload de **msfvenom** para que nos conecte directamente, podríamos hacer los dos, pero ¿qué archivos son los que lee este servicio? Porque no servirá ni el Payload ni la netcat si los subimos como archivos de texto, o al menos es lo que yo creo.
 
@@ -287,7 +291,9 @@ listening on [any] 443 ...
 ```
 Y, por último, veamos si se activa desde la página web:
 
-![](/assets/images/htb-writeup-devel/Captura4.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-devel/Captura4.png">
+</p>
 
 ¡¡EUREKA!! Estamos dentro:
 ```
@@ -361,7 +367,9 @@ No pues sí, ya estamos dentro, pero pues en la página web.
 
 ![](/assets/images/htb-writeup-devel/Captura5.png)
 
-![](/assets/images/htb-writeup-devel/Captura6.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-devel/Captura6.png">
+</p>
 
 Quizá podríamos tratar de ejecutar una netcat que este dentro del servicio FTP para conectarnos hacia nuestra máquina como con el Payload, pero ya me dio hueva la verdad y pueden probarlo también, sería lo mismo que hicimos en la **máquina Legacy**. 
 

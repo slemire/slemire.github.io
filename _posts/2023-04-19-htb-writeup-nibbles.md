@@ -113,7 +113,9 @@ Entremos a la página web.
 
 Pues no veo nada más que un mensaje, entonces veamos que nos dice el **Wappalizer**:
 
-![](/assets/images/htb-writeup-nibbles/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-nibbles/Captura2.png">
+</p>
 
 Mmmmm no nos dice nada que nos pueda ayudar. Hagamos un **Fuzzing** rápido con **nmap**.
 
@@ -302,7 +304,9 @@ Excelente, quizá en sí buscamos en **content**, encontremos alguna credencial.
 
 Muy bien, aquí si hay cosas que pueden interesarnos. Investigando cada carpeta encontré el siguiente archivo:
 
-![](/assets/images/htb-writeup-nibbles/Captura7.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-nibbles/Captura7.png">
+</p>
 
 Así que ya tenemos un usuario llamado **admin**, pero no tenemos contraseña. Lo que se me ocurre solamente es poner contraseñas a lo imbécil, porque si buscar las credenciales por defecto de este servicio, te aparecerán muchas pistas sobre como resolver esta máquina y pues ahorita vamos desde cero.
 

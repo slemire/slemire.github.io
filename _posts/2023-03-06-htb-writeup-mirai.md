@@ -115,7 +115,9 @@ Vamo a entrar.
 
 A kbron...no hay nada, veamos que dice **Wappalizer**:
 
-![](/assets/images/htb-writeup-mirai/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-mirai/Captura2.png">
+</p>
 
 No pues, no veo que eso nos ayude mucho, vamos a hacer dos cosas, una va a ser investigar el servidor web que usa la máquina y a usar la herramienta **Whatweb** para ver que información extra nos puede dar.
 

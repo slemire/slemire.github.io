@@ -114,7 +114,9 @@ Justamente, cuando ponemos la IP nos dice que hay riesgo y bla bla bla, dando en
 
 Se puede ver algo llamado **PF Sense**, supongo que es el servicio que usa la página, antes de investigarlo, veamos que nos dice el **Wappalizer**:
 
-![](/assets/images/htb-writeup-sense/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-sense/Captura2.png">
+</p>
 
 Ahí vemos el servidor web y la página usa PHP, ahora investiguemos el servicio.
 
@@ -124,9 +126,13 @@ Ahí vemos el servidor web y la página usa PHP, ahora investiguemos el servicio
 * Username: admin
 * Contraseña: pfsense
 
-![](/assets/images/htb-writeup-sense/Captura3.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-sense/Captura3.png">
+</p>
 
-![](/assets/images/htb-writeup-sense/Captura4.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-sense/Captura4.png">
+</p>
 
 No pues no sirvió, mejor hagamos un Fuzzing para saber que subpáginas tiene. **OJO**, se tiene que cambiar el comando porque saldrán muchos 301, para solucionarlo le agregamos la **-L**.
 
@@ -222,15 +228,21 @@ Después de leer el mensaje que nos apareció, sabemos que hay una vulnerabilida
 
 Aunque tambien podemos buscar un Exploit para el servicio **SilverStripe**. Pero vamos a ver el otro archivo que se encontró, el **system-users**.
 
-![](/assets/images/htb-writeup-sense/Captura7.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-sense/Captura7.png">
+</p>
 
 Ohhhh ya tenemos un usuario y está usando la contraseña por defecto de **PF Sense**, intentemos entrar:
 
-![](/assets/images/htb-writeup-sense/Captura8.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-sense/Captura8.png">
+</p>
 
 ¡Excelente! Ya estamos dentro:
 
-![](/assets/images/htb-writeup-sense/Captura9.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-sense/Captura9.png">
+</p>
 
 Ahí está la versión del **PF Sense**, ahora podemos buscar un Exploit para este servicio.
 

@@ -165,8 +165,10 @@ rlwrap nc -nlvp 443
 listening on [any] 443 ...
 ```
 Le damos click al archivo **.war**:
-
-![](/assets/images/htb-writeup-jerry/Captura6.png)
+<br>
+<p align="center">
+<img src="/assets/images/htb-writeup-jerry/Captura6.png">
+</p>
 
 ¡Y listo! Ya estamos dentro:
 ```

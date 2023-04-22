@@ -103,7 +103,9 @@ Vamos a entrar.
 
 Jejeje que raro el monito ese, pero no hay nada más. Que nos dice **Wappalizer**:
 
-![](/assets/images/htb-writeup-shocker/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-shocker/Captura2.png">
+</p>
 
 No pues nada, no tenemos casi nada de información. Vamos a hacer un fuzzing para ver si tiene alguna subpágina.
 

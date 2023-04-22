@@ -187,7 +187,9 @@ Y por último el **servicio NFS**:
 
 Muy bien, pues después de leer cada concepto de los servicios, deduzco que la máquina pues es un servidor en sí, esto quiere decir que aquí se almacena todo lo que tenga que ver con la página web que esta activa en el puerto 80 e incluso el escaneo de servicios nos dice que los 3 operan en conjunto. Además, está el puerto 5985 que el escaneo nos muestra con el servicio HTTTPAPI, vamos a investigar este último:
 
-![](/assets/images/htb-writeup-remote/Captura7.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura7.png">
+</p>
 
 Mmmm pues no es más que una API de Microsoft al parecer.
 
@@ -211,7 +213,9 @@ Vamos a entrar en la página web que esta activa y veamos que hay:
 
 Al parecer es una tienda como de ropa, pero está incompleta. Veamos que nos dice **Wappalizer**:
 
-![](/assets/images/htb-writeup-remote/Captura2.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura2.png">
+</p>
 
 Utilizan algunas librerías de JavaScript pero no veo algo que nos pueda servir, sigamos analizando la página web.
 
@@ -221,7 +225,9 @@ Hay una sección llamada **People**, quiza alguno de esos nombre sea un usuario 
 
 En la sección **About Us** hay algunas ideas de lo que pueden implementar en la página y hay una subrayada como si ya se hubiera hecho, no creo que nos sirva de mucho esto pero hay que tomar en cuenta eso que subrayaron.
 
-![](/assets/images/htb-writeup-remote/Captura4.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura4.png">
+</p>
 
 Por último en la sección de **Contact** nos viene la opción de mandar un mensaje a Umbraco. ¿Pero qué pasa si le damos click?
 
@@ -229,7 +235,9 @@ Por último en la sección de **Contact** nos viene la opción de mandar un mens
 
 Vaya, vaya, un inicio de sesión para el servicio Umbraco, hay que investigar este servicio.
 
-![](/assets/images/htb-writeup-remote/Captura6.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura6.png">
+</p>
 
 ## Investigando el Servicio Umbraco
 Veamos que es el servicio Umbraco:
@@ -298,7 +306,9 @@ Truco para **HackTricks**: Si usamos la palabra **Pentesting** y luego el servic
 
 Buscamos por la página **HackTricks** y encontramos lo siguiente:
 
-![](/assets/images/htb-writeup-remote/Captura8.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura8.png">
+</p>
 
 Así que intentemos lo que nos dice, a ver que nos sale:
 ```
@@ -393,15 +403,21 @@ La contraseña es: **baconandcheese**
 
 Una vez ya tenemos la contraseña y como tenemos 2 usuarios, probemos en Umbraco el usuario que estaba junto al hash.
 
-![](/assets/images/htb-writeup-remote/Captura9.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura9.png">
+</p>
 
 Y ya estamos dentro!
 
-![](/assets/images/htb-writeup-remote/Captura10.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura10.png">
+</p>
 
 Ya tenemos la versión que usa **Umbraco**, ahora podemos buscar un Exploit:
 
-![](/assets/images/htb-writeup-remote/Captura11.png)
+<p align="center">
+<img src="/assets/images/htb-writeup-remote/Captura11.png">
+</p>
 
 # Explotación de Vulnerabilidades
 Usamos **Searchsploit** para buscar el Exploit e incluso podemos buscar por internet:
