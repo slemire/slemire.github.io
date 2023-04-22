@@ -22,6 +22,7 @@ tags:
   - CVE-2018-15473
   - Tmux 1.6
   - CVE-2011-1496
+  - OSCP Style
 ---
 ![](/assets/images/htb-writeup-valentine/valentine_logo.png)
 Esta fue una máquina relativamente sencilla, investigaremos el puerto **HTTP** que con la ayuda de **nmap** y haciendo **Fuzzing**, encontramos una subpágina que nos dara información valiosa como una llave privada en base hexadecimal. La desciframos, pero estará encriptada, por lo que no nos servirá hasta más adelante. Con la ayuda de **nmap**, encontramos un Exploit llamado **Heartbleed**, con el cual capturaremos data que nos ayudara a descifrar al fin la llave privada y nos dará una contraseña para el **SSH**, usando el Exploit **CVE-2018-15473** pondremos nombres relacionados a la máquina y encontraremos un usuario con el cual entramos. Para escalar privilegios, usamos la herramienta **Tmux**, que encontramos en el historial de **Bash** y que nos meterá una nueva terminal como Root.
