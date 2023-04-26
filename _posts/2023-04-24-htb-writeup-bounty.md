@@ -26,15 +26,41 @@ tags:
 ![](/assets/images/htb-writeup-bounty/bounty_logo.png)
 Esta es una máquina algo sencilla, vamos a usar **Fuzzing** a la página web que está activa en puerto **HTTP**, como no descubrimos nada, buscaremos por archivos **ASP**, pues usa este servicio y encontraremos una subpágina para subir archivos. Utilizaremos **BurpSuite** para descubrir que archivos acepta, que en este caso serán los **.config**, usaremos un archivo **web.config** para cargar un Payload de **Nishang .ps1**, con esto accederemos a la máquina como usuarios. Para escalar privilegios, usaremos **Juicy Potato**, pues tiene este privilegio activo. 
 
-# Indice
-<ul>
-	<li><a href= "# Recopilación de Información">Recopilación de Información</a></li>
-	<li><a href= "# Análisis de Vulnerabilidades">Análisis de Vulnerabilidades</a></li>
-</ul>
+<div id="Indice">
+	<h1>Indice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#P80">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Attack">Ataque Sniper con BurpSuite</a></li>
+				<li><a href="#Exploit">Buscando un Exploit</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Juicy">Usando el Juicy Potato</a></li>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
 
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">**Recopilación de Información**</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
 
-# Recopilación de Información
-## Traza ICMP
+<h2 id="Ping">Traza ICMP</h2>
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL veremos que SO opera en la máquina.
 ```
 ping -c 4 10.10.10.93
@@ -50,7 +76,7 @@ rtt min/avg/max/mdev = 130.590/131.044/131.829/0.481 ms
 ```
 Por el TTL sabemos que la máquina usa Windows, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.93 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -83,7 +109,7 @@ Nmap done: 1 IP address (1 host up) scanned in 29.81 seconds
 
 Solo veo un puerto abierto, hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
 ```
 nmap -sC -sV -p80 10.10.10.93 -oN targeted                            
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-24 14:53 CST
@@ -108,9 +134,14 @@ Nmap done: 1 IP address (1 host up) scanned in 13.03 seconds
 
 Veo el servicio **IIS** que ya hemos hackeado en otras máquinas. Analicemos el puerto 80.
 
-<a name="Análisis de Vulnerabilidades"></a>
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">**Análisis de Vulnerabilidades**</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
+<h2 id="P80">Analizando Puerto 80</h2>
 Bien, entremos.
 
 ![](/assets/images/htb-writeup-bounty/Captura1.png)
@@ -123,7 +154,7 @@ Solamente hay una imagen, veamos que nos dice **Wappalizer**.
 
 Ok, ya sabemos que nos enfrentamos al servicio **IIS**, hagamos **Fuzzing** para ver que nos podemos encontrar.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.93/FUZZ.php/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -236,8 +267,14 @@ Podemos subir un archivo, el problema es que no sabemos qué tipo de archivo ace
 
 Vamos a probar con **BurpSuite**.
 
-# Explotación de Vulnerabilidades
-## Ataque Sniper con BurpSuite
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">**Explotación de Vulnerabilidades**</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
+<h2 id="Attack">Ataque Sniper con BurpSuite</h2>
 Lo que haremos, será capturar la subida de archivos del **aspx**. Abre **BurpSuite** y ponlo en modo de captura, lo que haré será intentar subir una **Reverse Shell** de **PHP** para ver si lo acepta y aunque no lo haga, ya abre capturado la petición.
 
 **IMPORTANTE**
@@ -338,8 +375,7 @@ Durante el ataque, veremos el siguiente archivo, este nos puede servir para busc
 <img src="/assets/images/htb-writeup-bounty/Captura19.png">
 </p>
 
-# Explotación de Vulnerabilidades
-## Buscando un Exploit
+<h2 id="Exploit">Buscando un Exploit</h2>
 Mientras buscaba un Exploit usando este:
 * https://www.ivoidwarranties.tech/posts/pentesting-tuts/iis/web-config/
 
@@ -550,7 +586,13 @@ PS C:\Users\merlin\Desktop> type user.txt
 ```
 Es tiempo de escalar privilegios.
 
-# Post Explotación
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">**Post Explotación**</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 Veamos qué privilegios tenemos:
 ```
 PS C:\> whoami /priv
@@ -633,7 +675,7 @@ Mode                LastWriteTime     Length Name
 ```
 Listo, ahora usemos el **Juicy Potato**.
 
-## Usando el Juicy Potato
+<h2 id="Juicy">Usando el Juicy Potato</h2>
 Para ver la forma de usarlo, usemos el parámetro **-h**:
 ```
 PS C:\Windows\Temp\Privesc> .\JuicyPotato.exe -h
@@ -713,7 +755,13 @@ Te comparto estos links sobre cómo usar el **Juicy Potato**:
 * https://hunter2.gitbook.io/darthsidious/privilege-escalation/juicy-potato
 * https://infinitelogins.com/2020/12/09/windows-privilege-escalation-abusing-seimpersonateprivilege-juicy-potato/
 
-## Links de Investigación
+<div style="position: relative;">
+ <h2 id="Links">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://noticiasseguridad.com/importantes/como-hacer-pruebas-de-penetracion-de-con-wfuzz/
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/iis-internet-information-services
 * https://www.ivoidwarranties.tech/posts/pentesting-tuts/iis/web-config/
