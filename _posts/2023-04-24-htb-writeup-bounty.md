@@ -26,6 +26,8 @@ tags:
 ![](/assets/images/htb-writeup-bounty/bounty_logo.png)
 Esta es una máquina algo sencilla, vamos a usar **Fuzzing** a la página web que está activa en puerto **HTTP**, como no descubrimos nada, buscaremos por archivos **ASP**, pues usa este servicio y encontraremos una subpágina para subir archivos. Utilizaremos **BurpSuite** para descubrir que archivos acepta, que en este caso serán los **.config**, usaremos un archivo **web.config** para cargar un Payload de **Nishang .ps1**, con esto accederemos a la máquina como usuarios. Para escalar privilegios, usaremos **Juicy Potato**, pues tiene este privilegio activo. 
 
+<br>
+<hr>
 <div id="Indice">
 	<h1>Indice</h1>
 	<ul>
@@ -53,12 +55,18 @@ Esta es una máquina algo sencilla, vamos a usar **Fuzzing** a la página web qu
 	</ul>
 </div>
 
+
+<br>
+<br>
+<hr>
 <div style="position: relative;">
- <h1 id="Recopilacion" style="text-align:center;">**Recopilación de Información**</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:75%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:3px;5px;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
+<br>
+
 
 <h2 id="Ping">Traza ICMP</h2>
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL veremos que SO opera en la máquina.
@@ -134,12 +142,18 @@ Nmap done: 1 IP address (1 host up) scanned in 13.03 seconds
 
 Veo el servicio **IIS** que ya hemos hackeado en otras máquinas. Analicemos el puerto 80.
 
+
+<br>
+<br>
+<hr>
 <div style="position: relative;">
- <h1 id="Analisis" style="text-align:center;">**Análisis de Vulnerabilidades**</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:75%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:3px;5px;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
+<br>
+
 
 <h2 id="P80">Analizando Puerto 80</h2>
 Bien, entremos.
@@ -267,12 +281,18 @@ Podemos subir un archivo, el problema es que no sabemos qué tipo de archivo ace
 
 Vamos a probar con **BurpSuite**.
 
+
+<br>
+<br>
+<hr>
 <div style="position: relative;">
- <h1 id="Explotacion" style="text-align:center;">**Explotación de Vulnerabilidades**</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:75%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:3px;5px;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
+<br>
+
 
 <h2 id="Attack">Ataque Sniper con BurpSuite</h2>
 Lo que haremos, será capturar la subida de archivos del **aspx**. Abre **BurpSuite** y ponlo en modo de captura, lo que haré será intentar subir una **Reverse Shell** de **PHP** para ver si lo acepta y aunque no lo haga, ya abre capturado la petición.
@@ -586,12 +606,18 @@ PS C:\Users\merlin\Desktop> type user.txt
 ```
 Es tiempo de escalar privilegios.
 
+
+<br>
+<br>
+<hr>
 <div style="position: relative;">
- <h1 id="Post" style="text-align:center;">**Post Explotación**</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:75%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:3px;5px;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
+<br>
+
 
 Veamos qué privilegios tenemos:
 ```
@@ -755,12 +781,16 @@ Te comparto estos links sobre cómo usar el **Juicy Potato**:
 * https://hunter2.gitbook.io/darthsidious/privilege-escalation/juicy-potato
 * https://infinitelogins.com/2020/12/09/windows-privilege-escalation-abusing-seimpersonateprivilege-juicy-potato/
 
+
+<br>
+<br>
 <div style="position: relative;">
- <h2 id="Links">Links de Investigación</h2>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:75%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:3px;5px;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
+
 
 * https://noticiasseguridad.com/importantes/como-hacer-pruebas-de-penetracion-de-con-wfuzz/
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/iis-internet-information-services
