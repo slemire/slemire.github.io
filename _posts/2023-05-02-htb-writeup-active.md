@@ -25,7 +25,7 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-active/active_logo.png)
-Esta máquina fue algo complicada para mí, porque se trató de un ejercicio de Active Directory. Tuve que investigar mucho sobre Active Directory, gracias a la herramienta smbclient y smbmap, se pudo enumerar el servicio Samba siendo que encontramos un archivo que contiene credenciales de usuario, esto nos permitirá hacer el ataque Kerberosasting para obtener credenciales de Root.
+Esta máquina fue algo complicada para mí, porque se trató de un ejercicio de **Active Directory**. Tuve que investigar mucho sobre **Active Directory**, gracias a la herramienta **smbclient** y **smbmap**, se pudo enumerar el servicio **Samba** siendo que encontramos un archivo que contiene credenciales de usuario, esto nos permitirá hacer el **ataque Kerberosasting** para obtener credenciales de Root.
 
 
 <br>
@@ -64,7 +64,7 @@ Esta máquina fue algo complicada para mí, porque se trató de un ejercicio de 
 <hr>
 <div style="position: relative;">
  <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem">
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
@@ -220,7 +220,7 @@ Está muy raro para mí, no había visto tantos puertos abiertos antes, no sé p
 <hr>
 <div style="position: relative;">
  <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem">
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
@@ -405,7 +405,7 @@ SMB    10.10.10.100    445    DC   [+] active.htb\SVC_TGS:GPPstillStandingStrong
 <hr>
 <div style="position: relative;">
  <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem">
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
@@ -461,7 +461,7 @@ Con esto ya demostrado, es momento de buscar una forma de obtener acceso como Ro
 <hr>
 <div style="position: relative;">
  <h1 id="Post" style="text-align:center;">Post Explotación</h1>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem">
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
@@ -555,7 +555,7 @@ C:\Users\Administrator\Desktop> type root.txt
 <br>
 <div style="position: relative;">
  <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
-  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem">
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
    <a href="#Indice">Volver al Índice</a>
   </button>
 </div>
