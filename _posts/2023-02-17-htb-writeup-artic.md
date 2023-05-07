@@ -27,8 +27,57 @@ Una máquina algo sencilla, vamos a vulnerar el servicio **Adobe ColdFusion 8** 
 
 ADVERTENCIA, esta máquina es bastante lenta, en su momento me desespere, pero "la paciencia es la madre de la ciencia", advertido estas.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Investigacion">Investigación de Servicios</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando un Exploit</a></li>
+				<ul>
+                                        <li><a href="#PruebaExp">Probando Exploit: Adobe ColdFusion 8 - Remote Command Execution (RCE)</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+				<ul>
+					<li><a href="#PruebaExp2">Probando Exploit: MS10-059: Vulnerabilities in the Tracing Feature for Services Could Allow Elevation of Privilege (982799)</a></li>
+				</ul>
+		<li><a href="#Otras">Otras Formas</a></li>
+                        	<ul>
+                                	<li><a href="#PruebaExp3">Prueba Exploit: Adobe ColdFusion - Directory Traversal</a></li>
+                                	<li><a href="#PruebaExp4">Prueba Exploit: Juicy Potato</a></li>
+                        	</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Realizamos un ping para saber si la máquina está conectada y en base al TTL sabremos que SO ocupa la máquina.
 ```
 ping -c 4 10.10.10.11   
@@ -44,7 +93,8 @@ rtt min/avg/max/mdev = 130.538/131.733/134.557/1.638 ms
 ```
 Al parecer la máquina usa Windows. Es momentos de hacer los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.11 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -78,7 +128,8 @@ Nmap done: 1 IP address (1 host up) scanned in 27.54 seconds
 
 Solamente hay 2 puertos activos y que yo recuerde no nos hemos enfrentado a esos dos, hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p135,8500 10.10.10.11 -oN targeted                        
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-17 13:45 CST
@@ -100,8 +151,21 @@ Nmap done: 1 IP address (1 host up) scanned in 138.29 seconds
 
 Mmmmmm a kbron, no pues no nos dio mucha información que digamos. Vamos a investigar.
 
-# Análisis de Vulnerabilidades
-## Investigación de Servicios
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Investigacion">Investigación de Servicios</h2>
+
 Vamos a empezar por el **FMTP**:
 
 **El SMTP o protocolo simple de transferencia de correo es un protocolo de red básico que permite que los emails viajen a través de internet. Es decir, es un protocolo de mensajería empleado para mandar un email de un punto A (un servidor de origen o servidor saliente) a un punto B (un servidor de destino o servidor entrante).**
@@ -136,8 +200,21 @@ Ok, ya tenemos un servicio más especifico, pero ¿qué es eso de **Adobe ColdFu
 
 Entonces, se esta desarrollando una aplicación web, por eso las credenciales que pide.
 
-# Explotación Vulnerabilidades
-## Buscando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando un Exploit</h2>
+
 Como ya tenemos un servicio específico y la versión, entonces vamos a usar **Searchsploit**
 ```
 searchsploit adobe coldfusion 8
@@ -167,7 +244,8 @@ Papers: No Results
 ```
 Excelente, tenemos un RCE, vamos a analizarlo.
 
-### Probando Exploit: Adobe ColdFusion 8 - Remote Command Execution (RCE)
+<h3 id="PruebaExp">Probando Exploit: Adobe ColdFusion 8 - Remote Command Execution (RCE)</h3>
+
 ```
 searchsploit -x cfm/webapps/50057.py        
   Exploit: Adobe ColdFusion 8 - Remote Command Execution (RCE)
@@ -247,7 +325,19 @@ dir
                5 Dir(s)   1.434.054.656 bytes free
 ```
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Bueno ya estamos dentro, vamos a ver de qué nos podemos aprovechar para poder ganar acceso como Root.
 ```
 C:\>cd Program Files
@@ -330,7 +420,8 @@ python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.t
 ```
 Hay varios Exploits que podemos usar, vamos a usar el **MS10-059** para poder ganar acceso como Root.
 
-### Probando Exploit: MS10-059: Vulnerabilities in the Tracing Feature for Services Could Allow Elevation of Privilege (982799)
+<h3 id="PruebaExp2">Probando Exploit: MS10-059: Vulnerabilities in the Tracing Feature for Services Could Allow Elevation of Privilege (982799)</h3>
+
 Para descargarlo, usaremos el siguiente link:
 
 * https://github.com/SecWiki/windows-kernel-exploits
@@ -388,8 +479,21 @@ whoami
 nt authority\system
 ```
 
-# Otras Formas
-### Prueba Exploit: Adobe ColdFusion - Directory Traversal
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Otras" style="text-align:center;">Otras Formas</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h3 id="PruebaExp3">Prueba Exploit: Adobe ColdFusion - Directory Traversal</h3>
+
 Existe otra forma de acceder a la máquina como usuario, para esto usaríamos el Exploit **Adobe ColdFusion - Directory Traversal**.
 
 En el siguiente link, te explica cómo puedes obtener las credenciales para acceder al **Adobe ColdFusion** y usar una vulnerabilidad para cargar un Payload que tenga una **Reverse Shell** para que puedas accesar al sistema:
@@ -398,7 +502,9 @@ En el siguiente link, te explica cómo puedes obtener las credenciales para acce
 
 Este link viene en dicho Exploit: **CVE-2010-2861**
 
-### Prueba Exploit: Juici Potato
+
+<h3 id="PruebaExp4">Prueba Exploit: Juicy Potato</h3>
+
 Después de usar el **Windows Exploit Suggester**, intente probar algunos Exploits, estos son:
 * MS11-011
 * MS10-047
@@ -408,7 +514,16 @@ El último lo utilizamos en la **máquina Devel** pero aquí no funciono ni ese 
 
 He notado que otras personan han usado **Juicy Potato** o **Churraskito** que es una variante o el mismo que el **MS10-059**, no lo sé bien, aunque yo no probe **Juicy Potato** puedes intentarlo tu.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://www.mailjet.com/es/blog/emailing/servidor-smtp/
 * https://github.com/0xkasra/CVE-2009-2265
 * https://www.google.com/search?client=firefox-b-e&q=Microsoft+Windows+Server+2008+R2+Standard++6.1.7600+N%2FA+Build+7600+exploit
@@ -417,4 +532,6 @@ He notado que otras personan han usado **Juicy Potato** o **Churraskito** que es
 * https://github.com/egre55/windows-kernel-exploits
 * https://www.gnucitizen.org/blog/coldfusion-directory-traversal-faq-cve-2010-2861/
 
+
+<br>
 # FIN

@@ -31,8 +31,52 @@ tags:
 ![](/assets/images/htb-writeup-metatwo/metatwo_logo.png)
 Una máquina bastante complicada, otra que debería ser nivel medio, más no fácil. Usaremos el puerto HTTP para poder encontrar una forma de ganar acceso a la máquina, siendo que el código fuente nos ayudara a encontrar un plugin llamado **Bookingpress**, con el cual nos apoyaremos para capturar una petición usando **curl** y mandándola a **BurpSuite**, para después poder enumerar la base de datos de la página con **sqlmap**, capturando las credenciales en forma de hashes. Una vez las descifremos, entraremos al login del **WordPress** y en base a la versión, vamos a usar el Exploit **CVE-2021-29447** para cargar un Payload en formato **.wav** para que con PHP podamos descifrar las credenciales del servicio **FTP** que tiene la máquina. Adentro del **FTP** encontraremos las credenciales para el servicio **SSH**, nos logueamos como usuario y después de investigar que hay dentro de este servicio, usaremos **Passpie** para poder exportar la contraseña del Root.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+				<li><a href="#Fuente">Analizando Código Fuente de Página Web</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#SQL">Realizando SQL Injection</a></li>
+				<li><a href="#Hash">Descifrando Hashes</a></li>
+				<li><a href="#Web">Accediendo a la Página Web y Obteniendo Credenciales de FTP</a></li>
+				<li><a href="#FTP">Enumeración Servicio FTP</a></li>
+				<li><a href="#SSH">Entrando al Servicio SSH</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL sabremos que SO opera en dicha máquina.
 ```
 ping -c 4 10.10.11.186   
@@ -48,7 +92,8 @@ rtt min/avg/max/mdev = 132.257/1621.341/3142.807/1124.246 ms, pipe 4
 ```
 Gracias al TTL sabemos que la máquina usa Linux, ahora hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.11.186 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -84,7 +129,8 @@ Nmap done: 1 IP address (1 host up) scanned in 27.50 seconds
 
 Veo que solamente hay 3 puertos abiertos, los clásicos para Linux cómo el puerto SSH y el HTTP, pero me llama la atención ver que hay un servicio FTP activo. Recordemos esto para después, ahora hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p21,22,80 10.10.11.186 -oN targeted                        
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-14 11:26 CST
@@ -126,8 +172,21 @@ Bien, me sigue pareciendo raro ver ese servicio FTP y como nos dice el escaneo, 
 
 OJO, vemos que la página web usa el servicio **Nginx**, esto quizá nos sirva después. Analicemos la página web.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Entremos.
 
 ![](/assets/images/htb-writeup-metatwo/Captura1.png)
@@ -165,7 +224,8 @@ La página principal nos menciona que podemos agendar una cita para un **Evento*
 
 No pues no, de ahí en fuera, no veo nada que nos pueda ayudar. Hagamos un **Fuzzing** para ver que encontramos.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -L -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://metapress.htb/FUZZ/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -259,7 +319,8 @@ ID           Response   Lines    Word       Chars       Payload
 ```
 Tampoco muestra algo que nos ayude mucho, si intentas meter algunas de las subpáginas que se encontraron, se te descargaran unos archivos, pero no sirven de nada. Lo único que falta es analizar el código fuente de la página web para ver si hay algo ahí.
 
-## Analizando Código Fuente de Página Web
+<h2 id="Fuente">Analizando Código Fuente de Página Web</h2>
+
 Investigando el código fuente de algunas subpáginas que tiene la página web, lo que me llama la atención es que hay un servicio llamado **Atom** y **Bookingpress**, investiguemos de que se tratan estos dos.
 
 * Primero veamos **Atom**:
@@ -332,8 +393,21 @@ Referrer-Policy: strict-origin-when-cross-origin
 ```
 Muy bien, si queremos capturar datos deberemos usar la herramienta **sqlmap** y usaremos mandaremos la captura de petición del **curl** al **BurpSuite**, luego al **Repeater** y copiaremos esa petición en un archivo. Hagámoslo por pasos.
 
-# Explotación de Vulnerabilidades
-## Realizando SQL Injection
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="SQL">Realizando SQL Injection</h2>
+
 * Activamos **BurpSuite** y activamos la captura del proxy.
 
 * Entonces, agregamos lo siguiente al comando anterior **-x http://127.0.0.1:8080/** y así debería quedar:
@@ -477,7 +551,8 @@ Table: wp_users
 ```
 ¡Ahuevo! Tenemos dos hashes que podemos descifrar y dos usuarios.
 
-## Descifrando Hashes
+<h2 id="Hash">Descifrando Hashes</h2>
+
 Para descifrar los hashes vamos a usar la herramienta **John The Ripper**, al chile me da hueva explicarte como instalarla, así que te dejo un link:
 * https://www.kolibers.com/blog/hash_cracking_con_john_the_ripper.html
 
@@ -510,7 +585,8 @@ Session aborted
 ```
 Excelente ya tenemos una contraseña y tenemos el usuario, probémoslas.
 
-## Accediendo a la Página Web y Obteniendo Credenciales de FTP
+<h2 id="Web">Accediendo a la Página Web y Obteniendo Credenciales de FTP</h2>
+
 Pues resulta ser que la contraseña que obtuvimos de los hashes y el usuario **manager** son del login de **WordPress**:
 
 ![](/assets/images/htb-writeup-metatwo/Captura14.png)
@@ -639,7 +715,8 @@ define( 'FTP_SSL', false );
 ```
 ¡Excelente! Tenemos la contraseña y usuario del servicio FTP, entremos ahí y veamos qué hay.
 
-## Enumeración Servicio FTP
+<h2 id="FTP">Enumeración Servicio FTP</h2>
+
 Entremos:
 ```
 ftp 10.10.11.186
@@ -732,7 +809,8 @@ try {
 ```
 ¡Ahuevo! Tenemos las credenciales para entrar al servicio **SSH**
 
-## Entrando al Servicio SSH
+<h2 id="SSH">Entrando al Servicio SSH</h2>
+
 Pongamos las credenciales:
 ```
 ssh jnelson@metapress.htb
@@ -768,7 +846,19 @@ jnelson@meta2:~$ cat user.txt
 ```
 Muy bien, es hora de convertirnos en Root.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Como siempre veamos qué privilegios tenemos y que archivos podemos aprovechar:
 ```
 jnelson@meta2:~$ id
@@ -957,7 +1047,15 @@ restore  root.txt
 root@meta2:~# cat root.txt
 ```
 
-## Links de Investigación
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://wpscan.com/vulnerability/388cd42d-b61a-42a4-8604-99b812db2357
 * https://backtrackacademy.com/articulo/ataque-de-una-base-de-datos-con-sqlmap
 * https://keepcoding.io/blog/como-usar-sqlmap/
@@ -970,4 +1068,6 @@ root@meta2:~# cat root.txt
 * https://vulners.com/kitploit/KITPLOIT:7430529944893678297
 * https://passpie.readthedocs.io/en/latest/
 
+
+<br>
 # FIN

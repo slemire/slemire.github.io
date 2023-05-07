@@ -28,10 +28,53 @@ Una máquina no tan complicada, ya que vamos a utilizar un Exploit que ya hemos 
 **OJO**: Me apoye en la forma que S4vitar utilizo y HackerSploit usando Metasploit, aquí los links de los videos:
 * https://www.youtube.com/watch?v=RuWkPH_Vecg
 * https://www.youtube.com/watch?v=uV6WNOfP8s8
+
 Les doy creditos a S4vitar pues andaba atorado en la forma de acceder a la maquina usando Eternal Blue y a HackerSploit por su forma de usar el exploit MS08-067 ya que cuando investigue los servicios de la maquina aparecio dicho exploit y abajo un video suyo.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando un Exploit</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit2">Configurando y Usando un Exploit</a></li>
+			</ul>
+		<li><a href="#Otras">Otras Formas</a></li>
+                        <ul>
+                                <li><a href="#Metas">Exploit de Metasploit</a></li>
+                                <li><a href="#Metas2">Usando Metasploit</a></li>
+                        </ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Realizamos un ping hacia la máquina para ver si está conectada y con el TTL vemos que tipo SO ocupa.
 ```
 ping -c 4 10.10.10.4         
@@ -47,7 +90,8 @@ rtt min/avg/max/mdev = 131.009/131.220/131.604/0.227 ms
 ```
 Gracias al TLL sabemos que es una máquina con Windows, ahora hagamos los escaneos.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.4 -oG allPorts                         
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -83,7 +127,8 @@ Nmap done: 1 IP address (1 host up) scanned in 23.67 seconds
 
 Solamente hay 3 puertos abiertos y ya conocidos, por lo que sabemos que la máquina está usando el servicio **Samba**. Aun así, hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p135,139,445 10.10.10.4 -oN targeted                                             
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-13 13:57 CST
@@ -128,8 +173,21 @@ session setup failed: NT_STATUS_INVALID_PARAMETER
 ```
 No pues no, entonces es momento de investigar por internet un Exploit que nos sirva.
 
-# Análisis de Vulnerabilidades
-## Buscando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando un Exploit</h2>
+
 De acuerdo al escaneo de servicios, tenemos dos para buscar, aunque empecemos mejor por el servicio del puerto 445 y luego el puerto 139.
 
 Investigando los dos, saltan a relusir dos Exploits:
@@ -158,8 +216,21 @@ Después de analizarlo, no creo que nos vaya a servir porque dicho Exploit solo 
 
 ¡WUALA! Aparece el GitHub que uso el tito S4vitar y que fue uno de los que probe después en la máquina Blue, vamos a probarlo aquí para que vean cómo funciona.
 
-# Explotación de Vulnerabilidades
-## Configurando y Usando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit2">Configurando y Usando un Exploit</h2>
+
 Vamonos por pasos:
 * Descargamos el GitHub: https://github.com/worawit/MS17-010
 ```
@@ -338,10 +409,23 @@ nmap --script "vuln and safe" -p445 10.10.10.4
 ```
 Y este nos mostraba que la máquina era vulnerable al **Eternal Blue**, no lo recordaba e incluso lo tengo anotado en la solución de la maquina Blue jeje.
 
-# Otras Formas
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Otras" style="text-align:center;">Otras Formas</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Bueno, existen otras dos formas de poder ganar acceso a esta máquina, una será usando el Exploit de Metasploit y la otra será usando Metasploit en sí, así que vamos a probar con el Exploit de Metasploit.
 
-## Exploit de Metasploit
+<h2 id="Metas">Exploit de Metasploit</h2>
+
 Esta forma la encontré usando el método que se usó en el siguiente link: 
 
 * https://ivanitlearning.wordpress.com/2019/02/24/exploiting-ms17-010-without-metasploit-win-xp-sp3/
@@ -448,7 +532,8 @@ dir
 ```
 OJO: aquí lo que hace es cargar el archivo **ETYX3D.exe**, dicho archivo es el que se crea en la función **send_and_execute**, así que este es el que entiendo hace la conexión hacia nuestra netcat.
 
-## Usando Metasploit
+<h2 id="Metas2">Usando Metasploit</h2>
+
 Como había mencionado antes, había encontrado el **MS08-062**, bueno este se encuentra en Metasploit y se puede usar. Vamos a activar el Metasploit:
 ```
 msfdb start                                                                                
@@ -616,7 +701,16 @@ Mode              Size  Type  Last modified              Name
 ```
 Bien podríamos probar los Exploits del **Eternal Blue** que son exclusivos de Metasploit, por lo que pueden intentarlo solamente chequen que cumpla con los requisitos, que en este caso es que se trate de conectar por el **named pipe Browser**.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://www.getastra.com/blog/security-audit/how-to-hack-windows-xp-using-metasploit-kali-linux-ms08067/
 * https://github.com/EEsshq/CVE-2017-0144---EtneralBlue-MS17-010-Remote-Code-Execution
 * https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-0143
@@ -627,4 +721,5 @@ Bien podríamos probar los Exploits del **Eternal Blue** que son exclusivos de M
 * https://www.youtube.com/watch?v=RuWkPH_Vecg
 * https://www.youtube.com/watch?v=uV6WNOfP8s8
 
+<br>
 # FIN

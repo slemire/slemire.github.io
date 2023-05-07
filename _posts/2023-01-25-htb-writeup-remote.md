@@ -28,8 +28,58 @@ tags:
 
 Esta máquina es algo difícil, pues hay que investigar todos los servicios que usa y ver de cual nos podemos aprovechar para poder vulnerar los sistemas de la máquina, además de analizar los Exploits, estos se deben configurar correctamente para su uso.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Investigacion">Investigación de Servicios</a></li>
+				<ul>
+					<li><a href="#Vulns">Buscando Vulnerabilidades para los Servicios Investigados</a></li>
+				</ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Umbraco">Investigando Servicio Umbraco</a></li>
+				<li><a href="#FTPSamba">Analizando Servicios FTP y Samba</a></li>
+				<li><a href="#NFS">Investigando Servicio NFS</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Archivo">Analizando el Archivo .SDF</a></li>
+				<li><a href="#Exploit">Buscando y Probando Exploit</a></li>
+				<ul>
+                                        <li><a href="#PruebaExp">Probando Exploit: Umbraco CMS 7.12.4 - (Authenticated) Remote Code Execution</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Otras">Otras Formas</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a hacer un ping y analicemos el TTL para saber que SO utiliza la máquina:
 ```
 ping -c 4 10.10.10.180                
@@ -45,7 +95,8 @@ rtt min/avg/max/mdev = 128.920/130.771/134.012/1.957 ms
 ```
 Con el TTL ya sabemos que es una máquina tipo Windows, realicemos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.180             
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -102,7 +153,8 @@ Nmap done: 1 IP address (1 host up) scanned in 82.57 seconds
 
 Damn! Demasiados puertos abiertos y ya vemos varios servicios conocidos como el FTP, el HTTP y le SMB o Samba. Pero hay algunos que no había visto, antes de investigarlos vamos a hacer un escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p21,80,111,135,139,445,2049,5985,49665,49666,49667,49679 10.10.10.180              
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-01-25 15:57 CST
@@ -172,7 +224,21 @@ Nmap done: 1 IP address (1 host up) scanned in 141.34 seconds
 
 Como menciones antes, hay varios servicios que no había visto antes como el **mountd**, el **rpcbind** y el **NFS**. Es momento de investigar que son estos servicios.
 
-## Investigación de Servicios
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Investigacion">Investigación de Servicios</h2>
+
 Primero vamos a investigar el **rpcbind** que esta en el puerto 111:
 
 **El servicio rpcbind asigna los servicios de llamada a procedimiento remoto (RPC) a los puertos en los que escuchan. Los procesos RPC notifican a rpcbind cuando se inician, registrando los puertos en los que escuchan y los números de programa RPC que esperan servir.**
@@ -195,8 +261,9 @@ Mmmm pues no es más que una API de Microsoft al parecer.
 
 Antes de continuar e investigar la página web que está operando, veamos si no hay algún Exploit para los 4 servicios que ya investigamos, vamos a buscar por internet primero ya que no tenemos una versión en si de todos los servicios, si lo tuviéramos seria solamente buscar un Exploit con la herramienta **Searchsploit**.
 
-# Análisis de Vulnerabilidades
-## Buscando Vulnerabilidades para los Servicios Investigados
+
+<h3 id="Vulns">Buscando Vulnerabilidades para los Servicios Investigados</h3>
+
 Encontramos una página bastante interesante y que al parecer nos puede ayudar de aquí en adelante para futuras máquinas, pues te da referencias de lo que puedes hacer, lo que no puedes y de lo que necesitar para vulnerar ciertos servicios:
 
 Página HackTricks: 
@@ -206,7 +273,8 @@ Ahí incluso hay una sección que nos dice que el **servicio RPCBIND** puede ser
 
 Esto quizá nos sirva más adelante, pero de momento vamos a investigar la página web.
 
-## Analizando Puerto 80
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Vamos a entrar en la página web que esta activa y veamos que hay:
 
 ![](/assets/images/htb-writeup-remote/Captura1.png)
@@ -239,7 +307,8 @@ Vaya, vaya, un inicio de sesión para el servicio Umbraco, hay que investigar es
 <img src="/assets/images/htb-writeup-remote/Captura6.png">
 </p>
 
-## Investigando el Servicio Umbraco
+<h2 id="Umbraco">Investigando Servicio Umbraco</h2>
+
 Veamos que es el servicio Umbraco:
 
 **Umbraco es una plataforma de gestión de contenidos open source utilizado para publicar contenido en la World Wide Web e intranets. Está desarrollado con C# y funciona sobre infraestructura Microsoft.**
@@ -250,7 +319,8 @@ Entonces Umbraco es un gestor de contenidos, ahuevo debe de haber credenciales p
 
 Probamos esto y nada, no sirve, entonces de momento vamos a dejar Umbraco hasta que tengamos una versión pues con esto podemos buscar un Exploit que nos sirva.
 
-## Analisando Servicios FTP y Samba
+<h2 id="FTPSamba">Analizando Servicios FTP y Samba</h2>
+
 Primero vamos con el FTP, ya que el escaneo de servicios nos menciona que podemos conectarnos como usuario **Anonymous** entonces veamos que hay dentro:
 ```
 ftp 10.10.10.180
@@ -301,7 +371,8 @@ session setup failed: NT_STATUS_ACCESS_DENIED
 ```
 Nope, no pudimos meternos, entonces hay que cambiar la jugada y buscar la forma de vulnerar algún servicio. Intentemos usando la página **HackTricks**, ya que no busque nada sobre NFS.
 
-## Investigando el Servicio NFS
+<h2 id="NFS">Investigando Servicio NFS</h2>
+
 Truco para **HackTricks**: Si usamos la palabra **Pentesting** y luego el servicio que buscamos, nos aparecerá mejores opciones para tratar de vulnerar dicho servicio.
 
 Buscamos por la página **HackTricks** y encontramos lo siguiente:
@@ -371,7 +442,21 @@ strings Umbraco.sdf > /Path_Donde_Quieras_Guardar_El_Output/output
 ```
 Y ya con esto se guarda como tipo **string**, lo que nos permitirá ver con texto toda la BD.
 
-## Analizando el Archivo .SDF
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Archivo">Analizando el Archivo .SDF</h2>
+
 Solamente usamos el comando **cat** en el output para ver que hay dentro:
 ```
 Administratoradmindefaulten-US
@@ -419,7 +504,8 @@ Ya tenemos la versión que usa **Umbraco**, ahora podemos buscar un Exploit:
 <img src="/assets/images/htb-writeup-remote/Captura11.png">
 </p>
 
-# Explotación de Vulnerabilidades
+<h2 id="Exploit">Buscando y Probando Exploit</h2>
+
 Usamos **Searchsploit** para buscar el Exploit e incluso podemos buscar por internet:
 ```
 searchsploit umbraco 7.12.4                                                                                    
@@ -433,7 +519,8 @@ Shellcodes: No Results
 Papers: No Results
 ```
 
-### Probando Exploit: Umbraco CMS 7.12.4 - (Authenticated) Remote Code Execution
+<h3 id="PruebaExp">Probando Exploit: Umbraco CMS 7.12.4 - (Authenticated) Remote Code Execution</h3>
+
 Vamos a usar el primero, aunque al parecer ambos son lo mismo:
 ```
 searchsploit -m aspx/webapps/46153.py
@@ -564,7 +651,19 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 ```
 Bien ya estamos dentro, ahora es cosa de buscar la flag del usuario y listo.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 ¿Ahora que hacemos? Bien, es hora de buscar que hay en la máquina. Investigamos en varios lados, pero hay algo interesante en la carpeta de **Program Files (x86)** y es el servicio **TeamViewer**, pero ¿qué es esto?
 
 **TeamViewer es un software para el acceso remoto, así como para el control y el soporte en remoto de ordenadores y otros dispositivos finales.​**
@@ -695,14 +794,36 @@ Mode                LastWriteTime         Length Name
 ```
 Y ya, con esto obtenemos ambas flags y terminamos con esta máquina.
 
-# Otras Formas
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Otras" style="text-align:center;">Otras Formas</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Para obtener acceso como root o NT Authority System en este caso, hay otras opciones que se pueden probar, aquí algunos:
-* Abusar del **SeImpersonatePrivilege** que está activo para ejecutar una Shell que nos conecta como root.
+
+* Abusar del **SeImpersonatePrivilege** que está activo para ejecutar el Exploit **Juicy Potato**, para que nos conecta como root.
 * Usando el script de Metasploit hecho en ruby para obtener las credenciales como lo hice.
 * Usar la herramienta **winPEAS** para editar el servicio **UsoSvc** y con este mismo podemos entrar como root.
 ¡Puedes investigar y probar estas formas! Apóyate de otros Write Ups.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-rpcbind
 * https://our.umbraco.com/forum/developers/api-questions/8905-Where-does-Umbraco-store-data
 * https://hashes.com/es/decrypt/hash 
@@ -714,4 +835,6 @@ Para obtener acceso como root o NT Authority System en este caso, hay otras opci
 * https://gist.github.com/rishdang/442d355180e5c69e0fcb73fecd05d7e0
 * https://bobbyhadz.com/blog/python-no-module-named-crypto
 
+
+<br>
 # FIN

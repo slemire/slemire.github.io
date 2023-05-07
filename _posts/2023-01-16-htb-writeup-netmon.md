@@ -23,8 +23,54 @@ tags:
 ![](/assets/images/htb-writeup-netmon/netmon_logo.png)
 Esta es una máquina fácil que usa Windows y en la cual vamos a vulnerar el servicio SMB que está abierto en uno de los puertos a través de la enumeración del servicio FTP y de una vulnerabilidad en el servicio PRTG Network Monitor que nos permite inyectar código en dicho servicio.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#FTP">Enumeración Servicio FTP</a></li>
+				<li><a href="#PRTG">Investigando Servicio PRTG Network Monitor</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Busqueda">Buscando Archivos Críticos de PRTG en Servicio FTP</a></li>
+				<li><a href="#FTP2">Analizando Contenido Descargado del Servicio FTP</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando y Analizando Exploit</a></li>
+				<li><a href="#Exploit2">Probando Exploit: PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution</a></li>
+				<li><a href="#Root">Accediendo a la Máquina como Administrador</a></li>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Realizamos un ping para saber si la máquina está conectada y para saber qué sistema operativo tiene, analizando el TTL.
 ```
 ping -c 4 10.10.10.152
@@ -40,7 +86,8 @@ rtt min/avg/max/mdev = 128.379/129.681/131.953/1.365 ms
 ```
 Observamos que es una máquina Windows gracias al TLL. Ahora analicemos los puertos y servicios.
 
-## Escaneando Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 Hacemos un escaneo de puertos para saber cuáles están abiertos y asi poder analizar los servicios que operan en estos:
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.152 -oG allPorts
@@ -82,7 +129,8 @@ Nmap done: 1 IP address (1 host up) scanned in 27.44 seconds
 
 Vemos varios puertos abiertos siendo el FTP, Web y SMB. Ahora vamos a analizar los servicios que hay en estos puertos.
 
-## Escaneando Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 Una vez realizado el escaneo de puertos, hacemos un escaneo de servicios. Veamos con que nos encontramos:
 ```
 nmap -sC -sV -p21,80,135,139,445 10.10.10.152 -oN targeted     
@@ -134,9 +182,23 @@ Nmap done: 1 IP address (1 host up) scanned in 18.51 seconds
 * -p: Para indicar puertos especificos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-Observamos que el servicio FTP tiene activo el login como **Anonymous** por lo que podemos empezar por ahí nuestra búsqueda de acceso a la máquina, tambien vemos el servicio SMB activo que podemos analizar después y por último vemos un servicio web abierto que podemos analizar a continuación:
+Observamos que el servicio FTP tiene activo el login como **Anonymous** por lo que podemos empezar por ahí nuestra búsqueda de acceso a la máquina, tambien vemos el servicio SMB activo que podemos analizar después y por último vemos un servicio web abierto que podemos analizar a continuación.
 
-## Investigación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Como mencione anteriormente, vamos a analizar la página web abierta antes de ir al serivico FTP, usaremos la herramienta **whatweb** para esto:
 
 ```
@@ -153,8 +215,8 @@ Qué curioso error, una vez que entramos a la página web, vemos el servicio que
 
 Osease que monitorea redes, quizá nos sirva después pero ahora vamos a ir primero por el servicio FTP.
 
-# Análisis de Vulnerabilidades
-## Analizando Servicio FTP
+<h2 id="FTP">Enumeración Servicio FTP</h2>
+
 Para entrar es tan simple como usar el usuario **anonymous** y poner una contraseña cualquiera:
 ```
 ftp 10.10.10.152 
@@ -207,7 +269,8 @@ Vaya, vaya. Tan solo descargamos el archivo con el comando **get** y ya lo podre
 
 Una pista de lo que podemos buscar es algún archivo o algo que nos pueda resultar útil del **servicio PRTG Network Monitor**, así que investiguemos donde se guardan los archivos de este servicio:
 
-## Investigando Servicio PRTG Network Monitor
+<h2 id="PRTG">Investigando Servicio PRTG Network Monitor</h2>
+
 **Directorio de programas:**
 * Sistemas de 32 bits: % archivos de programa% \ PRTG Network Monitor
 * Sistemas de 64 bits: % archivos de programa (x86)% \ PRTG Network Monitor
@@ -226,7 +289,23 @@ Ojito con lo siguiente:
 **Aquí podemos ver más información:** 
 * https://kb.rolosa.com/np-donde-almacena-la-informacion-prtg/
 
-## Enumeración del FTP
+Empecemos a explotar las vulnerabilidades.
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Busqueda">Buscando Archivos Críticos de PRTG en Servicio FTP</h2>
+
 Muy bien, ahora sabemos que podemos buscar dentro del servicio FTP para no estar dando tantas vueltas o buscando cosas que no sirven.
 ```
 ftp> ls -la
@@ -276,8 +355,8 @@ ftp> cd PRTG\ Network\ Monitor
 ```
 Una vez dentro de la carpeta donde están los archivos ocultos, descargamos él **.dat**, él **.old** y él **old.bak**, como investigamos anteriormente, sabemos que él **.dat** y él **.old** son lo mismo, siendo que el **.old** es un **BackUp** del **.dat**, así que descargaremos únicamente los **.dat** y él **.old.bak**. Lo que buscamos es ver si estos archivos contienen un usuario y contraseña que nos permitan acceder a la página.
 
-# Explotación de Vulnerabilidades
-## Analizando Contenido Descargado del FTP
+<h2 id="FTP2">Analizando Contenido Descargado del Servicio FTP</h2>
+
 Ahora toca analizar los archivos que descargamos, recuerda que buscamos un usuario y contraseña para poder acceder a la página web.
 ```
 cat PRTG\ Configuration.dat 
@@ -312,7 +391,21 @@ AHI ESTA!!! Nuestro usuario y contraseña que necesitamos, ahora vamos a autenti
 
 ![](/assets/images/htb-writeup-netmon/Captura2.png)
 
-## Buscando y Analizando Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando y Analizando Exploit</h2>
+
 Una vez dentro, ya podemos buscar un Exploit que nos sirva porque ya tenemos la versión que esta usando el servicio PRGT:
 ```
 searchsploit prtg
@@ -353,7 +446,8 @@ Vamos a analizar este Exploit: **PRTG Network Monitor 18.2.38 - (Authenticated) 
 El Exploit nos pide una cookie, no sé por qué razón, pero lo que nos da a entender es que, una vez auntenticados en la página, es posible vulnerar el sistema e incluso viene la referencia del blog en la que se basó el Exploit, así que veamos dicho blog: 
 * https://www.codewatch.org/blog/?p=453
 
-### Probando Exploit: PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution
+<h3 id="Exploit2">Probando Exploit: PRTG Network Monitor 18.2.38 - (Authenticated) Remote Code Execution</h3>
+
 En resumen, podemos vulnerar la página usando las notificaciones, vamos a hacerlo de este modo:
 
 ![](/assets/images/htb-writeup-netmon/Captura3.png)
@@ -395,7 +489,8 @@ crackmapexec smb 10.10.10.152 -u 'BerserkP' -p 'B3rs3rkP123$!'
 SMB         10.10.10.152    445    NETMON           [*] Windows Server 2016 Standard 14393 x64 (name:NETMON) (domain:netmon) (signing:False) (SMBv1:True)
 SMB         10.10.10.152    445    NETMON           [+] netmon\BerserkP:B3rs3rkP123$! (HackeadoPrro!)
 ```
-## Accediendo a la Máquina como Administrador
+<h2 id="Root">Accediendo a la Máquina como Administrador</h2>
+
 Vemos que ya está nuestro usuario, ahora lo que sigue será conectarnos ya directamente, para esto usaremos la herramienta **evilWirm**:
 ```
 evil-winrm -i 10.10.10.152 -u 'BerserkP' -p 'B3rs3rkP123$!'
@@ -411,11 +506,19 @@ Info: Establishing connection to remote endpoint
 *Evil-WinRM* PS C:\Users\BerserkP\Documents> whoami
 netmon\berserkp
 ```
-
-# Post Explotación
 Ya solo es cuestión de buscar la flag del root, que siempre está en el escritorio del usuario Administrator y listo.
 
-## Links de investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
+
 * https://www.cvedetails.com/cve/CVE-2018-9276/
 * https://www.cvedetails.com/vulnerability-list/vendor_id-5034/product_id-35656/Paessler-Prtg-Network-Monitor.html **Nota:** Aquí hay varios Exploits para usar contra la versión de este servicio.
 * https://packetstormsecurity.com/files/148334/PRTG-Command-Injection.html 
@@ -425,4 +528,6 @@ Ya solo es cuestión de buscar la flag del root, que siempre está en el escrito
 * https://thehackerway.com/2021/11/04/evil-winrm-shell-sobre-winrm-para-pentesting-en-sistemas-windows-parte-1-de-2/
 * https://www.youtube.com/watch?v=aPS0VIIL0nQ
 
-#FIN
+
+<br>
+# FIN

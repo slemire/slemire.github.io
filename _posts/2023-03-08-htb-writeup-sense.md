@@ -21,10 +21,47 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-sense/sense_logo.png)
-Esta fue una máquina que jugo un poco con mi paciencia porque utilicé **Fuzzing** para listar archivos en la página web para encontrar algo Útil, que, si encontrÉ, pero se tardó bastante, mucho más que en otras máquinas por lo que tuve que hacerme un poco wey en lo que terminaba. En fin, se encontró información crítica como credenciales para accesar al servicio y se utilizó un Exploit, el **CVE-2014-4688**, para poder conectarnos de manera remota, siendo que nos conecta como Root, no fue necesario hacer una escalada de privilegios.
 
-# Recopilación de Información
-## Traza ICMP
+Esta fue una máquina que jugo un poco con mi paciencia porque utilicé **Fuzzing** para listar archivos en la página web para encontrar algo útil, que, si encontré, pero se tardó bastante, mucho más que en otras máquinas por lo que tuve que hacerme un poco wey en lo que terminaba. En fin, se encontró información crítica como credenciales para accesar al servicio y se utilizó un Exploit, el **CVE-2014-4688**, para poder conectarnos de manera remota, siendo que nos conecta como Root, no fue necesario hacer una escalada de privilegios.
+
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL veremos que SO opera en la máquina.
 ```
 ping -c 4 10.10.10.60                                                                                     
@@ -40,7 +77,8 @@ rtt min/avg/max/mdev = 130.494/131.036/131.810/0.483 ms
 ```
 Por el TTL sabemos que la máquina usa Linux, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.60 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -75,7 +113,8 @@ Nmap done: 1 IP address (1 host up) scanned in 30.87 seconds
 
 Veo únicamente dos puertos activos, el que ya conocemos el puerto HTTP y otro. Veamos que nos dice el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p80,443 10.10.10.60 -oN targeted                          
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-08 13:45 CST
@@ -104,8 +143,21 @@ Nmap done: 1 IP address (1 host up) scanned in 23.26 seconds
 
 Supongo que al entrar en la página web nos redirigirá al puerto 443, igualmente vemos que usan un servicio versión **lighthttpd 1.4.35**. Veamos que nos dice la página.
 
-# Análisis de Vulnerabilidades
-## Análisis de Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Entremos a ver que show.
 
 Justamente, cuando ponemos la IP nos dice que hay riesgo y bla bla bla, dando en acepta el riesgo nos va a redirigir a un login.
@@ -136,7 +188,8 @@ Ahí vemos el servidor web y la página usa PHP, ahora investiguemos el servicio
 
 No pues no sirvió, mejor hagamos un Fuzzing para saber que subpáginas tiene. **OJO**, se tiene que cambiar el comando porque saldrán muchos 301, para solucionarlo le agregamos la **-L**.
 
-# Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -L -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.60/FUZZ/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -246,7 +299,19 @@ Ohhhh ya tenemos un usuario y está usando la contraseña por defecto de **PF Se
 
 Ahí está la versión del **PF Sense**, ahora podemos buscar un Exploit para este servicio.
 
-# Explotación Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 ```
 searchsploit pfsense 2.1.3                                                                               
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -309,7 +374,19 @@ root
 ```
 Ahhh prro pues que bien, nos conecto directamente como Root.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Ya lo único que debemos hacer es buscar las flags:
 * Flag del usuario:
 ```
@@ -341,11 +418,22 @@ root.txt
 ```
 ¡Y listo!
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * http://www.securityspace.com/smysecure/catid.html?id=1.3.6.1.4.1.25623.1.0.112122
 * https://www.pinguytaz.net/index.php/2019/10/18/wfuzz-navaja-suiza-del-pentesting-web-1-3/
 * https://www.exploit-db.com/exploits/38780
 * https://www.exploit-db.com/exploits/34113
 * https://www.exploit-db.com/exploits/43560
 
+
+<br>
 # FIN

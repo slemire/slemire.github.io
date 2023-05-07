@@ -25,10 +25,52 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-soccer/soccer_logo.png)
+
 Una máquina que, al chile deberia ser de dificultad media porque fácil no fue, lo que hicimos fue registrar la página del puerto HTTP en el **/etc/hosts**, luego vamos a utilizar **Fuzzing** para descubrir un login, que nos muestra el servicio **Tiny File Manager**. Accederemos usando las credenciales por defecto de este servicio y cargaremos una Reverse Shell hecha en PHP en la carpeta **Uploads** del servicio para poder conectarnos de manera remota a la máquina. Dentro buscaremos el directorio del servicio **Nginx** para descubrir una subpágina, la cual nos permitirá crear un usuario y loguearnos en ella, dentro de esta subpágina encontraremos en el código fuente que usa un **Web Socket**, usaremos el ataque **Blind SQL Injection** para capturar las credenciales del usuario de la máquina. Una vez dentro de la máquina, usaremos la herramienta **linpeas.sh** para descubrir una forma de escalar privilegios, siendo que usaremos el programa **Doas** para que active un script que nosotros haremos que cambiara los privilegios de la Bash, para que cuando nos conectemos ahí, sea como Root.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+				<li><a href="#STFM">Investigación Servicio Tiny File Manager</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#SSH">Enumeración Servicio SSH</a></li>
+				<li><a href="#SQL">Aplicando SQL Inyection</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL sabremos que SO utiliza.
 ```
 ping -c 4 10.10.11.194   
@@ -44,7 +86,8 @@ rtt min/avg/max/mdev = 133.627/142.699/165.802/13.420 ms
 ```
 Por el TTL sabemos que usa Linux. Hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.11.194 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -78,7 +121,8 @@ Nmap done: 1 IP address (1 host up) scanned in 26.90 seconds
 
 Vemos únicamente 2 puertos abiertos, como no tenemos credenciales del servicio SSH tendremos que irnos por la página web, pero antes hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,80 10.10.11.194 -oN targeted                                   
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-12 10:34 CST
@@ -106,8 +150,21 @@ Nmap done: 1 IP address (1 host up) scanned in 12.77 seconds
 
 Vaya, vaya, la máquina está usando **nginx 1.18.0** cómo en la **máquina Precious**, tengámoslo en cuenta por si las dudas.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Vamos a entrar a la página web.
 
 No nos deja ver nada, entonces vamos a registrar el dominio en el **/etc/hosts**
@@ -132,7 +189,8 @@ http://soccer.htb/ [200 OK] Bootstrap[4.1.1], Country[RESERVED][ZZ], HTML5, HTTP
 ```
 No pues no, entonces hagamos un **Fuzzing**.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://soccer.htb/FUZZ/    
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -181,7 +239,8 @@ Solamente nos arrojó un resultado, veamos de que se trata:
 
 ¡Tenemos un login! Y veo algo llamado **Tiny File Manager**, investiguemos de que se trata.
 
-## Investigación Servicio Tiny File Manager
+<h2 id="STFM">Investigación Servicio Tiny File Manager</h2>
+
 Veamos que es este servicio:
 
 **Administrador de archivos basado en la web en PHP, administre sus archivos de manera eficiente y fácil con Tiny File Manager, es un administrador de archivos simple, rápido y pequeño con un solo archivo.**
@@ -205,7 +264,19 @@ Probemos primero las del admin, ponlas en el login y trata de entrar:
 
 a...Bueno, pudimos entrar ya como administrado jeje y ya podemos ver una versión del servicio **Tiny** que es la 2.4.3. Es momento de buscar un Exploit.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Buscando primero por la herramienta **Searchsploit** vemos que hay uno:
 ```
 searchsploit tiny file manager
@@ -309,7 +380,8 @@ www-data
 ```
 Ahora no importa si el archivo se elimina, nosotros seguiremos conectados. Vamos a hacer enumeración.
 
-## Enumeración
+<h2 id="SSH">Enumeración Servicio SSH</h2>
+
 **IMPORTANTE:**
 
 Para evitar que pierdas el tiempo como yo, chale Unu, recuerda que existe el servicio **nginx** y es ahí donde encontraremos algo útil.
@@ -479,7 +551,9 @@ Y mira, hay algo curioso. La subpágina está usando un **Web Socket** que se co
 
 * https://rayhan0x01.github.io/ctf/2021/04/02/blind-sqli-over-websocket-automation.html
 
-En resumen, lo que haremos será redirigir la data que se está transmitiendo de la subpágina hacia nosotros, utilizando un script en Python y que usara **SQL Map** para capturar información crítica. Esto se puede hacer, justamente porque la data se transmite por el **Web Socket** más no cómo en el servicio HTTP, esto lo explica en el blog, es muy interesante, así que te recomiendo leerlo atentamente. Hagamos por pasos la captura, por cierto a esto se le llama **Blind SQL Injection**:
+En resumen, lo que haremos será redirigir la data que se está transmitiendo de la subpágina hacia nosotros, utilizando un script en Python y que usara **SQL Map** para capturar información crítica. Esto se puede hacer, justamente porque la data se transmite por el **Web Socket** más no cómo en el servicio HTTP, esto lo explica en el blog, es muy interesante, así que te recomiendo leerlo atentamente. Hagamos por pasos la captura, por cierto a esto se le llama **Blind SQL Injection**.
+
+<h2 id="SQL">Aplicando Blind SQL Inyection</h2>
 
 * Yo voy a copiar el script que viene ahí y lo llamaré Sqlmap_Exploit.py
 
@@ -597,7 +671,19 @@ player@soccer:~$ cat user.txt
 ```
 Muy bien, ahora veamos como podemos escalar privilegios.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Como siempre, vamos a ver qué permisos tenemos y que archivos tienen permiso como SUDO:
 ```
 player@soccer:~$ id
@@ -690,7 +776,16 @@ bash-5.0# cat root.txt
 ```
 ¡Listo! Ya tenemos la flag del Root.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://github.com/febinrev/tinyfilemanager-2.4.3-exploit
 * https://github.com/pentestmonkey/php-reverse-shell
 * https://rayhan0x01.github.io/ctf/2021/04/02/blind-sqli-over-websocket-automation.html
@@ -704,4 +799,6 @@ bash-5.0# cat root.txt
 * https://exploit-notes.hdks.org/exploit/linux/privilege-escalation/doas/
 * https://exploit-notes.hdks.org/exploit/linux/privilege-escalation/sudo/sudo-dstat-privilege-escalation/
 
+
+<br>
 # FIN

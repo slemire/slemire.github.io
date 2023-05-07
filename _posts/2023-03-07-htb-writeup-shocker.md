@@ -22,10 +22,51 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-shocker/shocker_logo.png)
+
 Esta fue una máquina algo compleja porque tuve que investigar bastante, pues al hacer los escaneos no mostraba nada que me pudiera ayudar. Sin embargo, gracias al **Fuzzing** pude encontrar una linea de investigación que me llevo a descubrir el **ataque ShellShock**. Gracias a este podremos conectarnos de manera remota a la máquina y usando un archivo con privilegios Root, escalaremos privilegios.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Otras">Otras Formas</a></li>
+	                        <ul>
+        	                        <li><a href="#PruebaExp">Probando Exploit: Apache mod_cgi - 'Shellshock' Remote Command Injection</a></li>
+                	        </ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL vamos a saber que SO tiene.
 ```
 ping -c 4 10.10.10.56
@@ -41,7 +82,8 @@ rtt min/avg/max/mdev = 137.507/140.671/145.492/3.335 ms
 ```
 Por el TTL sabemos que la máquina usa Linux, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.56 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -73,7 +115,8 @@ Nmap done: 1 IP address (1 host up) scanned in 28.21 seconds
 
 Solamente hay un puerto abierto, ya sabemos que es una página web pero aun así hagamos un escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p80 10.10.10.56 -oN targeted                              
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-07 13:10 CST
@@ -95,8 +138,21 @@ Nmap done: 1 IP address (1 host up) scanned in 10.84 seconds
 
 Ya sabíamos que es una página web, entonces vamos a verla.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Vamos a entrar.
 
 ![](/assets/images/htb-writeup-shocker/Captura1.png)
@@ -109,7 +165,8 @@ Jejeje que raro el monito ese, pero no hay nada más. Que nos dice **Wappalizer*
 
 No pues nada, no tenemos casi nada de información. Vamos a hacer un fuzzing para ver si tiene alguna subpágina.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.56/FUZZ/   
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -216,7 +273,19 @@ Aqui la página de nmap de donde saque el script:
 
 Y si es vulnerable, vamos a utilizar este ataque para ganar acceso a la máquina.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Después de leer el siguiente artículo:
 
 * https://blog.cloudflare.com/inside-shellshock/
@@ -310,7 +379,19 @@ cat user.txt
 ```
 Es momento de escalar privilegios.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Como siempre, veamos los privilegios que tenemos:
 ```
 shelly@Shocker:/home/shelly$ id
@@ -345,7 +426,19 @@ cat root.txt
 ```
 Listo! Ya conseguimos las flags de esta máquina.
 
-# Otras Formas
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Otras" style="text-align:center;">Otras Formas</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Existe un Exploit que podemos usar para poder conectarnos de manera remota, busquémoslo con **Searchsploit**:
 ```
 searchsploit shellshock
@@ -364,7 +457,8 @@ IPFire - 'Shellshock' Bash Environment Variable Command Injection (Metasploit)  
 ```
 El que nos interesa es el **Apache mod_cgi - 'Shellshock' Remote Command Injection**, vamos a probarlo.
 
-### Probando Exploit: Apache mod_cgi - 'Shellshock' Remote Command Injection
+<h3 id="PruebaExp">Probando Exploit: Apache mod_cgi - 'Shellshock' Remote Command Injection</h3>
+
 ```
 searchsploit -m linux/remote/34900.py
   Exploit: Apache mod_cgi - 'Shellshock' Remote Command Injection
@@ -430,7 +524,16 @@ Shellcodes: No Results
 Papers: No Results
 ```
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/cgi
 * https://owasp.org/www-pdf-archive/Shellshock_-_Tudor_Enache.pdf
 * https://nmap.org/nsedoc/scripts/http-shellshock.html
@@ -440,4 +543,6 @@ Papers: No Results
 * https://www.revshells.com/
 * https://gtfobins.github.io/gtfobins/perl/#sudo
 
+
+<br>
 # FIN

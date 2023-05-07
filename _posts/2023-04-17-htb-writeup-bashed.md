@@ -22,10 +22,60 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-bashed/bashed_logo.png)
+
 Una máquina realmente sencilla, si acaso lo que costo un poquillo fue el cómo usar el comando **scriptmanager**, pero de ahí en fuera, todo fue fácil. Vamos a aprovecharnos de una subpágina que es una shell de bash como web, la cual vamos a usar para conectarnos de manera remota y en la cual, usaremos el usuario **scriptmanager** para escalar privilegios, usando un script en Python con él cambiaremos los permisos de la **Bash** para convertirnos en Root.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+				<ul>
+                                        <li><a href="#Wfuzz">Fuzzing con wfuzz</a></li>
+					<li><a href="#NMAP">Fuzzing con NMAP</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Bash">Utilizando Bash para Conectarnos de Manera Remota</a></li>
+				<li><a href="#Shell">Cargando una Reverse Shell</a></li>
+				<li><a href="#SSH">Enumeración Servicio SSH</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Terminal">Obteniendo una Terminal Interactiva</a></li>
+				<li><a href="#Root">Acceso como Root</a></li>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL veremos que SO utiliza la máquina.
 ```
 ping -c 4 10.10.10.68
@@ -41,7 +91,8 @@ rtt min/avg/max/mdev = 128.647/129.243/130.365/0.663 ms
 ```
 Gracias al TTL, sabemos que la máquina usa Linux. Hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.68 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -73,7 +124,8 @@ Nmap done: 1 IP address (1 host up) scanned in 26.09 seconds
 
 Solo hay un puerto abierto que ya conocemos, hagamos el escaneo de servicios para ver que nos dice.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p80 10.10.10.68 -oN targeted                              
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-17 15:52 CST
@@ -95,8 +147,21 @@ Nmap done: 1 IP address (1 host up) scanned in 10.93 seconds
 
 Solo nos menciona que usa el servicio **Apache**. Vamos a analizar la página.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Vamos a entrar.
 
 ![](/assets/images/htb-writeup-bashed/Captura1.png)
@@ -117,10 +182,12 @@ Si investigamos el GitHub que nos menciona la publicación, podemos ver que es u
 
 Por lo que entiendo, la máquina está usando dicha herramienta, así que debería estar cargada, pero como no sabemos donde está, vamos a hacer un **Fuzzing**.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 Podemos hacer el **Fuzzing** de dos formas, con **wfuzz** y con **nmap**. Probemos los dos:
 
-### Fuzzing con wfuzz
+<h3 id="Wfuzz">Fuzzing con wfuzz</h3>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.68/FUZZ/         
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -171,7 +238,8 @@ Requests/sec.: 414.3847
 * -w: Para usar un diccionario de wordlist.
 * Diccionario que usamos: dirbuster
 
-### Fuzzing con NMAP
+<h3 id="NMAP">Fuzzing con NMAP</h3>
+
 ```
 nmap --script http-enum -p80 -oN webScan 10.10.10.68
 Nmap 7.93 scan initiated Mon Apr 17 18:50:30 2023 as: nmap --script http-enum -p80 -oN webScan 10.10.10.68
@@ -197,10 +265,22 @@ Muy bien, hay varias subpáginas, pero en este caso me interesan 3, la de **php*
 
 A cualquiera de esos archivos que le demos click, nos va a mandar a una bash interactiva desde la web, pero como es muy lenta vamos a conectarnos de manera remota.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
 Podemos hacer 2 cosas para tratar de conectarnos de manera remota, una sería usando un script en bash y la otra cargando una Reverse Shell en la carpeta **uploads** de la página.
 
-## Utilizando Bash para Conectarnos de Manera Remota
+<h2 id="Bash">Utilizando Bash para Conectarnos de Manera Remota</h2>
+
 Bueno, hagamoslo por pasos:
 * Alzamos una netcat:
 ```
@@ -228,7 +308,8 @@ whoami
 www-data
 ```
 
-## Cargando una Reverse Shell
+<h2 id="Shell">Cargando una Reverse Shell</h2>
+
 Recordemos 2 cosas, una que la página trabaja con PHP y que tiene una carpeta llamada **uploads**.
 
 <p align="center">
@@ -289,7 +370,8 @@ listening on [any] 443 ...
 
 Y ya deberíamos estar conectados.
 
-## Enumeración
+<h2 id="SSH">Enumeración Servicio SSH</h2>
+
 Bueno, como siempre buscamos el directorio **/home** para encontrar la flag del usuario.
 ```
 www-data@bashed:/var/www/html/dev$ cd /home
@@ -316,7 +398,18 @@ www-data@bashed:/home/arrexel$ cat user.txt
 ```
 Listo, ahora vamos a escalar privilegios.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
 Veamos nuestros privilegios:
 ```
 www-data@bashed:/home/arrexel$ id
@@ -374,7 +467,8 @@ testing 123!
 ```
 Quiero pensar, que el script de Python se ejecuta automáticamente (porque no me explico como es que genero el archivo de texto), entonces debemos aprovecharnos de eso, PERO no podremos hacerlo con esta terminal, así que hagámosla más interactiva.
 
-## Obteniendo una Terminal Interactiva
+<h2 id="Terminal">Obteniendo una Terminal Interactiva</h2>
+
 Hagamos por pasos la obtención de la terminal interactiva:
 * Escribe el siguiente comando:
 ```
@@ -404,7 +498,8 @@ www-data@bashed:/var/www/html/dev$ stty rows 51 columns 189
 ```
 Y listo, ya tenemos nuestra terminal interactiva.
 
-## Acceso como Root
+<h2 id="Root">Acceso como Root</h2>
+
 Ahora que ya podemos usar nano dentro la máquina víctima, vamos a modificar el script de Python para que modifique los permisos de la bash. Como soy retrasado y se me olvido checar los permisos de la bash, chécalo tú para que veas el cambio.
 Bien, borra el contenido del script y pon lo siguiente:
 ```
@@ -436,11 +531,21 @@ drwxr-xr-x  2 root root 4096 Jun  2  2022 .nano
 bash-4.3# cat root.txt
 ```
 
-## Links de Investigación
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://f1uffygoat.com/privesc/
 * https://www.revshells.com/
 * https://github.com/pentestmonkey/php-reverse-shell
 * https://esgeeks.com/post-explotacion-transferir-archivos-windows-linux/
 * https://ironhackers.es/tutoriales/como-conseguir-tty-totalmente-interactiva/
 
+
+<br>
 # FIN

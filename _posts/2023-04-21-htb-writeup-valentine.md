@@ -25,10 +25,54 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-valentine/valentine_logo.png)
+
 Esta fue una máquina relativamente sencilla, investigaremos el puerto **HTTP** que con la ayuda de **nmap** y haciendo **Fuzzing**, encontramos una subpágina que nos dara información valiosa como una llave privada en base hexadecimal. La desciframos, pero estará encriptada, por lo que no nos servirá hasta más adelante. Con la ayuda de **nmap**, encontramos un Exploit llamado **Heartbleed**, con el cual capturaremos data que nos ayudara a descifrar al fin la llave privada y nos dará una contraseña para el **SSH**, usando el Exploit **CVE-2018-15473** pondremos nombres relacionados a la máquina y encontraremos un usuario con el cual entramos. Para escalar privilegios, usamos la herramienta **Tmux**, que encontramos en el historial de **Bash** y que nos meterá una nueva terminal como Root.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Llave">Descifrando Llave en Hexadecimal</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+				<li><a href="#NMAP">Buscando Vulnerabilidades con NMAP</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando el Exploit Heartbleed</a></li>
+				<li><a href="#Base64">Descifrando Data en Base64 y Hash</a></li>
+				<li><a href="#Usuario">Buscando un Usuario</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL sabremos que SO opera en dicha máquina.
 ```
 ping -c 4 10.10.10.79                                                                                                      
@@ -44,7 +88,8 @@ rtt min/avg/max/mdev = 128.773/131.114/137.170/3.505 ms
 ```
 Por el TTL, sabemos que la máquina usa Linux. Ahora, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.79 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -80,7 +125,8 @@ Nmap done: 1 IP address (1 host up) scanned in 28.23 seconds
 
 Hay 3 puertos abiertos, dos ya los conocemos, pero el puerto 443 me suena a que si entramos a la página del puerto 80, nos puede redirigir a dicho puerto. Hagamos un escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,80,443 10.10.10.79 -oN targeted                       
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-21 12:10 CST
@@ -115,8 +161,21 @@ Nmap done: 1 IP address (1 host up) scanned in 20.49 seconds
 
 Me da mucha curiosidad ese puerto 443, pero primero vamos a investigar la página web del puerto 80.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Entremos pues.
 
 ![](/assets/images/htb-writeup-valentine/Captura1.png)
@@ -162,7 +221,8 @@ Esto es un mensaje de un desarrollador, menciona 2 subpáginas que de seguro apa
 
 Esto me suena a que es una llave pública o privada, está en hexadecimal, por lo que podemos descifrar que es, hagámoslo por pasos.
 
-## Descifrando Llave en Hexadecimal
+<h2 id="Llave">Descifrando Llave en Hexadecimal</h2>
+
 Vamos a copiar todo eso en un archivo:
 ```
 nano key
@@ -235,7 +295,8 @@ Session completed.
 ```
 Chale, no nos sacó nada. Vamos a dejar esto para más adelante y veamos que nos dice el **Fuzzing**.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.79/FUZZ/    
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -301,7 +362,8 @@ Mmmmm tampoco veo algo que nos pueda ayudar, entonces creo que ya revisamos todo
 
 Y ya, pues, no encuentro otra forma de vulnerar la página, así que vamos a ver si **nmap** nos puede decir si un puerto es vulnerable a algo.
 
-## Buscando Vulnerabilidades con NMAP
+<h2 id="NMAP">Buscando Vulnerabilidades con NMAP</h2>
+
 ```
 nmap --script "vuln and safe" -p443 10.10.10.79 -oN newWebScan
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-21 13:10 CST
@@ -374,8 +436,21 @@ Vamos a usar este Exploit, pero me llama la atención que en las imágenes apare
 
 Entonces vamos a buscar un Exploit.
 
-# Explotación de Vulnerabilidades
-## Buscando el Exploit Heartbleed
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando el Exploit Heartbleed</h2>
+
 Mira encontré este:
 * https://github.com/mpgn/heartbleed-PoC
 
@@ -491,7 +566,8 @@ El problema es que no identifico en que está encodeado la variable **unique-id*
 
 Además, nos indica una **MAC** de, al parecer, un dispositivo **Apple**, qué raro, bien veamos si podemos descifrar la variable **text**.
 
-## Descifrando Data en Base64 y Hash
+<h2 id="Base64">Descifrando Data en Base64 y Hash</h2>
+
 Vamos a copiar solamente la data de **base64** en un archivo:
 ```
 nano text
@@ -520,7 +596,8 @@ Session completed.
 ```
 Ohhhhh, si es, ya tenemos una contraseña para el **SSH**, pero nos falta un usuario. Vamos a hacer lo que hicimos en la **máquina Nibbles**, a probar con todo.
 
-## Buscando un Usuario
+<h2 id="Usuario">Buscando un Usuario</h2>
+
 Lo que vamos a probar como usuarios, serán los siguientes:
 * valentine
 * heart
@@ -607,7 +684,19 @@ hype@Valentine:~/Desktop$ cat user.txt
 ```
 Listo, tenemos la flag del usuario. Busquemos como escalar privilegios.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Tratemos de ver nuestros privilegios:
 ```
 hype@Valentine:~/Desktop$ id
@@ -703,7 +792,16 @@ root@Valentine:~# cat root.txt
 ```
 Wow, nos metió como a otra consola y somos Root. Bueno, ahí está la flag y con esto terminamos la máquina.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://www.enmimaquinafunciona.com/pregunta/182823/sed-para-eliminar-los-espacios-en-blanco
 * https://sniferl4bs.com/2020/07/password-cracking-101-john-the-ripper-password-cracking-ssh-keys/
 * https://github.com/truongkma/ctf-tools/blob/master/John/run/sshng2john.py
@@ -713,4 +811,6 @@ Wow, nos metió como a otra consola y somos Root. Bueno, ahí está la flag y co
 * https://stackoverflow.com/questions/26705755/tmux-how-do-i-find-out-the-currently-running-version-of-tmux
 * https://int0x33.medium.com/day-69-hijacking-tmux-sessions-2-priv-esc-f05893c4ded0
 
+
+<br>
 # FIN

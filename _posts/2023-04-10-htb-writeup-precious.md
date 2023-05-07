@@ -22,10 +22,51 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-precious/precious_logo.png)
+
 Esta fue una máquina algo difícil, porque no sabía bien como acceder como usuario, trate de cargar un Payload, pero no funciono, estudie el **ataque Smuggling** para tratar de obtener credenciales, pero no lo entendí del todo bien, intente usar un Exploit para **Ruby-on-rails**, pero no funciono, por eso tarde bastante en resolverla. En fin, vamos a abusar de la herramienta que genera el el PDF que usa la página web de la máquina, llamado **pdfkit**, usaremos el Exploit **CVE-2022-25765** para acceder a la máquina y robar las credenciales del usuario. Una vez conectados como usuario, abusaremos de un script de **Ruby** que tiene permisos de **SUDO** para inyectar código malicioso que nos permita escalar privilegios como Root, esto en base al **YAML Deserialization**.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#pdfkit">Buscando un Exploit para pdfkit v0.8.6</a></li>
+				<li><a href="#Ruby">Enumeración Ruby</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL veremos que SO opera en la máquina.
 ```
 ping -c 4 10.10.11.189                        
@@ -41,7 +82,8 @@ rtt min/avg/max/mdev = 129.359/129.769/129.969/0.241 ms
 ```
 Por el TTL sabemos que la máquina usa Linux, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.11.189 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -75,7 +117,8 @@ Nmap done: 1 IP address (1 host up) scanned in 27.30 seconds
 
 Veo solamente dos puertos abiertos, como no tenemos credenciales para el SSH, vamos directamente con el puerto HTTP.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,80 10.10.11.189 -oN targeted                           
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-10 11:51 CST
@@ -103,8 +146,21 @@ Nmap done: 1 IP address (1 host up) scanned in 13.19 seconds
 
 Bien, ahí viene un servicio, el **nginx 1.18.0**, lo investigaré después. Es momento de analizar la página web.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Entremos.
 
 Shale no se puede, ya sabemos qué hacer en estos casos.
@@ -126,7 +182,8 @@ Ahí vemos el servicio **nginx 1.18.0** y vemos que la página está hecha en PH
 
 Hagamos **Fuzzing** para ver si hay algo de interés.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://precious.htb/FUZZ/      
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -262,8 +319,21 @@ PDF version:     1.4
 ```
 Interesante, vemos que utilizaron una herramienta para crear el PDF, quizá exista un Exploit, vamos a buscarlo.
 
-# Explotación de Vulnerabilidades
-## Buscando un Exploit para pdfkit v0.8.6
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="pdfkit">Buscando un Exploit para pdfkit v0.8.6</h2>
+
 Buscando un Exploit para esta herramienta, me encontré con un **GitHub** con la forma de vulnerarla y usando esta máquina como prueba para obtener acceso. Vamos a usar esta forma, así que vámonos por pasos:
 * Abrimos un servidor web con Python:
 ```
@@ -294,7 +364,8 @@ uid=1001(ruby) gid=1001(ruby) groups=1001(ruby)
 ```
 Estamos dentro. Diría que busquemos la flag, pero no somos usuarios, vamos a buscar que cosillas encontramos aquí.
 
-## Enumerando Ruby
+<h2 id="Ruby">Enumeración Ruby</h2>
+
 Para no mostrar todo lo que vi, que es inútil, voy a poner lo interesante para que sea en corto.
 
 Entramos en la carpeta **/home** para ver si podemos ver la flag, que te recuerdo, no vamos a poder verla:
@@ -371,7 +442,19 @@ lrwxrwxrwx 1 root  root     9 Sep 26  2022 .bash_history -> /dev/null
 -rw-r----- 1 root  henry   33 Apr 10 13:40 user.txt
 henry@precious:~$ cat user.txt
 ```
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Veamos que podemos hacer como usuario:
 ```
 henry@precious:~$ id
@@ -553,7 +636,16 @@ bash-5.1# cat root.txt
 
 Y listo, ya tenemos las flags.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://github.com/shamo0/PDFkit-CMD-Injection
 * https://security.snyk.io/vuln/SNYK-RUBY-PDFKIT-2869795
 * https://github.com/UNICORDev/exploit-CVE-2022-25765
@@ -564,5 +656,7 @@ Y listo, ya tenemos las flags.
 * https://vuldb.com/?id.155282
 * https://cwe.mitre.org/data/definitions/444.html
 
+
+<br>
 # FIN
 

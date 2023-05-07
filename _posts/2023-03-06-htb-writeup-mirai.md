@@ -20,10 +20,46 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-mirai/mirai_logo.png)
+
 Esta es una de las máquinas más sencillas que he hecho, pues no es mucho lo que tienes que hacer, aunque la investigación si me tomo algo de tiempo. Lo que haremos será usar credenciales por defecto del **SO Raspberry Pi** para entrar al **SSH** y con esto obtener las flags, lo único quizá difícil, es la forma de recuperar un **.txt** que fue eliminado.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL sabremos que SO usa la máquina.
 ```
 ping -c 4 10.10.10.48                               
@@ -39,7 +75,8 @@ rtt min/avg/max/mdev = 129.933/130.197/130.701/0.300 ms
 ```
 Ahora sabemos que la máquina usa Linux, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.48 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -75,7 +112,8 @@ Nmap done: 1 IP address (1 host up) scanned in 23.86 seconds
 
 Hay solamente 3 puertos abiertos, es curioso porque es similar a la máquina anterior que hicimos. Hagamos el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,53,80 10.10.10.48 -oN targeted                        
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-03-06 11:23 CST
@@ -107,8 +145,21 @@ Nmap done: 1 IP address (1 host up) scanned in 16.47 seconds
 
 Bien, de momento no tenemos credenciales para el servicio SSH, así que vamos a ver directamente la página del puerto HTTP.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Vamo a entrar.
 
 ![](/assets/images/htb-writeup-mirai/Captura1.png)
@@ -148,7 +199,19 @@ Según la página que encontré, el usuario y contraseña por defecto son:
 
 Vamos a probarlos directamente.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Intentemos entrar usando las credenciales por defecto de **Raspberry Pi**:
 ```
 ssh pi@10.10.10.48                   
@@ -186,7 +249,19 @@ pi@raspberrypi:~/Desktop $ cat user.txt
 ```
 Ahí está la flag del usuario.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Lo de siempre, veamos los permisos que tenemos:
 ```
 pi@raspberrypi:~/Desktop $ id
@@ -274,7 +349,16 @@ Do you know if there is any way to get them back?
 ```
 ¡Ahora sí! Ya tenemos la flag del Root.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://es.wikipedia.org/wiki/Pi-hole
 * https://raspberrypi.cl/que-es-raspberry/
 * https://www.raspberrypi.com/software/
@@ -285,4 +369,6 @@ Do you know if there is any way to get them back?
 * https://tecnonautas.net/como-mostrar-los-caracteres-imprimibles-de-un-archivo-con-el-comando-strings/
 * https://www.stackscale.com/es/blog/inodos-linux/
 
+
+<br>
 # FIN

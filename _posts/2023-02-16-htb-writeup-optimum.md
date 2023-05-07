@@ -24,8 +24,49 @@ tags:
 ![](/assets/images/htb-writeup-optimum/optimum_logo.png)
 La máquina Optimum, bastante sencilla con muchas formas para poder vulnerarla, en mi caso use el **CVE-2014-6287** para poder acceder a la máquina como usuario y aunque intente probar otro exploit **(MS16-032)** para escalar privilegios como **Root**, no funciono, hay más por probar pues el que si sirvió fue el **MS16-098**.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando un Exploit</a></li>
+				<ul>
+                                        <li><a href="#PruebaExp">Probando Exploit: Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (2)</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Realicemos un ping para saber si la máquina está conectada y analizaremos el TTL para saber que SO opera en dicha máquina.
 ```
 ping -c 4 10.10.10.8       
@@ -41,7 +82,8 @@ rtt min/avg/max/mdev = 136.461/137.143/137.939/0.526 ms
 ```
 Gracias al TTL sabemos que la máquina usa Windows. Realicemos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.8 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -73,7 +115,8 @@ Nmap done: 1 IP address (1 host up) scanned in 27.03 seconds
 
 Al parecer, solamente hay un puerto abierto y es el de HTTP. En vez de realizar un escaneo de servicios podríamos usar **whatweb** para saber más sobre dicho puerto pero hagámoslo namas por costumbre.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p80 10.10.10.8 -oN targeted                                            
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-16 13:31 CST
@@ -101,8 +144,21 @@ http://10.10.10.8/ [200 OK] Cookies[HFS_SID], Country[RESERVED][ZZ], HTTPServer[
 ```
 Pues prácticamente lo mismo. Es momento de analizar el puerto HTTP.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Vamos a entrar a ver que show:
 
 ![](/assets/images/htb-writeup-optimum/Captura1.png)
@@ -126,8 +182,21 @@ Vamos a investigar que es este servicio:
 
 Entonces el servicio que está operando, es el **HFS 2.3**. Es momento de buscar un Exploit.
 
-# Explotación Vulnerabilidades
-## Buscando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando un Exploit</h2>
+
 ```
 searchsploit HFS 2.3                 
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -146,7 +215,8 @@ Papers: No Results
 ```
 Ufff, hay varios que podemos probar y que justo son RCE, empecemos con los **.py** primero:
 
-### Probando Exploit: Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (2)
+<h3 id="PruebaExp">Probando Exploit: Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (2)</h3>
+
 ```
 searchsploit -x windows/remote/39161.py
   Exploit: Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (2)
@@ -315,7 +385,19 @@ python2 windows-exploit-suggester.py --database 2023-03-30-mssb.xls -i sysinfo.t
 ```
 Puedes intentar probar con varios, yo en especial voy a probar con el **MS16-098** porque intente probar el **MS16-032** pero no me funciono, casi 3 horas perdidas ahí jeje.
 
-# Post Explotación
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 ```
 searchsploit MS16-098                  
 ----------------------------------------------------------------------------------------------------------- ---------------------------------
@@ -387,7 +469,16 @@ nt authority\system
 ```
 ¡LISTO!, ya entramos, solamente busca la flag en el directorio **Administrator**.
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://www.google.com/search?client=firefox-b-e&q=HFS+2.3+exploit
 * https://www.exploit-db.com/exploits/39161
 * https://github.com/FuzzySecurity/PowerShell-Suite
@@ -398,4 +489,6 @@ nt authority\system
 * https://www.reddit.com/r/learnpython/comments/ft0h3p/windowsexploitsuggester_error/
 * https://tecnonucleous.com/2018/04/05/certutil-exe-podria-permitir-que-los-atacantes-descarguen-malware-mientras-pasan-por-alto-el-antivirus/
 
+
+<br>
 # FIN

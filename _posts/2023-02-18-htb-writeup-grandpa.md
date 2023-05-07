@@ -22,10 +22,51 @@ tags:
   - OSCP Style
 ---
 ![](/assets/images/htb-writeup-grandpa/grandpa_logo.png)
+
 Esta fue una máquina fácil en la cual vamos a vulnerar el servicio HTTP del puerto 80, que está usando **Microsoft IIS 6.0 WebDAV**, usando un Exploit que nos conectara de forma remota a la máquina **(CVE-2017-7269)**, de ahi podemos escalar privilegios a **NT Authority System** aprovechando que tenemos el privilegio **SeImpersonatePrivilege**, justamente usando **Churrasco.exe** (una variante de **Juicy Potato** para sistemas Windows viejos) y utilizando un Payload.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Windows">Enumeración de Windows</a></li>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+		<li><a href="#Nota">Nota Final</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Vamos a lanzar un ping para ver si la máquina está conectada y en base al TTL veamos contra que SO nos enfrentamos.
 ```
 ping -c 4 10.10.10.14 
@@ -41,7 +82,8 @@ rtt min/avg/max/mdev = 130.537/131.209/132.502/0.760 ms
 ```
 Por el TTL sabemos que la máquina usa Windows. Es momento de hacer los escaneos de puertos y servicios.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.14 -oG allPorts
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.
@@ -73,7 +115,8 @@ Nmap done: 1 IP address (1 host up) scanned in 28.40 seconds
 
 Solamente hay un puerto abierto, el HTTP lo que nos dice que tiene una página web abierta, aun así, veamos qué servicio corre.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p80 10.10.10.14 -oN targeted                              
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-18 18:34 CST
@@ -104,7 +147,21 @@ Nmap done: 1 IP address (1 host up) scanned in 13.05 seconds
 
 Mmmmm usa un **Microsoft IIS httpd 6.0**, ya nos hemos enfrentado a algo similar, pero en este caso no hay ningún **servicio FTP**. Es momento de analizar la página web.
 
-# Análisis de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Primero entremos a la página web:
 
 ![](/assets/images/htb-writeup-grandpa/Captura1.png)
@@ -117,7 +174,8 @@ No veo nada que nos pueda ayudar. Veamos lo que nos dice el **Wappalizer**.
 
 Nada, no veo nada que nos ayude. Intentemos hacer **Fuzzing** para ver si puede encontrar algo, aunque lo dudo bastante.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 ```
 wfuzz -c --hc=404,302 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.10.14/FUZZ/   
  /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.
@@ -193,7 +251,19 @@ Papers: No Results
 ```
 Hay varios, pero vamos a probar el que encontramos por internet que es el primero.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 **ADVERTENCIA**: 
 
 Este Exploit me jodio la máquina varias veces porque probe distintos Exploits para escalar privilegios, ten cuidado porque si tienes que salirte forzosamente usando **crtl + c** desde dentro de la máquina, tendrás que reiniciarla, o al menos eso me paso a mi porque el servicio HTTP del puerto 80 dejo de funcionar.
@@ -261,8 +331,21 @@ nt authority\network service
 ```
 ¿Que? ¿Ya somos Root? Pues nel no te emociones, somo Root pero en el servicio de la red, lo cual no nos ayuda mucho. Vamos a ver que hay dentro de la máquina.
 
-# Post Explotación
-## Enumeración de Windows
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Windows">Enumeración de Windows</h2>
+
 ```
 c:\windows\system32\inetsrv>cd C:\
 cd C:\
@@ -481,7 +564,16 @@ nt authority\system
 ```
 Solamente busca las flags en el directorio **Documents and Settings**, cada flag está en su respectivo directorio. 
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
 * https://www.exploit-db.com/exploits/41738
 * https://www.google.com/search?client=firefox-b-e&q=WebDAV+que+es
 * https://github.com/g0rx/iis6-exploit-2017-CVE-2017-7269
@@ -492,11 +584,15 @@ Solamente busca las flags en el directorio **Documents and Settings**, cada flag
 * https://binaryregion.wordpress.com/2021/06/14/privilege-escalation-windows-juicypotato-exe/ 
 * https://binaryregion.wordpress.com/2021/08/04/privilege-escalation-windows-churrasco-exe/
 
-# Nota Final
+
+<h2 id="Nota">Nota Final</h2>
+
 Todo este procedimiento, puedes volverlo a hacer con la **máquina Granny** de HTB, porque es la misma configuración, misma versión de **Windows**, mismo servicio, mismo todo. Por eso puedes repetir todo este procedimiento en dicha máquina.
 
 ![](/assets/images/htb-writeup-grandpa/granny_logo.png)
 
+
+<br>
 # FIN
 
 <!--

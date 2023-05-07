@@ -27,8 +27,50 @@ Esta es una máquina un poco más dificil que las anteriores, siendo que para po
 * Canal de IppSec: https://www.youtube.com/@ippsec
 * Canal de S4vitar: https://www.youtube.com/@s4vitar
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#HTTP">Analizando Puerto 80</a></li>
+				<li><a href="#Burp">BurpSuite</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Fuzz">Fuzzing</a></li>
+			</ul>
+		<li><a href="#Post">Post Explotación</a></li>
+			<ul>
+				<li><a href="#Script">Análisis de Script</a></li>
+				<li><a href="#Ticket">Creando Ticket que Modifica la Bash</a></li>
+			</ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Veamos si la máquina está conectada, además vamos a analizar el TTL para saber que Sistema Operativo usa:
 ```
 ping -c 4 10.10.11.100            
@@ -44,7 +86,8 @@ rtt min/avg/max/mdev = 131.889/132.734/133.827/0.714 ms
 ```
 Por el TTL vemos que la máquina usa Linux. Ahora vamos a hacer un escaneo de puertos.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 Veamos que puertos estan abiertos:
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.11.100 -oG allPorts            
@@ -79,7 +122,8 @@ Nmap done: 1 IP address (1 host up) scanned in 23.66 seconds
 
 Solamente hay dos puertos abiertos, uno con SSH y otro con web abierto. Realicemos un escaneo de servicios, a ver cuáles son.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 ```
 nmap -sC -sV -p22,80 10.10.11.100 -oN targeted                               
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-01-20 11:18 CST
@@ -107,8 +151,21 @@ Nmap done: 1 IP address (1 host up) scanned in 12.39 seconds
 
 De momento no tenemos credeciales para logearnos en SSH, vamos a revisar la pagina web que esta en el puerto 80.
 
-# Análisis de Vulnerabilidades
-## Analizando Puerto 80
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="HTTP">Analizando Puerto 80</h2>
+
 Viendo todos los botones interactivos de la página, algunos no funcionan y otros no sabemos que hacen, con excepción del que dice **Portal**, una vez le demos click nos redirige a una subpágina:
 
 ![](/assets/images/htb-writeup-bountyhunter/Captura1.png)
@@ -130,7 +187,8 @@ Pero ¿qué es XXE Injection? Bueno esto es:
 
 Todo esto viene explicado en la página web guía de **BurpSuite**
 
-## BurpSuite
+<h2 id="Burp">BurpSuite</h2>
+
 Antes de continuar debemos configurar algunas cosas para que **BurpSuite** vaya sin problemas:
 * Instala en el navegador la herramienta **FoxyProxy**
 
@@ -162,7 +220,19 @@ Esto lo hacemos porque **BurpSuite** tiene un proxy configurado por defecto:
 
 Ahora sí, ya estamos listos para trabajar.
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 En la última subpágina, llena los campos con lo que quieras y dale **submit** para que **BurpSuite** pueda interceptar la petición, ósea que debemos obtener un POST, que será con el que vamos a seguir trabajando:
 
 <p align="center">
@@ -214,7 +284,8 @@ development:x:1000:1000:Development:/home/development:/bin/bash
 ```
 Pero con esta subpágina no podremos hacer mucho. Ahora lo que vamos a hacer es buscar más subpáginas ocultas, es tiempo de hacer **FUZZING**.
 
-## Fuzzing
+<h2 id="Fuzz">Fuzzing</h2>
+
 Para hacer el **fuzzing** usaremos la herramienta **wfuzz**, para usarla debemos indicarle bastantes cosillas:
 ```
 wfuzz -c --hc=404 -t 200 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://10.10.11.100/FUZZ.php
@@ -317,7 +388,20 @@ Last login: Wed Jul 21 12:04:13 2021 from 10.10.14.8
 development@bountyhunter:~$ 
 
 ```
-# Post Explotación
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Post" style="text-align:center;">Post Explotación</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 ¡¡ESTAMOS DENTRO!! Es hora de buscar que nos puede ser útil:
 ```
 development@bountyhunter:~$ ls
@@ -350,7 +434,8 @@ Wrong file type.
 ```
 Es momento de analizar el script en Python.
 
-## Analisis de Script
+<h2 id="Script">Análisis de Script</h2>
+
 Vamos a ir deshuesando este script y veremos que hace cada función:
 * En esta función lo que se hace es validar que el archivo sea .md
 ```
@@ -411,6 +496,11 @@ if x.startswith("__Ticket Code:__"):
             code_line = i+1
             continue
 ```
+
+<h2 id="Ticket">Creando Ticket que Modifica la Bash</h2>
+
+Ahora lo que haremos, será crear un script que valide un ticket, que modifique los permisos de la Bash. Para hacerl, hacemos lo siguiente:
+
 Entonces el ticket quedaría así para que sea valido:
 ```
 # Skytrain Inc
@@ -516,9 +606,21 @@ bash-5.0# exit
 exit
 
 ```
-## Links de Investigación
+
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
+
 * https://portswigger.net/web-security/xxe
 * https://www.youtube.com/watch?v=egcvKwYpi0g
 * https://www.youtube.com/watch?v=5axsDhumfhU
 
+<br>
 # FIN

